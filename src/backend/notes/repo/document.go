@@ -6,7 +6,7 @@ type Document struct {
 	ID        int64     `db:"id" json:"id"`
 	Type      string    `db:"type" json:"type"`
 	Content   string    `db:"content" json:"content"`
-	CreatedAt time.Time `db:"created_at" json:"CreatedAt"`
+	CreatedAt time.Time `db:"created_at" json:"createdAt"`
 }
 
 func CreateDocument(dao DAO, documentType string, content string) (*Document, error) {
