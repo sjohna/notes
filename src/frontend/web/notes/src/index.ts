@@ -5,16 +5,26 @@ interface Document {
     type: string;
 }
 
-const container = document.getElementById('container');
+const container = document.getElementById('container') as HTMLDivElement;
+const newNoteText = document.getElementById('newNoteText') as HTMLTextAreaElement;
+const button = document.getElementById('newNoteButton') as HTMLButtonElement;
+button.onclick = createNote;
 
-console.log('getting notes')
-fetch('http://localhost:3000/quicknote', {
-    'method': 'GET'
-})
-.then(async response => renderNotes(await response.json() as Document[]))
-.catch(err => console.log(err))
+fetchNotes();
+
+function fetchNotes() {
+    fetch('http://localhost:3000/quicknote', {
+        'method': 'GET'
+    })
+        .then(async response => renderNotes(await response.json() as Document[]))
+        .catch(err => console.log(err))
+}
 
 function renderNotes(notes: Document[]) {
+    while (container.firstChild) {
+        container.removeChild(container.firstChild)
+    }
+
     for (let note of notes) {
         const noteContainer = document.createElement('div') as HTMLDivElement;
 
@@ -36,6 +46,19 @@ function renderNotes(notes: Document[]) {
         noteContainer.appendChild(contentDiv);
 
         container.appendChild(noteContainer);
-
     }
+}
+
+export function createNote() {
+    const content = newNoteText.value;
+    if (!content) {
+        return;
+    }
+
+    fetch('http://localhost:3000/quicknote', {
+        'method': 'POST',
+        'body': JSON.stringify({content})
+    })
+        .then(() => {fetchNotes(); newNoteText.value = '';} )
+        .catch(err => console.log(err))
 }
