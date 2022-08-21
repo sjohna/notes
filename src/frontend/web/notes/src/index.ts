@@ -29,21 +29,51 @@ function renderNotes(notes: Document[]) {
         container.removeChild(container.firstChild)
     }
 
+    let lastDate: string | undefined;
+
     for (let note of notes) {
         const noteContainer = document.createElement('div') as HTMLDivElement;
 
         noteContainer.style.background = 'lightgray';
         noteContainer.style.margin = '8px';
         noteContainer.style.padding = '4px';
-        noteContainer.style.width = '380px'
+        noteContainer.style.width = '380px';
         noteContainer.style.borderRadius = '10px';
 
         const createdTime = document.createElement('div') as HTMLDivElement;
         const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
+        const createdDate = createdDateTime.format(DateTimeFormatter.ofPattern('y-M-d'))
+        if (createdDate != lastDate) {
+            const dateLineDiv = document.createElement('div') as HTMLDivElement;
+
+            dateLineDiv.style.width = '380px';
+            dateLineDiv.style.display = 'inline-flex';
+            dateLineDiv.style.marginLeft = '8px';
+            dateLineDiv.style.marginRight = '8px';
+            dateLineDiv.style.padding = '4px';
+
+            const leftLine = document.createElement('hr');
+            leftLine.style.flexGrow = '1';
+            const text = document.createElement('span') as HTMLSpanElement;
+            text.style.marginLeft = '24px';
+            text.style.marginRight = '24px';
+            const rightLine = document.createElement('hr');
+            rightLine.style.flexGrow = '1';
+
+            text.innerText = createdDate;
+            dateLineDiv.appendChild(leftLine);
+            dateLineDiv.appendChild(text);
+            dateLineDiv.appendChild(rightLine);
+
+            container.appendChild(dateLineDiv);
+
+            lastDate = createdDate;
+        }
+
         createdTime.innerText = createdDateTime.format(DateTimeFormatter.ofPattern('h:m a').withLocale(Locale.US));
         createdTime.style.fontSize = '12px';
 
-        noteContainer.appendChild(createdTime)
+        noteContainer.appendChild(createdTime);
 
         const contentDiv = document.createElement('div') as HTMLDivElement;
         contentDiv.innerText = note.content;
