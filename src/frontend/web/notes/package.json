@@ -16,5 +16,11 @@
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.10.0"
+  },
+  "dependencies": {
+    "@js-joda/core": "^5.3.1",
+    "@js-joda/locale": "^4.8.2",
+    "@js-joda/locale_en-us": "^4.8.2",
+    "@js-joda/timezone": "^2.12.2"
   }
 }

@@ -35,7 +35,8 @@ func GetQuickNotes(dao DAO) ([]*Document, error) {
 	// language=SQL
 	SQL := `select *
 from document
-where document.type = 'quick_note'`
+where document.type = 'quick_note'
+order by created_at desc`
 
 	quickNotes := make([]*Document, 0)
 	err := dao.Select(&quickNotes, SQL)

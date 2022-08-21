@@ -1,3 +1,7 @@
+import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
+import "@js-joda/timezone";
+import { Locale } from '@js-joda/locale_en-us';
+
 interface Document {
     content: string;
     createdAt: string;
@@ -35,7 +39,8 @@ function renderNotes(notes: Document[]) {
         noteContainer.style.borderRadius = '10px';
 
         const createdTime = document.createElement('div') as HTMLDivElement;
-        createdTime.innerText = new Intl.DateTimeFormat('en').format(Date.parse(note.createdAt));
+        const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
+        createdTime.innerText = createdDateTime.format(DateTimeFormatter.ofPattern('h:m a').withLocale(Locale.US));
         createdTime.style.fontSize = '12px';
 
         noteContainer.appendChild(createdTime)
