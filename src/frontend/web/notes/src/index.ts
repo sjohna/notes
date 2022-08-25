@@ -14,6 +14,15 @@ const newNoteText = document.getElementById('newNoteText') as HTMLTextAreaElemen
 const button = document.getElementById('newNoteButton') as HTMLButtonElement;
 button.onclick = createNote;
 
+newNoteText.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (event.ctrlKey && event.code == "Enter") {
+        createNote();
+    }
+});
+
+newNoteText.style.margin = "8px";
+newNoteText.style.width = "380px";
+
 fetchNotes();
 
 function fetchNotes() {
