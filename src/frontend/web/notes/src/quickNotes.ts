@@ -57,56 +57,67 @@ function renderNotes(noteContainer: HTMLDivElement, notes: Document[]) {
     let lastDate: string | undefined;
 
     for (let note of notes) {
-        const noteDiv = document.createElement('div') as HTMLDivElement;
+        const noteDiv = noteCard(note);
 
-        noteDiv.style.background = 'lightgray';
-        noteDiv.style.margin = '8px';
-        noteDiv.style.padding = '4px';
-        noteDiv.style.width = '380px';
-        noteDiv.style.borderRadius = '10px';
-
-        const createdTime = document.createElement('div') as HTMLDivElement;
         const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
         const createdDate = createdDateTime.format(DateTimeFormatter.ofPattern('y-M-d'))
         if (createdDate != lastDate) {
-            const dateLineDiv = document.createElement('div') as HTMLDivElement;
-
-            dateLineDiv.style.width = '380px';
-            dateLineDiv.style.display = 'inline-flex';
-            dateLineDiv.style.marginLeft = '8px';
-            dateLineDiv.style.marginRight = '8px';
-            dateLineDiv.style.padding = '4px';
-
-            const leftLine = document.createElement('hr');
-            leftLine.style.flexGrow = '1';
-            const text = document.createElement('span') as HTMLSpanElement;
-            text.style.marginLeft = '24px';
-            text.style.marginRight = '24px';
-            const rightLine = document.createElement('hr');
-            rightLine.style.flexGrow = '1';
-
-            text.innerText = createdDate;
-            dateLineDiv.appendChild(leftLine);
-            dateLineDiv.appendChild(text);
-            dateLineDiv.appendChild(rightLine);
-
-            noteContainer.appendChild(dateLineDiv);
+            noteContainer.appendChild(dateHeader(createdDate));
 
             lastDate = createdDate;
         }
 
-        createdTime.innerText = createdDateTime.format(DateTimeFormatter.ofPattern('h:m a').withLocale(Locale.US));
-        createdTime.style.fontSize = '12px';
-
-        noteDiv.appendChild(createdTime);
-
-        const contentDiv = document.createElement('div') as HTMLDivElement;
-        contentDiv.innerText = note.content;
-
-        noteDiv.appendChild(contentDiv);
-
         noteContainer.appendChild(noteDiv);
     }
+}
+
+function dateHeader(date: string) {
+    const dateLineDiv = document.createElement('div') as HTMLDivElement;
+
+    dateLineDiv.style.width = '380px';
+    dateLineDiv.style.display = 'inline-flex';
+    dateLineDiv.style.marginLeft = '8px';
+    dateLineDiv.style.marginRight = '8px';
+    dateLineDiv.style.padding = '4px';
+
+    const leftLine = document.createElement('hr');
+    leftLine.style.flexGrow = '1';
+    const text = document.createElement('span') as HTMLSpanElement;
+    text.style.marginLeft = '24px';
+    text.style.marginRight = '24px';
+    const rightLine = document.createElement('hr');
+    rightLine.style.flexGrow = '1';
+
+    text.innerText = date;
+    dateLineDiv.appendChild(leftLine);
+    dateLineDiv.appendChild(text);
+    dateLineDiv.appendChild(rightLine);
+
+    return dateLineDiv;
+}
+
+function noteCard(note: Document): HTMLDivElement {
+    const noteCardDiv = document.createElement('div') as HTMLDivElement;
+
+    noteCardDiv.style.background = 'lightgray';
+    noteCardDiv.style.margin = '8px';
+    noteCardDiv.style.padding = '4px';
+    noteCardDiv.style.width = '380px';
+    noteCardDiv.style.borderRadius = '10px';
+
+    const createdTime = document.createElement('div') as HTMLDivElement;
+    const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
+    createdTime.innerText = createdDateTime.format(DateTimeFormatter.ofPattern('h:m a').withLocale(Locale.US));
+    createdTime.style.fontSize = '12px';
+
+    noteCardDiv.appendChild(createdTime);
+
+    const contentDiv = document.createElement('div') as HTMLDivElement;
+    contentDiv.innerText = note.content;
+
+    noteCardDiv.appendChild(contentDiv);
+
+    return noteCardDiv;
 }
 
 export function createNote() {
