@@ -6,14 +6,12 @@ let noteContainer: HTMLDivElement;
 let newNoteText: HTMLTextAreaElement;
 
 export function renderQuickNotes(container: HTMLDivElement) {
-    newNoteText = document.createElement('textarea') as HTMLTextAreaElement;
-    const newNoteTextDiv = document.createElement('div') as HTMLDivElement;
-    newNoteTextDiv.appendChild(newNoteText);
-
     const newNoteButton = document.createElement('button') as HTMLButtonElement;
-    const newNoteButtonDiv = document.createElement('div') as HTMLDivElement;
-    newNoteButtonDiv.appendChild(newNoteButton);
     newNoteButton.innerText = 'New Note';
+    newNoteButton.onclick = createNote;
+    container.appendChild(divAround(newNoteButton));
+
+    newNoteText = document.createElement('textarea') as HTMLTextAreaElement;
 
     newNoteText.addEventListener("keydown", (event: KeyboardEvent) => {
         if (event.ctrlKey && event.code == "Enter") {
@@ -24,15 +22,12 @@ export function renderQuickNotes(container: HTMLDivElement) {
     newNoteText.style.margin = "8px";
     newNoteText.style.width = "380px";
 
-    newNoteButton.onclick = createNote;
+    noteContainer = newDiv();
 
-    noteContainer = document.createElement('div') as HTMLDivElement;
-
-    container.appendChild(newNoteButtonDiv);
-    container.appendChild(newNoteTextDiv);
+    container.appendChild(divAround(newNoteText));
     container.appendChild(noteContainer);
 
-    quickNotes$.subscribe(notes => renderNotes(noteContainer, notes))
+    quickNotes$.subscribe(notes => renderNotes(noteContainer, notes));
 }
 
 function renderNotes(noteContainer: HTMLDivElement, notes: Document[]) {
@@ -58,7 +53,7 @@ function renderNotes(noteContainer: HTMLDivElement, notes: Document[]) {
 }
 
 function dateHeader(date: string) {
-    const dateLineDiv = document.createElement('div') as HTMLDivElement;
+    const dateLineDiv = newDiv();
 
     dateLineDiv.style.width = '380px';
     dateLineDiv.style.display = 'inline-flex';
@@ -83,7 +78,7 @@ function dateHeader(date: string) {
 }
 
 function noteCard(note: Document): HTMLDivElement {
-    const noteCardDiv = document.createElement('div') as HTMLDivElement;
+    const noteCardDiv = newDiv();
 
     noteCardDiv.style.background = 'lightgray';
     noteCardDiv.style.margin = '8px';
@@ -91,19 +86,29 @@ function noteCard(note: Document): HTMLDivElement {
     noteCardDiv.style.width = '380px';
     noteCardDiv.style.borderRadius = '10px';
 
-    const createdTime = document.createElement('div') as HTMLDivElement;
+    const createdTime = newDiv();
     const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
     createdTime.innerText = createdDateTime.format(DateTimeFormatter.ofPattern('h:m a').withLocale(Locale.US));
     createdTime.style.fontSize = '12px';
 
     noteCardDiv.appendChild(createdTime);
 
-    const contentDiv = document.createElement('div') as HTMLDivElement;
+    const contentDiv = newDiv();
     contentDiv.innerText = note.content;
 
     noteCardDiv.appendChild(contentDiv);
 
     return noteCardDiv;
+}
+
+function divAround(element: HTMLElement): HTMLDivElement {
+    const div = newDiv()
+    div.appendChild(element);
+    return div;
+}
+
+function newDiv(): HTMLDivElement {
+    return document.createElement('div') as HTMLDivElement;
 }
 
 export function createNote() {
