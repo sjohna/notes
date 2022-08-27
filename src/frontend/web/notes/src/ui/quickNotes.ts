@@ -1,12 +1,6 @@
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
-
-interface Document {
-    content: string;
-    createdAt: string;
-    id: number;
-    type: string;
-}
+import {quickNotes$, Document, fetchQuickNotes} from "../service/quickNotes";
 
 let noteContainer: HTMLDivElement;
 let newNoteText: HTMLTextAreaElement;
@@ -38,15 +32,7 @@ export function renderQuickNotes(container: HTMLDivElement) {
     container.appendChild(newNoteTextDiv);
     container.appendChild(noteContainer);
 
-    fetchNotes();
-}
-
-function fetchNotes() {
-    fetch('http://localhost:3000/quicknote', {
-        'method': 'GET'
-    })
-        .then(async response => renderNotes(noteContainer, await response.json() as Document[]))
-        .catch(err => console.log(err))
+    quickNotes$.subscribe(notes => renderNotes(noteContainer, notes))
 }
 
 function renderNotes(noteContainer: HTMLDivElement, notes: Document[]) {
@@ -130,6 +116,6 @@ export function createNote() {
         'method': 'POST',
         'body': JSON.stringify({content})
     })
-        .then(() => {fetchNotes(); newNoteText.value = '';} )
+        .then(() => {fetchQuickNotes();} )
         .catch(err => console.log(err))
 }
