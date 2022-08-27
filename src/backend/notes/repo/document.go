@@ -14,12 +14,12 @@ func CreateDocument(dao DAO, documentType string, content string) (*Document, er
 	defer logRepoReturn(log)
 
 	// language=SQL
-	SQL := `insert into document (type, content)
-values ($1, $2)
+	SQL := `insert into document (type, content, author_id)
+values ($1, $2, $3)
 returning *`
 
 	var createdQuickNote Document
-	err := dao.Get(&createdQuickNote, SQL, documentType, content)
+	err := dao.Get(&createdQuickNote, SQL, documentType, content, 1)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
@@ -33,7 +33,10 @@ func GetQuickNotes(dao DAO) ([]*Document, error) {
 	defer logRepoReturn(log)
 
 	// language=SQL
-	SQL := `select *
+	SQL := `select id,
+       type,
+       content,
+       created_at
 from document
 where document.type = 'quick_note'
 order by created_at desc`
