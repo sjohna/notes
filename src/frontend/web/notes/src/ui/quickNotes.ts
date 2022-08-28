@@ -1,33 +1,38 @@
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
 import {quickNotes$, Document, fetchQuickNotes, createNote} from "../service/quickNotes";
-import {divAround, newDiv} from "../utility/element";
+import {ElementBuilder, newButton, newDiv, newHr, newSpan, newTextArea} from "../utility/element";
 
 let noteContainer: HTMLDivElement;
 let newNoteText: HTMLTextAreaElement;
 
 export function renderQuickNotes(container: HTMLDivElement) {
-    const newNoteButton = document.createElement('button') as HTMLButtonElement;
-    newNoteButton.innerText = 'New Note';
-    newNoteButton.onclick = () => {createNote(newNoteText.value); newNoteText.value = '';};
-    container.appendChild(divAround(newNoteButton));
+    newButton()
+        .innerText('New Note')
+        .onclick(() => {createNote(newNoteText.value); newNoteText.value = '';})
+        .inDiv()
+        .in(container);
 
-    newNoteText = document.createElement('textarea') as HTMLTextAreaElement;
+    const newNoteTextBuilder = newTextArea()
+        .keydown((event: KeyboardEvent) => {
+            if (event.ctrlKey && event.code == "Enter") {
+                createNote(newNoteText.value);
+                newNoteText.value = '';
+            }
+        })
+        .margin("8px")
+        .width("380px");
 
-    newNoteText.addEventListener("keydown", (event: KeyboardEvent) => {
-        if (event.ctrlKey && event.code == "Enter") {
-            createNote(newNoteText.value);
-            newNoteText.value = '';
-        }
-    });
+    newNoteText = newNoteTextBuilder.element();
 
-    newNoteText.style.margin = "8px";
-    newNoteText.style.width = "380px";
+    newNoteTextBuilder
+        .inDiv()
+        .in(container)
+        .element();
 
-    noteContainer = newDiv();
-
-    container.appendChild(divAround(newNoteText));
-    container.appendChild(noteContainer);
+    noteContainer = newDiv()
+        .in(container)
+        .element();
 
     quickNotes$.subscribe(notes => renderNotes(noteContainer, notes));
 }
@@ -40,8 +45,6 @@ function renderNotes(noteContainer: HTMLDivElement, notes: Document[]) {
     let lastDate: string | undefined;
 
     for (let note of notes) {
-        const noteDiv = noteCard(note);
-
         const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
         const createdDate = createdDateTime.format(DateTimeFormatter.ofPattern('y-M-d'))
         if (createdDate != lastDate) {
@@ -50,55 +53,55 @@ function renderNotes(noteContainer: HTMLDivElement, notes: Document[]) {
             lastDate = createdDate;
         }
 
-        noteContainer.appendChild(noteDiv);
+        noteContainer.appendChild(noteCard(note));
     }
 }
 
-function dateHeader(date: string) {
-    const dateLineDiv = newDiv();
-
-    dateLineDiv.style.width = '380px';
-    dateLineDiv.style.display = 'inline-flex';
-    dateLineDiv.style.marginLeft = '8px';
-    dateLineDiv.style.marginRight = '8px';
-    dateLineDiv.style.padding = '4px';
-
-    const leftLine = document.createElement('hr');
-    leftLine.style.flexGrow = '1';
-    const text = document.createElement('span') as HTMLSpanElement;
-    text.style.marginLeft = '24px';
-    text.style.marginRight = '24px';
-    const rightLine = document.createElement('hr');
-    rightLine.style.flexGrow = '1';
-
-    text.innerText = date;
-    dateLineDiv.appendChild(leftLine);
-    dateLineDiv.appendChild(text);
-    dateLineDiv.appendChild(rightLine);
-
-    return dateLineDiv;
+function dateHeader(date: string): HTMLDivElement {
+    return newDiv()
+        .width('380px')
+        .display('inline-flex')
+        .marginHorizontal('8px')
+        .padding('4px')
+        .withChild( // left line
+            newHr()
+                .flexGrow('1')
+                .element()
+        )
+        .withChild( // date
+            newSpan()
+                .marginHorizontal('24px')
+                .innerText(date)
+                .element()
+        )
+        .withChild( // right line
+            newHr()
+                .flexGrow('1')
+                .element()
+        )
+        .element();
 }
 
 function noteCard(note: Document): HTMLDivElement {
-    const noteCardDiv = newDiv();
-
-    noteCardDiv.style.background = 'lightgray';
-    noteCardDiv.style.margin = '8px';
-    noteCardDiv.style.padding = '4px';
-    noteCardDiv.style.width = '380px';
-    noteCardDiv.style.borderRadius = '10px';
-
-    const createdTime = newDiv();
     const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
-    createdTime.innerText = createdDateTime.format(DateTimeFormatter.ofPattern('h:m a').withLocale(Locale.US));
-    createdTime.style.fontSize = '12px';
+    const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('h:m a').withLocale(Locale.US));
 
-    noteCardDiv.appendChild(createdTime);
-
-    const contentDiv = newDiv();
-    contentDiv.innerText = note.content;
-
-    noteCardDiv.appendChild(contentDiv);
-
-    return noteCardDiv;
+    return newDiv()
+        .background('lightgray')
+        .margin('8px')
+        .padding('4px')
+        .width('380px')
+        .borderRadius('10px')
+        .withChild( // time
+            newDiv()
+                .innerText(createdTimeString)
+                .fontSize('12px')
+                .element()
+        )
+        .withChild( // content
+            newDiv()
+                .innerText(note.content)
+                .element()
+        )
+        .element()
 }
