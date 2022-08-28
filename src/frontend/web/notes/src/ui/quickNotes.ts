@@ -1,6 +1,7 @@
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
-import {quickNotes$, Document, fetchQuickNotes} from "../service/quickNotes";
+import {quickNotes$, Document, fetchQuickNotes, createNote} from "../service/quickNotes";
+import {divAround, newDiv} from "../utility/element";
 
 let noteContainer: HTMLDivElement;
 let newNoteText: HTMLTextAreaElement;
@@ -8,14 +9,15 @@ let newNoteText: HTMLTextAreaElement;
 export function renderQuickNotes(container: HTMLDivElement) {
     const newNoteButton = document.createElement('button') as HTMLButtonElement;
     newNoteButton.innerText = 'New Note';
-    newNoteButton.onclick = createNote;
+    newNoteButton.onclick = () => {createNote(newNoteText.value); newNoteText.value = '';};
     container.appendChild(divAround(newNoteButton));
 
     newNoteText = document.createElement('textarea') as HTMLTextAreaElement;
 
     newNoteText.addEventListener("keydown", (event: KeyboardEvent) => {
         if (event.ctrlKey && event.code == "Enter") {
-            createNote();
+            createNote(newNoteText.value);
+            newNoteText.value = '';
         }
     });
 
@@ -99,28 +101,4 @@ function noteCard(note: Document): HTMLDivElement {
     noteCardDiv.appendChild(contentDiv);
 
     return noteCardDiv;
-}
-
-function divAround(element: HTMLElement): HTMLDivElement {
-    const div = newDiv()
-    div.appendChild(element);
-    return div;
-}
-
-function newDiv(): HTMLDivElement {
-    return document.createElement('div') as HTMLDivElement;
-}
-
-export function createNote() {
-    const content = newNoteText.value;
-    if (!content) {
-        return;
-    }
-
-    fetch('http://localhost:3000/quicknote', {
-        'method': 'POST',
-        'body': JSON.stringify({content})
-    })
-        .then(() => {fetchQuickNotes();} )
-        .catch(err => console.log(err))
 }

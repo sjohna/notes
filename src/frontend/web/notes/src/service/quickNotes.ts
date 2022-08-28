@@ -17,3 +17,16 @@ export function fetchQuickNotes() {
         .then(async response => quickNotes$$.next(await response.json() as Document[]))
         .catch(err => console.log(err))
 }
+
+export function createNote(content: string) {
+    if (!content) {
+        return;
+    }
+
+    fetch('http://localhost:3000/quicknote', {
+        'method': 'POST',
+        'body': JSON.stringify({content})
+    })
+        .then(() => {fetchQuickNotes();} )
+        .catch(err => console.log(err))
+}
