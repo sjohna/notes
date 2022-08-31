@@ -9,23 +9,70 @@ type Document struct {
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`
 }
 
-func CreateDocument(dao DAO, documentType string, content string) (*Document, error) {
-	log := repoFunctionLogger(dao.Logger(), "CreateQuickNote")
+const InternalAuthorID = 1
+
+func CreateDocument(tx *TxDAO, documentType string, content string) (*Document, error) {
+	log := repoFunctionLogger(tx.Logger(), "CreateQuickNote")
 	defer logRepoReturn(log)
 
 	// language=SQL
-	SQL := `insert into document (type, content, author_id)
-values ($1, $2, $3)
-returning *`
+	DocumentSQL := `insert into document (type, author_id)
+values ($1, $2)
+returning id`
 
-	var createdQuickNote Document
-	err := dao.Get(&createdQuickNote, SQL, documentType, content, 1)
+	var createdQuickNoteID int64
+	err := tx.Get(&createdQuickNoteID, DocumentSQL, documentType, InternalAuthorID)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
 	}
 
-	return &createdQuickNote, nil
+	// language=SQL
+	ContentSQL := `insert into document_content (document_id, content, content_type, version)
+values ($1, $2, $3, 1)`
+	_, err = tx.Exec(ContentSQL, createdQuickNoteID, content, "text")
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	createdQuickNote, err := GetQuickNote(tx, createdQuickNoteID)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return createdQuickNote, nil
+}
+
+func GetQuickNote(dao DAO, documentID int64) (*Document, error) {
+	log := repoFunctionLogger(dao.Logger(), "GetQuickNote")
+	defer logRepoReturn(log)
+
+	// language=SQL
+	SQL := `select document.id,
+       document.type,
+       latest_content_version.content,
+       document.created_at
+from document
+join lateral (
+    select document_content.content
+    from document_content
+    where document_content.document_id = document.id
+    order by version desc
+    limit 1
+) latest_content_version on true
+where document.type = 'quick_note'
+  and document.id = $1`
+
+	var quickNote Document
+	err := dao.Get(&quickNote, SQL, documentID)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return &quickNote, nil
 }
 
 func GetQuickNotes(dao DAO) ([]*Document, error) {
@@ -33,11 +80,18 @@ func GetQuickNotes(dao DAO) ([]*Document, error) {
 	defer logRepoReturn(log)
 
 	// language=SQL
-	SQL := `select id,
-       type,
-       content,
-       created_at
+	SQL := `select document.id,
+       document.type,
+       latest_content_version.content,
+       document.created_at
 from document
+join lateral (
+    select document_content.content
+    from document_content
+    where document_content.document_id = document.id
+    order by version desc
+    limit 1
+) latest_content_version on true
 where document.type = 'quick_note'
 order by created_at desc`
 

@@ -13,13 +13,23 @@ func (svc *QuickNoteService) CreateQuickNote(logger *logrus.Entry, content strin
 	log := serviceFunctionLogger(logger, "CreateQuickNote")
 	defer logServiceReturn(log)
 
-	quickNote, err := repo.CreateDocument(svc.Repo.NonTx(log), "quick_note", content)
+	var createdNote *repo.Document
+	err := svc.Repo.SerializableTx(log, func(tx *repo.TxDAO) error {
+		var err error
+		createdNote, err = repo.CreateDocument(tx, "quick_note", content)
+		if err != nil {
+			log.WithError(err).Error()
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
 	}
 
-	return quickNote, nil
+	return createdNote, nil
 }
 
 func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry) ([]*repo.Document, error) {
