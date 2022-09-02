@@ -1,10 +1,11 @@
 import "@js-joda/timezone";
-import {renderQuickNotes} from "./ui/quickNotes";
 import {fetchQuickNotes} from "./service/quickNotes";
+import {QuickNoteView} from "./ui/quickNotes";
 
 const topLevelContainer = document.createElement('div') as HTMLDivElement;
 document.body.appendChild(topLevelContainer);
 
-renderQuickNotes(topLevelContainer);
+const view = new QuickNoteView(topLevelContainer);
+view.setup();
 
 fetchQuickNotes();
