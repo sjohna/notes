@@ -6,8 +6,9 @@ export interface View {
 export class SubViewCollection {
     views: View[] = [];
 
-    add(view: View): void {
+    setupAndAdd(view: View): void {
         this.views.push(view);
+        view.setup();
     }
 
     teardown(): void {

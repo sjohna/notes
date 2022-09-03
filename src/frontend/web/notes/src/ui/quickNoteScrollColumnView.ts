@@ -1,11 +1,13 @@
-import {View} from "../utility/view";
+import {SubViewCollection, View} from "../utility/view";
 import {Document} from "../service/quickNotes"
 import {clear, newDiv, newHr, newSpan} from "../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
-import {Locale} from "@js-joda/locale_en-us";
+import {QuickNoteCardView} from "./quickNoteCardView";
 
 export class QuickNoteScrollColumnView implements View {
     constructor(private container: HTMLElement, private notes: Document[]) {}
+
+    private subViews = new SubViewCollection();
 
     setup(): void {
         clear(this.container);
@@ -21,7 +23,9 @@ export class QuickNoteScrollColumnView implements View {
                 lastDate = createdDate;
             }
 
-            this.container.appendChild(this.noteCard(note));
+            this.subViews.setupAndAdd(
+                new QuickNoteCardView(this.container, note)
+            );
         }
     }
 
@@ -51,29 +55,5 @@ export class QuickNoteScrollColumnView implements View {
                     .element()
             )
             .element();
-    }
-
-    private noteCard(note: Document): HTMLDivElement {
-        const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
-        const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('h:m a').withLocale(Locale.US));
-
-        return newDiv()
-            .background('lightgray')
-            .margin('8px')
-            .padding('4px')
-            .width('380px')
-            .borderRadius('10px')
-            .withChild( // time
-                newDiv()
-                    .innerText(createdTimeString)
-                    .fontSize('12px')
-                    .element()
-            )
-            .withChild( // content
-                newDiv()
-                    .innerText(note.content)
-                    .element()
-            )
-            .element()
     }
 }
