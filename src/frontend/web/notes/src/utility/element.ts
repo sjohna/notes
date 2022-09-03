@@ -104,3 +104,9 @@ export function newSpan(): ElementBuilder<HTMLSpanElement> {
 export function newHr(): ElementBuilder<HTMLHRElement> {
     return new ElementBuilder(document.createElement('hr') as HTMLHRElement);
 }
+
+export function clear(element: HTMLElement): void {
+    while (element.firstChild) {
+        element.removeChild(element.firstChild)
+    }
+}

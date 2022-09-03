@@ -1,69 +1,31 @@
+import {View} from "../utility/view";
+import {Document} from "../service/quickNotes"
+import {clear, newDiv, newHr, newSpan} from "../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
-import {quickNotes$, Document, fetchQuickNotes, createNote} from "../service/quickNotes";
-import {ElementBuilder, newButton, newDiv, newHr, newSpan, newTextArea} from "../utility/element";
-import {View} from "../utility/view";
 
-export class QuickNoteView implements View {
-    noteContainer: HTMLDivElement;
-    newNoteText: HTMLTextAreaElement;
+export class QuickNoteScrollColumnView implements View {
+    constructor(private container: HTMLElement, private notes: Document[]) {}
 
-    constructor(private container: HTMLElement) { }
-
-    public setup(): void {
-        this.renderQuickNotes();
-    }
-
-    public teardown(): void {}
-
-    private renderQuickNotes() {
-        newButton()
-            .innerText('New Note')
-            .onclick(() => {createNote(this.newNoteText.value); this.newNoteText.value = '';})
-            .inDiv()
-            .in(this.container);
-
-        const newNoteTextBuilder = newTextArea()
-            .keydown((event: KeyboardEvent) => {
-                if (event.ctrlKey && event.code == "Enter") {
-                    createNote(this.newNoteText.value);
-                    this.newNoteText.value = '';
-                }
-            })
-            .margin("8px")
-            .width("380px");
-
-        this.newNoteText = newNoteTextBuilder.element();
-
-        newNoteTextBuilder
-            .inDiv()
-            .in(this.container);
-
-        this.noteContainer = newDiv()
-            .in(this.container)
-            .element();
-
-        quickNotes$.subscribe(notes => this.renderNotes(notes));
-    }
-
-    private renderNotes(notes: Document[]) {
-        while (this.noteContainer.firstChild) {
-            this.noteContainer.removeChild(this.noteContainer.firstChild)
-        }
+    setup(): void {
+        clear(this.container);
 
         let lastDate: string | undefined;
 
-        for (let note of notes) {
+        for (let note of this.notes) {
             const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
             const createdDate = createdDateTime.format(DateTimeFormatter.ofPattern('y-M-d'))
             if (createdDate != lastDate) {
-                this.noteContainer.appendChild(this.dateHeader(createdDate));
+                this.container.appendChild(this.dateHeader(createdDate));
 
                 lastDate = createdDate;
             }
 
-            this.noteContainer.appendChild(this.noteCard(note));
+            this.container.appendChild(this.noteCard(note));
         }
+    }
+
+    teardown(): void {
     }
 
     private dateHeader(date: string): HTMLDivElement {
