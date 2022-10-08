@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/sirupsen/logrus"
 	"notes/repo"
+	"time"
 )
 
 type QuickNoteService struct {
@@ -37,6 +38,19 @@ func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry) ([]*repo.Docume
 	defer logServiceReturn(log)
 
 	quickNotes, err := repo.GetQuickNotes(svc.Repo.NonTx(log))
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return quickNotes, nil
+}
+
+func (svc *QuickNoteService) GetQuickNotesInTimeRange(logger *logrus.Entry, begin time.Time, end time.Time) ([]*repo.Document, error) {
+	log := serviceFunctionLogger(logger, "GetQuickNotesInTimeRange")
+	defer logServiceReturn(log)
+
+	quickNotes, err := repo.GetQuickNotesInTimeRange(svc.Repo.NonTx(log), begin, end)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err

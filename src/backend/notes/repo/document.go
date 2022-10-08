@@ -104,3 +104,35 @@ order by created_at desc`
 
 	return quickNotes, nil
 }
+
+func GetQuickNotesInTimeRange(dao DAO, begin time.Time, end time.Time) ([]*Document, error) {
+	log := repoFunctionLogger(dao.Logger(), "GetQuickNotesInTimeRange")
+	defer logRepoReturn(log)
+
+	// TODO: effective_time or similar instead of created_at for documents
+	// language=SQL
+	SQL := `select document.id,
+       document.type,
+       latest_content_version.content,
+       document.created_at
+from document
+join lateral (
+    select document_content.content
+    from document_content
+    where document_content.document_id = document.id
+    order by version desc
+    limit 1
+) latest_content_version on true
+where document.type = 'quick_note'
+  and document.created_at between $1 and $2
+order by created_at desc`
+
+	quickNotes := make([]*Document, 0)
+	err := dao.Select(&quickNotes, SQL, begin, end)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return quickNotes, nil
+}

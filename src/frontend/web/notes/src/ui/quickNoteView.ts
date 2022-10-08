@@ -1,17 +1,17 @@
-import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
-import {Locale} from "@js-joda/locale_en-us";
-import {quickNotes$, Document, fetchQuickNotes, createNote} from "../service/quickNotes";
-import {clear, ElementBuilder, newButton, newDiv, newHr, newSpan, newTextArea} from "../utility/element";
-import {SubViewCollection, View} from "../utility/view";
+import {quickNotes$, Document, createNote, quickNotesInDateRange$, DocumentsForDate} from "../service/quickNotes";
+import {newButton, newCheckbox, newDiv, newTextArea} from "../utility/element";
+import {View} from "../utility/view";
 import {Subscription} from "rxjs";
-import {QuickNoteScrollColumnView} from "./quickNoteScrollColumnView";
+import {QuickNoteColumnView} from "./quickNoteColumnView";
+import {QuickNoteDateColumnsView} from "./quickNoteDateColumnsView";
 
 export class QuickNoteView implements View {
     noteContainer: HTMLDivElement;
     newNoteText: HTMLTextAreaElement;
-    quickNotesSubscription?: Subscription;
 
     private noteView: View;
+
+    private dateColumnViewCheckbox: HTMLInputElement;
 
     constructor(private container: HTMLElement) { }
 
@@ -38,21 +38,40 @@ export class QuickNoteView implements View {
             .inDiv()
             .in(this.container);
 
+        this.dateColumnViewCheckbox = newCheckbox()
+            .onchange((ev: Event) => {
+                this.renderNotes()
+            })
+            .element();
+
+        newDiv()
+            .display('flex')
+            .flexDirection('row')
+            .withChild(this.dateColumnViewCheckbox)
+            .withChild(
+                newDiv()
+                    .innerText('Date Column View')
+                    .element()
+            )
+            .in(this.container);
+
         this.noteContainer = newDiv()
             .in(this.container)
             .element();
-
-        this.quickNotesSubscription = quickNotes$.subscribe(notes => this.renderNotes(notes));
     }
 
     public teardown(): void {
-        this.quickNotesSubscription?.unsubscribe();
         this.noteView?.teardown();
     }
 
-    private renderNotes(notes: Document[]) {
+    private renderNotes() {
+        console.log('parent view render notes')
         this.noteView?.teardown();
-        this.noteView = new QuickNoteScrollColumnView(this.noteContainer, notes);
+        if (this.dateColumnViewCheckbox.checked) {
+            this.noteView = new QuickNoteDateColumnsView(this.noteContainer);
+        } else {
+            this.noteView = new QuickNoteColumnView(this.noteContainer);
+        }
         this.noteView.setup();
     }
 }

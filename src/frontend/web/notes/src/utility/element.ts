@@ -33,7 +33,13 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
-    public keydown(handler: (ev: KeyboardEvent) => void): ElementBuilder<E> {
+    // TODO: figure out the correct type for the event handler
+    public onchange(handler: (ev?:  Event) => void): ElementBuilder<E> {
+        this.el.onchange = handler;
+        return this;
+    }
+
+    public keydown(handler: (ev?: KeyboardEvent) => void): ElementBuilder<E> {
         this.el.addEventListener('keydown', handler);
         return this;
     }
@@ -70,6 +76,11 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public flexDirection(s: string): ElementBuilder<E> {
+        this.el.style.flexDirection = s;
+        return this;
+    }
+
     public background(s: string): ElementBuilder<E> {
         this.el.style.background = s;
         return this;
@@ -103,6 +114,12 @@ export function newSpan(): ElementBuilder<HTMLSpanElement> {
 }
 export function newHr(): ElementBuilder<HTMLHRElement> {
     return new ElementBuilder(document.createElement('hr') as HTMLHRElement);
+}
+
+export function newCheckbox(): ElementBuilder<HTMLInputElement> {
+    const element = document.createElement('input') as HTMLInputElement;
+    element.type = 'checkbox';
+    return new ElementBuilder(element);
 }
 
 export function clear(element: HTMLElement): void {
