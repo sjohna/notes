@@ -41,6 +41,7 @@ export class QuickNoteDateColumnsView implements View {
     }
 
     teardown(): void {
+        this.quickNotesByDateSubscription.unsubscribe();
         this.subViews.teardown();
     }
 
