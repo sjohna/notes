@@ -46,8 +46,12 @@ func main() {
 	}
 
 	repo := repo.Repo{DB: db}
+
 	quickNotesService := service.QuickNoteService{Repo: &repo}
 	quickNotesHandler := handler.QuickNoteHandler{Service: &quickNotesService}
+
+	tagService := service.TagService{Repo: &repo}
+	tagHandler := handler.TagHandler{Service: &tagService}
 
 	// init chi
 
@@ -65,6 +69,7 @@ func main() {
 
 	r.Use(handler.LogRequestContext)
 	quickNotesHandler.ConfigureRoutes(r)
+	tagHandler.ConfigureRoutes(r)
 
 	log.Info("Listening on port 3000")
 
