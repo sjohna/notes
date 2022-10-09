@@ -1,9 +1,7 @@
 import {SubViewCollection, View} from "../utility/view";
 import {DocumentsForDate, quickNotes$, quickNotesInDateRange$} from "../service/quickNotes";
 import {clear, newDiv, newHr, newSpan} from "../utility/element";
-import {QuickNoteColumnView} from "./quickNoteColumnView";
 import {Subscription} from "rxjs";
-import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {QuickNoteCardView} from "./quickNoteCardView";
 
 
@@ -21,7 +19,6 @@ export class QuickNoteDateColumnsView implements View {
 
     private renderNotes(notes: DocumentsForDate[]) {
         clear(this.container);
-        console.log('date column view render notes')
 
         const flexContainer = newDiv()
             .display('flex')

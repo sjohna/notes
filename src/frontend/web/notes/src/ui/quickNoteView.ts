@@ -1,7 +1,6 @@
-import {quickNotes$, Document, createNote, quickNotesInDateRange$, DocumentsForDate} from "../service/quickNotes";
+import {createNote} from "../service/quickNotes";
 import {newButton, newCheckbox, newDiv, newTextArea} from "../utility/element";
 import {View} from "../utility/view";
-import {Subscription} from "rxjs";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
 import {QuickNoteDateColumnsView} from "./quickNoteDateColumnsView";
 
@@ -58,6 +57,8 @@ export class QuickNoteView implements View {
         this.noteContainer = newDiv()
             .in(this.container)
             .element();
+
+        this.renderNotes();
     }
 
     public teardown(): void {
@@ -65,7 +66,6 @@ export class QuickNoteView implements View {
     }
 
     private renderNotes() {
-        console.log('parent view render notes')
         this.noteView?.teardown();
         if (this.dateColumnViewCheckbox.checked) {
             this.noteView = new QuickNoteDateColumnsView(this.noteContainer);

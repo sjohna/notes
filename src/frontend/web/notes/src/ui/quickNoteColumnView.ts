@@ -18,8 +18,6 @@ export class QuickNoteColumnView implements View {
     }
 
     private renderNotes(notes: Document[]) {
-        console.log('column view render notes')
-
         clear(this.container);
         let lastDate: string | undefined;
 

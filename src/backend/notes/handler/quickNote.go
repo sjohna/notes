@@ -101,6 +101,7 @@ func (handler *QuickNoteHandler) GetNotesInDateRange(w http.ResponseWriter, r *h
 
 	beginTLocal := time.Date(beginT.Year(), beginT.Month(), beginT.Day(), 0, 0, 0, 0, localTimeZone)
 	endTLocal := time.Date(endT.Year(), endT.Month(), endT.Day(), 0, 0, 0, 0, localTimeZone)
+	endTLocal = endTLocal.AddDate(0, 0, 1)
 
 	quickNotes, err := handler.Service.GetQuickNotesInTimeRange(log, beginTLocal, endTLocal)
 	if err != nil {

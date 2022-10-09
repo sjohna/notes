@@ -33,7 +33,12 @@ export function createNote(content: string) {
         'method': 'POST',
         'body': JSON.stringify({content})
     })
-        .then(() => {fetchQuickNotes();} )
+        .then(() => {
+            fetchQuickNotes();
+            const today = LocalDate.now();
+            const fourDaysAgo = today.minusDays(4);
+            fetchQuickNotesInDateRange(fourDaysAgo, today);
+        } )
         .catch(err => console.log(err))
 }
 
