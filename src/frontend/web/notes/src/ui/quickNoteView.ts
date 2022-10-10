@@ -1,5 +1,5 @@
 import {createNote} from "../service/quickNotes";
-import {newButton, newCheckbox, newDiv, newTextArea} from "../utility/element";
+import {clear, newButton, newCheckbox, newDiv, newTextArea} from "../utility/element";
 import {View} from "../utility/view";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
 import {QuickNoteDateColumnsView} from "./quickNoteDateColumnsView";
@@ -15,6 +15,7 @@ export class QuickNoteView implements View {
     constructor(private container: HTMLElement) { }
 
     public setup(): void {
+        clear(this.container);
         newButton()
             .innerText('New Note')
             .onclick(() => {createNote(this.newNoteText.value); this.newNoteText.value = '';})

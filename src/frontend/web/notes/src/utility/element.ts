@@ -66,6 +66,11 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public height(s: string): ElementBuilder<E> {
+        this.el.style.height = s;
+        return this;
+    }
+
     public display(s: string): ElementBuilder<E> {
         this.el.style.display = s;
         return this;
