@@ -1,0 +1,9 @@
+# Rename to local.env and remove this line
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=XXXXX
+DB_NAME=notes-dev
+DB_SSL_MODE=disable
+API_PORT=3000
+LOG_DIR=logs
