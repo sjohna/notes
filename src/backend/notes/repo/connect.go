@@ -2,14 +2,17 @@ package repo
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
+	"notes/utilities"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
-func Connect(host string, dbName string) (*sqlx.DB, error) {
+func Connect(log *logrus.Entry, config *utilities.ApplicationConfig) (*sqlx.DB, error) {
 	// TODO: logging
-	connString := fmt.Sprintf("user=postgres password=12qwaszx!@QWASZX dbname=%s sslmode=disable", dbName)
+
+	connString := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=%s password=%s", config.DBHost, config.DBPort, config.DBUser, config.DBName, config.DBSSLMode, config.DBPassword)
 	db, err := sqlx.Connect("postgres", connString)
 
 	if err != nil {

@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net/http"
+	"notes/utilities"
 	"os"
+	"path"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
@@ -16,41 +19,56 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func configureLogging() {
+func configureBasicLogging() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+}
+
+func configureFileLogging(config *utilities.ApplicationConfig) {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 
+	logfilePath := path.Join(config.LogDirectory, "notes.log")
+
 	fileLogger := &lumberjack.Logger{
-		Filename:   "./notes.log",
+		Filename:   logfilePath,
 		MaxSize:    100,
-		MaxBackups: 5,
-		MaxAge:     365,
+		MaxBackups: 10,
+		MaxAge:     36500,
 		Compress:   false,
 	}
 
 	writer := io.MultiWriter(fileLogger, os.Stdout)
 
 	logrus.SetOutput(writer)
-
-	logrus.WithField("startup", true).Info("Logging configured")
 }
 
 func main() {
-	configureLogging()
+	configureBasicLogging()
 	log := logrus.WithField("startup", true)
-	log.Info("Starting up")
+	log.Info("Startup - basic logging configured")
 
-	db, err := repo.Connect("localhost", "notes-dev")
+	config, err := utilities.GetConfigFromEnvFile("local.env")
+
+	if err != nil {
+		log.WithError(err).Error("Failed to read application configuration")
+		return
+	}
+
+	configureFileLogging(config)
+
+	log.Info("Startup - file logging configured")
+
+	db, err := repo.Connect(log, config)
 	if err != nil {
 		log.WithError(err).Error()
 		return
 	}
 
-	repo := repo.Repo{DB: db}
+	repoInstance := repo.Repo{DB: db}
 
-	quickNotesService := service.QuickNoteService{Repo: &repo}
+	quickNotesService := service.QuickNoteService{Repo: &repoInstance}
 	quickNotesHandler := handler.QuickNoteHandler{Service: &quickNotesService}
 
-	tagService := service.TagService{Repo: &repo}
+	tagService := service.TagService{Repo: &repoInstance}
 	tagHandler := handler.TagHandler{Service: &tagService}
 
 	// init chi
@@ -71,9 +89,15 @@ func main() {
 	quickNotesHandler.ConfigureRoutes(r)
 	tagHandler.ConfigureRoutes(r)
 
-	log.Info("Listening on port 3000")
+	portString := fmt.Sprintf(":%d", config.APIPort)
 
-	http.ListenAndServe(":3000", r)
+	log.Infof("Listening on port %d", config.APIPort)
+
+	err = http.ListenAndServe(portString, r)
+
+	if err != nil {
+		log.WithError(err).Error("Error returned from http.ListenAndServe")
+	}
 
 	log.Info("Done")
 }
