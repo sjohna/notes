@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -46,7 +47,17 @@ func main() {
 	log := logrus.WithField("startup", true)
 	log.Info("Startup - basic logging configured")
 
-	config, err := utilities.GetConfigFromEnvFile("local.env")
+	var env string
+	flag.StringVar(&env, "env", "local", "Specify environment to use (default: local)")
+	flag.Parse()
+
+	log.Infof("Environment: %s", env)
+
+	envFile := fmt.Sprintf("%s.env", env)
+
+	log.Infof("Loading configuration from environment file %s", envFile)
+
+	config, err := utilities.GetConfigFromEnvFile(envFile)
 
 	if err != nil {
 		log.WithError(err).Error("Failed to read application configuration")
@@ -56,6 +67,7 @@ func main() {
 	configureFileLogging(config)
 
 	log.Info("Startup - file logging configured")
+	log.Infof("Configuration loaded from %s", envFile)
 
 	db, err := repo.Connect(log, config)
 	if err != nil {
