@@ -1,3 +1,9 @@
+## ignore docker images
+**/backend/docker/images/*
+
+## ignore bakend environment files
+**/backend/notes/*.env
+
 ## Stuff from go .gitignore template:
 
 # Binaries for programs and plugins
