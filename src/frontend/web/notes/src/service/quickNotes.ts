@@ -1,5 +1,6 @@
 import {BehaviorSubject, shareReplay} from "rxjs";
 import {DateTimeFormatter, LocalDate} from "@js-joda/core";
+import {environment} from "../environment/environment";
 
 export interface Document {
     content: string;
@@ -17,7 +18,7 @@ const quickNotes$$ = new BehaviorSubject<Document[]>([]);
 export const quickNotes$ = quickNotes$$.pipe(shareReplay(1));
 
 export function fetchQuickNotes() {
-    fetch('http://localhost:3000/quicknote', {
+    fetch(`${environment.apiUrl}/quicknote`, {
         'method': 'GET'
     })
         .then(async response => quickNotes$$.next(await response.json() as Document[]))
@@ -29,7 +30,7 @@ export function createNote(content: string) {
         return;
     }
 
-    fetch('http://localhost:3000/quicknote', {
+    fetch(`${environment.apiUrl}/quicknote`, {
         'method': 'POST',
         'body': JSON.stringify({content})
     })
@@ -46,7 +47,7 @@ const quickNotesInDateRange$$ = new BehaviorSubject<DocumentsForDate[]>([]);
 export const quickNotesInDateRange$ = quickNotesInDateRange$$.pipe(shareReplay(1));
 
 export function fetchQuickNotesInDateRange(startDate: LocalDate, endDate: LocalDate) {
-    const url = new URL('http://localhost:3000/quicknote/daterange');
+    const url = new URL(`${environment.apiUrl}/quicknote/daterange`);
     url.searchParams.append('begin', startDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
     url.searchParams.append('end', endDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
 

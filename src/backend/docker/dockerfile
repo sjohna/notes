@@ -8,6 +8,8 @@ WORKDIR /app
 
 RUN go build -o server .
 
-CMD [ "/app/server", "-env", "homeserver.env" ]
+CMD [ "/app/server", "-env", "homeserver" ]
 
 EXPOSE 8080/tcp
+
+VOLUME /logs
