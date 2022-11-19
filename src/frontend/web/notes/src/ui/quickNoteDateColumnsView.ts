@@ -3,6 +3,8 @@ import {DocumentsForDate, quickNotes$, quickNotesInDateRange$} from "../service/
 import {clear, newDiv, newHr, newSpan} from "../utility/element";
 import {Subscription} from "rxjs";
 import {QuickNoteCardView} from "./quickNoteCardView";
+import {DateTimeFormatter, LocalDate} from "@js-joda/core";
+import {Locale} from "@js-joda/locale_en-us";
 
 
 export class QuickNoteDateColumnsView implements View {
@@ -30,7 +32,9 @@ export class QuickNoteDateColumnsView implements View {
             console.log(notesOnDate);
             const columnContainer = newDiv().in(flexContainer).element();
 
-            columnContainer.appendChild(this.dateHeader(notesOnDate.date));
+            const noteDate = LocalDate.parse(notesOnDate.date);
+            noteDate.dayOfWeek()
+            columnContainer.appendChild(this.dateHeader(notesOnDate.date + ' (' + noteDate.format(DateTimeFormatter.ofPattern('EEEE').withLocale(Locale.US)) + ')'));
 
             for (let note of notesOnDate.notes) {
                 this.subViews.setupAndAdd(
