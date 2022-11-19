@@ -29,7 +29,6 @@ export class QuickNoteDateColumnsView implements View {
             .element()
 
         for (let notesOnDate of notes) {
-            console.log(notesOnDate);
             const columnContainer = newDiv().in(flexContainer).element();
 
             const noteDate = LocalDate.parse(notesOnDate.date);
