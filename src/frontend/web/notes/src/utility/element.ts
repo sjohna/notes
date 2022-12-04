@@ -102,6 +102,10 @@ export class ElementBuilder<E extends HTMLElement> {
     }
 }
 
+export function newInput(): ElementBuilder<HTMLInputElement> {
+    return new ElementBuilder(document.createElement('input') as HTMLInputElement);
+}
+
 export function newTextArea(): ElementBuilder<HTMLTextAreaElement> {
     return new ElementBuilder(document.createElement('textarea') as HTMLTextAreaElement);
 }
