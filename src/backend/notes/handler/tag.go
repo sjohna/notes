@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/go-chi/chi"
+	c "github.com/sjohna/go-server-common/handler"
 	"gopkg.in/guregu/null.v4"
 	"net/http"
 	"notes/service"
@@ -17,8 +18,8 @@ type TagHandler struct {
 }
 
 func (handler *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
-	log := handlerLogger(r, "CreateTag")
-	defer logHandlerReturn(log)
+	log := c.HandlerLogger(r, "CreateTag")
+	defer c.LogHandlerReturn(log)
 
 	var body struct {
 		Name        string      `json:"name"`
@@ -26,29 +27,30 @@ func (handler *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
 		Color       string      `json:"color"`
 	}
 
-	if err := unmarshalRequestBody(log, r, &body); err != nil {
+	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
 		// TODO: respond client error instead
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
+		return
 	}
 
 	createdTag, err := handler.Service.CreateTag(log, body.Name, body.Description, body.Color)
 	if err != nil {
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
-	respondJSON(log, w, createdTag)
+	c.RespondJSON(log, w, createdTag)
 }
 
 func (handler *TagHandler) GetTags(w http.ResponseWriter, r *http.Request) {
-	log := handlerLogger(r, "GetTags")
-	defer logHandlerReturn(log)
+	log := c.HandlerLogger(r, "GetTags")
+	defer c.LogHandlerReturn(log)
 
 	tags, err := handler.Service.GetTags(log)
 	if err != nil {
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
-	respondJSON(log, w, tags)
+	c.RespondJSON(log, w, tags)
 }

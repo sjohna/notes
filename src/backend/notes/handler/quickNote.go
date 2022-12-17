@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/go-chi/chi"
+	c "github.com/sjohna/go-server-common/handler"
 	"net/http"
 	"notes/repo"
 	"notes/service"
@@ -20,38 +21,39 @@ type QuickNoteHandler struct {
 }
 
 func (handler *QuickNoteHandler) CreateQuickNote(w http.ResponseWriter, r *http.Request) {
-	log := handlerLogger(r, "CreateQuickNote")
-	defer logHandlerReturn(log)
+	log := c.HandlerLogger(r, "CreateQuickNote")
+	defer c.LogHandlerReturn(log)
 
 	var params struct {
 		Content string `json:"content"`
 	}
 
-	if err := unmarshalRequestBody(log, r, &params); err != nil {
+	if err := c.UnmarshalRequestBody(log, r, &params); err != nil {
 		// TODO: respond client error instead
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
+		return
 	}
 
 	createdNote, err := handler.Service.CreateQuickNote(log, params.Content)
 	if err != nil {
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
-	respondJSON(log, w, createdNote)
+	c.RespondJSON(log, w, createdNote)
 }
 
 func (handler *QuickNoteHandler) GetQuickNotes(w http.ResponseWriter, r *http.Request) {
-	log := handlerLogger(r, "GetQuickNotes")
-	defer logHandlerReturn(log)
+	log := c.HandlerLogger(r, "GetQuickNotes")
+	defer c.LogHandlerReturn(log)
 
 	quickNotes, err := handler.Service.GetQuickNotes(log)
 	if err != nil {
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
-	respondJSON(log, w, quickNotes)
+	c.RespondJSON(log, w, quickNotes)
 }
 
 type QuickNotesForDate struct {
@@ -60,8 +62,8 @@ type QuickNotesForDate struct {
 }
 
 func (handler *QuickNoteHandler) GetNotesInDateRange(w http.ResponseWriter, r *http.Request) {
-	log := handlerLogger(r, "GetNotesInDateRange")
-	defer logHandlerReturn(log)
+	log := c.HandlerLogger(r, "GetNotesInDateRange")
+	defer c.LogHandlerReturn(log)
 
 	begin := r.URL.Query().Get("begin")
 	end := r.URL.Query().Get("end")
@@ -82,20 +84,20 @@ func (handler *QuickNoteHandler) GetNotesInDateRange(w http.ResponseWriter, r *h
 
 	beginT, err := time.Parse("2006-01-02", begin)
 	if err != nil {
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
 	endT, err := time.Parse("2006-01-02", end)
 	if err != nil {
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
 	// TODO: store local timezone in DB?
 	localTimeZone, err := time.LoadLocation("America/Denver")
 	if err != nil {
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
@@ -105,7 +107,7 @@ func (handler *QuickNoteHandler) GetNotesInDateRange(w http.ResponseWriter, r *h
 
 	quickNotes, err := handler.Service.GetQuickNotesInTimeRange(log, beginTLocal, endTLocal)
 	if err != nil {
-		respondInternalServerError(log, w, err)
+		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
@@ -138,5 +140,5 @@ func (handler *QuickNoteHandler) GetNotesInDateRange(w http.ResponseWriter, r *h
 		ret = append(ret, currDay)
 	}
 
-	respondJSON(log, w, ret)
+	c.RespondJSON(log, w, ret)
 }

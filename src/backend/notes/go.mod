@@ -8,6 +8,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.6
 	github.com/sirupsen/logrus v1.9.0
+	github.com/sjohna/go-server-common v0.1.1
 	github.com/spf13/viper v1.13.0
 	gopkg.in/guregu/null.v4 v4.0.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
