@@ -22,7 +22,7 @@ export class QuickNoteColumnView implements View {
         let lastDate: string | undefined;
 
         for (let note of notes) {
-            const createdDateTime = ZonedDateTime.parse(note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
+            const createdDateTime = ZonedDateTime.parse(note.documentTime).withZoneSameInstant(ZoneId.of('America/Denver'));
             const createdDate = createdDateTime.format(DateTimeFormatter.ofPattern('y-M-d'))
             if (createdDate != lastDate) {
                 this.container.appendChild(this.dateHeader(createdDate));

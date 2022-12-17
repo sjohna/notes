@@ -5,6 +5,10 @@ import {environment} from "../environment/environment";
 export interface Document {
     content: string;
     createdAt: string;
+    createdAtPrecision: string;
+    documentTime: string;
+    documentTimePrecision: string;
+    insertedAt: string;
     id: number;
     type: string;
 }

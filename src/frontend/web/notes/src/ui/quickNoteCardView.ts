@@ -8,7 +8,7 @@ export class QuickNoteCardView implements View {
     constructor(private container: HTMLElement, private note: Document) {}
 
     setup(): void {
-        const createdDateTime = ZonedDateTime.parse(this.note.createdAt).withZoneSameInstant(ZoneId.of('America/Denver'));
+        const createdDateTime = ZonedDateTime.parse(this.note.documentTime).withZoneSameInstant(ZoneId.of('America/Denver'));
         const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('h:mm a').withLocale(Locale.US));
 
         newDiv()
