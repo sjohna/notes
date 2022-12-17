@@ -61,6 +61,12 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public marginVertical(s: string): ElementBuilder<E> {
+        this.el.style.marginTop = s;
+        this.el.style.marginBottom = s;
+        return this;
+    }
+
     public width(s: string): ElementBuilder<E> {
         this.el.style.width = s;
         return this;
@@ -98,6 +104,16 @@ export class ElementBuilder<E extends HTMLElement> {
 
     public fontSize(s: string): ElementBuilder<E> {
         this.el.style.fontSize = s;
+        return this;
+    }
+
+    public cursor(s: string): ElementBuilder<E> {
+        this.el.style.cursor = s;
+        return this;
+    }
+
+    public textAlign(s: string): ElementBuilder<E> {
+        this.el.style.textAlign = s;
         return this;
     }
 }
