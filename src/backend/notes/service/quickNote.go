@@ -2,20 +2,22 @@ package service
 
 import (
 	"github.com/sirupsen/logrus"
+	r "github.com/sjohna/go-server-common/repo"
+	c "github.com/sjohna/go-server-common/service"
 	"notes/repo"
 	"time"
 )
 
 type QuickNoteService struct {
-	Repo *repo.Repo
+	Repo *r.Repo
 }
 
 func (svc *QuickNoteService) CreateQuickNote(logger *logrus.Entry, content string) (*repo.Document, error) {
-	log := serviceFunctionLogger(logger, "CreateQuickNote")
-	defer logServiceReturn(log)
+	log := c.ServiceFunctionLogger(logger, "CreateQuickNote")
+	defer c.LogServiceReturn(log)
 
 	var createdNote *repo.Document
-	err := svc.Repo.SerializableTx(log, func(tx *repo.TxDAO) error {
+	err := svc.Repo.SerializableTx(log, func(tx *r.TxDAO) error {
 		var err error
 		createdNote, err = repo.CreateDocument(tx, "quick_note", content)
 		if err != nil {
@@ -34,8 +36,8 @@ func (svc *QuickNoteService) CreateQuickNote(logger *logrus.Entry, content strin
 }
 
 func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry) ([]*repo.Document, error) {
-	log := serviceFunctionLogger(logger, "CreateQuickNote")
-	defer logServiceReturn(log)
+	log := c.ServiceFunctionLogger(logger, "CreateQuickNote")
+	defer c.LogServiceReturn(log)
 
 	quickNotes, err := repo.GetQuickNotes(svc.Repo.NonTx(log))
 	if err != nil {
@@ -47,8 +49,8 @@ func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry) ([]*repo.Docume
 }
 
 func (svc *QuickNoteService) GetQuickNotesInTimeRange(logger *logrus.Entry, begin time.Time, end time.Time) ([]*repo.Document, error) {
-	log := serviceFunctionLogger(logger, "GetQuickNotesInTimeRange")
-	defer logServiceReturn(log)
+	log := c.ServiceFunctionLogger(logger, "GetQuickNotesInTimeRange")
+	defer c.LogServiceReturn(log)
 
 	quickNotes, err := repo.GetQuickNotesInTimeRange(svc.Repo.NonTx(log), begin, end)
 	if err != nil {

@@ -1,6 +1,9 @@
 package repo
 
-import "gopkg.in/guregu/null.v4"
+import (
+	c "github.com/sjohna/go-server-common/repo"
+	"gopkg.in/guregu/null.v4"
+)
 
 type Tag struct {
 	ID          int64       `db:"id" json:"id"`
@@ -9,9 +12,9 @@ type Tag struct {
 	Color       string      `db:"color" json:"color"`
 }
 
-func CreateTag(dao DAO, name string, description null.String, color string) (*Tag, error) {
-	log := repoFunctionLogger(dao.Logger(), "CreateTag")
-	defer logRepoReturn(log)
+func CreateTag(dao c.DAO, name string, description null.String, color string) (*Tag, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "CreateTag")
+	defer c.LogRepoReturn(log)
 
 	// language=SQL
 	SQL := `insert into tag(name, description, color)
@@ -28,9 +31,9 @@ returning *`
 	return &createdTag, nil
 }
 
-func GetTags(dao DAO) ([]*Tag, error) {
-	log := repoFunctionLogger(dao.Logger(), "GetTags")
-	defer logRepoReturn(log)
+func GetTags(dao c.DAO) ([]*Tag, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetTags")
+	defer c.LogRepoReturn(log)
 
 	// language=SQL
 	SQL := `select tag.id, tag.name, tag.description, tag.color

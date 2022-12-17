@@ -162,6 +162,10 @@ github.com/sjohna/go-server-common v0.0.0-20221217032845-974c64852336 h1:rU2syW7
 github.com/sjohna/go-server-common v0.0.0-20221217032845-974c64852336/go.mod h1:unahubjVkCVmioCGW7NnIRYAeZXsHIiXayw9OlHVCJ0=
 github.com/sjohna/go-server-common v0.1.1 h1:JnPxoxfiUDoCgCkDIqyiLGaH3Laq8uZHa/2glsSQmdk=
 github.com/sjohna/go-server-common v0.1.1/go.mod h1:unahubjVkCVmioCGW7NnIRYAeZXsHIiXayw9OlHVCJ0=
+github.com/sjohna/go-server-common v0.1.2 h1:ny+JkaDcYD3X9+K0KUGXyCAgi8adcpKgdDA4SEOFyS0=
+github.com/sjohna/go-server-common v0.1.2/go.mod h1:u8I94uiMqNCMHIh65F1nNT/Q9Gfg7GZPORr3nlBpTM4=
+github.com/sjohna/go-server-common v0.1.3 h1:Fl/B0IIK5s08Hqc3Q1JfEB+er2QKxF3Y2vwFbmfrzVc=
+github.com/sjohna/go-server-common v0.1.3/go.mod h1:u8I94uiMqNCMHIh65F1nNT/Q9Gfg7GZPORr3nlBpTM4=
 github.com/spf13/afero v1.8.2 h1:xehSyVa0YnHWsJ49JFljMpg1HX19V6NDZ1fkm1Xznbo=
 github.com/spf13/afero v1.8.2/go.mod h1:CtAatgMJh6bJEIs48Ay/FOnkljP3WeGUG0MC1RfAqwo=
 github.com/spf13/cast v1.5.0 h1:rj3WzYc11XZaIZMPKmwP96zkFEnnAmV8s6XbB2aY32w=

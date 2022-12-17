@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	r "github.com/sjohna/go-server-common/repo"
 	"io"
 	"net/http"
 	"notes/utilities"
@@ -75,7 +76,7 @@ func main() {
 		return
 	}
 
-	repoInstance := repo.Repo{DB: db}
+	repoInstance := r.Repo{DB: db}
 
 	quickNotesService := service.QuickNoteService{Repo: &repoInstance}
 	quickNotesHandler := handler.QuickNoteHandler{Service: &quickNotesService}

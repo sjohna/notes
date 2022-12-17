@@ -2,17 +2,19 @@ package service
 
 import (
 	"github.com/sirupsen/logrus"
+	r "github.com/sjohna/go-server-common/repo"
+	c "github.com/sjohna/go-server-common/service"
 	"gopkg.in/guregu/null.v4"
 	"notes/repo"
 )
 
 type TagService struct {
-	Repo *repo.Repo
+	Repo *r.Repo
 }
 
 func (svc *TagService) CreateTag(logger *logrus.Entry, name string, description null.String, color string) (*repo.Tag, error) {
-	log := serviceFunctionLogger(logger, "CreateTag")
-	defer logServiceReturn(log)
+	log := c.ServiceFunctionLogger(logger, "CreateTag")
+	defer c.LogServiceReturn(log)
 
 	createdTag, err := repo.CreateTag(svc.Repo.NonTx(log), name, description, color)
 	if err != nil {
@@ -24,8 +26,8 @@ func (svc *TagService) CreateTag(logger *logrus.Entry, name string, description 
 }
 
 func (svc *TagService) GetTags(logger *logrus.Entry) ([]*repo.Tag, error) {
-	log := serviceFunctionLogger(logger, "GetTags")
-	defer logServiceReturn(log)
+	log := c.ServiceFunctionLogger(logger, "GetTags")
+	defer c.LogServiceReturn(log)
 
 	tags, err := repo.GetTags(svc.Repo.NonTx(log))
 	if err != nil {

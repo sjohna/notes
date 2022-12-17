@@ -1,6 +1,9 @@
 package repo
 
-import "time"
+import (
+	c "github.com/sjohna/go-server-common/repo"
+	"time"
+)
 
 type Document struct {
 	ID        int64     `db:"id" json:"id"`
@@ -11,9 +14,9 @@ type Document struct {
 
 const InternalAuthorID = 1
 
-func CreateDocument(tx *TxDAO, documentType string, content string) (*Document, error) {
-	log := repoFunctionLogger(tx.Logger(), "CreateQuickNote")
-	defer logRepoReturn(log)
+func CreateDocument(tx *c.TxDAO, documentType string, content string) (*Document, error) {
+	log := c.RepoFunctionLogger(tx.Logger(), "CreateQuickNote")
+	defer c.LogRepoReturn(log)
 
 	// language=SQL
 	DocumentSQL := `insert into document (type, author_id)
@@ -45,9 +48,9 @@ values ($1, $2, $3, 1)`
 	return createdQuickNote, nil
 }
 
-func GetQuickNote(dao DAO, documentID int64) (*Document, error) {
-	log := repoFunctionLogger(dao.Logger(), "GetQuickNote")
-	defer logRepoReturn(log)
+func GetQuickNote(dao c.DAO, documentID int64) (*Document, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNote")
+	defer c.LogRepoReturn(log)
 
 	// language=SQL
 	SQL := `select document.id,
@@ -75,9 +78,9 @@ where document.type = 'quick_note'
 	return &quickNote, nil
 }
 
-func GetQuickNotes(dao DAO) ([]*Document, error) {
-	log := repoFunctionLogger(dao.Logger(), "GetQuickNotes")
-	defer logRepoReturn(log)
+func GetQuickNotes(dao c.DAO) ([]*Document, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes")
+	defer c.LogRepoReturn(log)
 
 	// language=SQL
 	SQL := `select document.id,
@@ -105,9 +108,9 @@ order by created_at desc`
 	return quickNotes, nil
 }
 
-func GetQuickNotesInTimeRange(dao DAO, begin time.Time, end time.Time) ([]*Document, error) {
-	log := repoFunctionLogger(dao.Logger(), "GetQuickNotesInTimeRange")
-	defer logRepoReturn(log)
+func GetQuickNotesInTimeRange(dao c.DAO, begin time.Time, end time.Time) ([]*Document, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotesInTimeRange")
+	defer c.LogRepoReturn(log)
 
 	// TODO: effective_time or similar instead of created_at for documents
 	// language=SQL
