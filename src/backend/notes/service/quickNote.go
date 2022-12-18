@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	r "github.com/sjohna/go-server-common/repo"
 	c "github.com/sjohna/go-server-common/service"
+	"notes/common"
 	"notes/repo"
 	"time"
 )
@@ -36,10 +37,23 @@ func (svc *QuickNoteService) CreateQuickNote(logger *logrus.Entry, content strin
 }
 
 func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry) ([]*repo.Document, error) {
-	log := c.ServiceFunctionLogger(logger, "CreateQuickNote")
+	log := c.ServiceFunctionLogger(logger, "GetQuickNotes")
 	defer c.LogServiceReturn(log)
 
 	quickNotes, err := repo.GetQuickNotes(svc.Repo.NonTx(log))
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return quickNotes, nil
+}
+
+func (svc *QuickNoteService) GetQuickNotes2(logger *logrus.Entry, parameters common.QuickNoteQueryParameters) ([]*repo.Document, error) {
+	log := c.ServiceFunctionLogger(logger, "GetQuickNotes2")
+	defer c.LogServiceReturn(log)
+
+	quickNotes, err := repo.GetQuickNotes2(svc.Repo.NonTx(log), parameters)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err

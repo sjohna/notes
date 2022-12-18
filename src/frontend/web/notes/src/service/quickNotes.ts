@@ -18,14 +18,32 @@ export interface DocumentsForDate {
     notes: Document[];
 }
 
-const quickNotes$$ = new BehaviorSubject<Document[]>([]);
+export interface DocumentQueryParameters {
+    startTime?: string;
+    endTime?: string;
+    sortBy?: string;
+    sortDirection?: string;
+}
+
+export interface QuickNoteResponse {
+    documents: Document[];
+    parameters: DocumentQueryParameters;
+}
+
+const quickNotes$$ = new BehaviorSubject<QuickNoteResponse>(null);
 export const quickNotes$ = quickNotes$$.pipe(shareReplay(1));
 
-export function fetchQuickNotes() {
+export function fetchQuickNotes(sortDirection?: string) {
+    const body: DocumentQueryParameters = {
+        sortBy: 'document_time',
+        sortDirection,
+    }
+
     fetch(`${environment.apiUrl}/quicknote`, {
-        'method': 'GET'
+        'method': 'POST',
+        'body': JSON.stringify(body),
     })
-        .then(async response => quickNotes$$.next(await response.json() as Document[]))
+        .then(async response => quickNotes$$.next(await response.json() as QuickNoteResponse))
         .catch(err => console.log(err))
 }
 
@@ -34,7 +52,7 @@ export function createNote(content: string) {
         return;
     }
 
-    fetch(`${environment.apiUrl}/quicknote`, {
+    fetch(`${environment.apiUrl}/quicknote/create`, {
         'method': 'POST',
         'body': JSON.stringify({content})
     })

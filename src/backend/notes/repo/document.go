@@ -1,7 +1,10 @@
 package repo
 
 import (
+	"errors"
+	"fmt"
 	c "github.com/sjohna/go-server-common/repo"
+	"notes/common"
 	"time"
 )
 
@@ -99,6 +102,84 @@ func GetQuickNotes(dao c.DAO) ([]*Document, error) {
 
 	quickNotes := make([]*Document, 0)
 	err := dao.Select(&quickNotes, SQL)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return quickNotes, nil
+}
+
+var allowedSortColumns = []string{
+	"created_at",
+	"document_time",
+	"inserted_at",
+}
+
+func appendQueryParameters(query string, parameters common.QuickNoteQueryParameters) (string, []interface{}, error) {
+	newQuery := query
+
+	args := make([]interface{}, 0)
+
+	// TODO: make this more general. Right now, it assumes there's already a where clause, so adds everything with and
+	if parameters.StartTime.Valid && parameters.EndTime.Valid {
+		newQuery += " and document.document_time between $1 and $2"
+		args = append(args, parameters.StartTime.Time, parameters.EndTime.Time)
+	} else if parameters.StartTime.Valid {
+		newQuery += " and document.document_time >= $1"
+		args = append(args, parameters.StartTime.Time)
+	} else if parameters.EndTime.Valid {
+		newQuery += " and document.document_time <= $1"
+		args = append(args, parameters.EndTime.Time)
+	}
+
+	if parameters.SortBy.Valid {
+		var sortColumn string
+		for _, allowedCol := range allowedSortColumns {
+			if parameters.SortBy.String == allowedCol {
+				sortColumn = allowedCol
+				break
+			}
+		}
+
+		if len(sortColumn) == 0 {
+			// TODO: custom error for this
+			return "", nil, errors.New(fmt.Sprintf("Invalid sortBy: %s", parameters.SortBy.String))
+		}
+
+		sortDirection := " desc"
+		if parameters.SortDirection.Valid {
+			if parameters.SortDirection.String == "ascending" {
+				sortDirection = " asc"
+			} else if parameters.SortDirection.String == "descending" {
+				sortDirection = " desc"
+			} else {
+				return "", nil, errors.New(fmt.Sprintf("Invalid sortDirection: %s", parameters.SortDirection.String))
+			}
+		}
+
+		sortQuery := fmt.Sprintf(" order by %s", sortColumn)
+		newQuery += sortQuery
+		newQuery += sortDirection
+	} else {
+		newQuery += " order by document_time desc"
+	}
+
+	return newQuery, args, nil
+}
+
+func GetQuickNotes2(dao c.DAO, parameters common.QuickNoteQueryParameters) ([]*Document, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes2")
+	defer c.LogRepoReturn(log)
+
+	SQL, args, err := appendQueryParameters(quickNoteQueryBase, parameters)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	quickNotes := make([]*Document, 0)
+	err = dao.Select(&quickNotes, SQL, args...)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err

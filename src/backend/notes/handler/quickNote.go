@@ -5,15 +5,17 @@ import (
 	"github.com/go-chi/chi"
 	c "github.com/sjohna/go-server-common/handler"
 	"net/http"
+	"notes/common"
 	"notes/repo"
 	"notes/service"
 	"time"
 )
 
 func (handler *QuickNoteHandler) ConfigureRoutes(base *chi.Mux) {
-	base.Post("/quicknote", handler.CreateQuickNote)
+	base.Post("/quicknote/create", handler.CreateQuickNote)
 	base.Get("/quicknote", handler.GetQuickNotes)
 	base.Get("/quicknote/daterange", handler.GetNotesInDateRange)
+	base.Post("/quicknote", handler.GetQuickNotes2)
 }
 
 type QuickNoteHandler struct {
@@ -54,6 +56,34 @@ func (handler *QuickNoteHandler) GetQuickNotes(w http.ResponseWriter, r *http.Re
 	}
 
 	c.RespondJSON(log, w, quickNotes)
+}
+
+func (handler *QuickNoteHandler) GetQuickNotes2(w http.ResponseWriter, r *http.Request) {
+	log := c.HandlerLogger(r, "GetQuickNotes")
+	defer c.LogHandlerReturn(log)
+
+	var body common.QuickNoteQueryParameters
+	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
+		// TODO: respond client error instead
+		c.RespondInternalServerError(log, w, err)
+		return
+	}
+
+	quickNotes, err := handler.Service.GetQuickNotes2(log, body)
+	if err != nil {
+		c.RespondInternalServerError(log, w, err)
+		return
+	}
+
+	var response struct {
+		Documents  []*repo.Document                `json:"documents"`
+		Parameters common.QuickNoteQueryParameters `json:"parameters"`
+	}
+
+	response.Documents = quickNotes
+	response.Parameters = body
+
+	c.RespondJSON(log, w, response)
 }
 
 type QuickNotesForDate struct {
