@@ -59,7 +59,7 @@ func (handler *QuickNoteHandler) GetQuickNotes(w http.ResponseWriter, r *http.Re
 }
 
 func (handler *QuickNoteHandler) GetQuickNotes2(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "GetQuickNotes")
+	log := c.HandlerLogger(r, "GetQuickNotes2")
 	defer c.LogHandlerReturn(log)
 
 	var body common.QuickNoteQueryParameters
