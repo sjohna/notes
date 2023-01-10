@@ -26,7 +26,10 @@ func configureBasicLogging() {
 }
 
 func configureFileLogging(config *utilities.ApplicationConfig) {
-	logrus.SetFormatter(&logrus.JSONFormatter{})
+	formatter := logrus.JSONFormatter{
+		TimestampFormat: "2006-01-02T15:04:05.999999999Z07:00",
+	}
+	logrus.SetFormatter(&formatter)
 
 	logfilePath := path.Join(config.LogDirectory, "notes.log")
 
