@@ -8,3 +8,8 @@ type QuickNoteQueryParameters struct {
 	SortBy        null.String `json:"sortBy"`
 	SortDirection null.String `json:"sortDirection"`
 }
+
+type TotalNotesOnDaysQueryParameters struct {
+	StartDate null.String `json:"startDate"`
+	EndDate   null.String `json:"endDate"`
+}

@@ -74,3 +74,16 @@ func (svc *QuickNoteService) GetQuickNotesInTimeRange(logger *logrus.Entry, begi
 
 	return quickNotes, nil
 }
+
+func (svc *QuickNoteService) GetTotalNotesOnDays(logger *logrus.Entry, parameters common.TotalNotesOnDaysQueryParameters) ([]*repo.DocumentsOnDate, error) {
+	log := c.ServiceFunctionLogger(logger, "GetTotalNotesOnDays")
+	defer c.LogServiceReturn(log)
+
+	quickNotes, err := repo.GetTotalDocumentsOnDates(svc.Repo.NonTx(log), parameters)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return quickNotes, nil
+}

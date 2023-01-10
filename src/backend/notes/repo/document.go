@@ -19,6 +19,11 @@ type Document struct {
 	InsertedAt            time.Time `db:"inserted_at" json:"insertedAt"`
 }
 
+type DocumentsOnDate struct {
+	Date  string `db:"date" json:"date"`
+	Count int    `db:"count" json:"count"`
+}
+
 const InternalAuthorID = 1
 
 func CreateDocument(tx *c.TxDAO, documentType string, content string) (*Document, error) {
@@ -205,4 +210,45 @@ order by created_at desc`
 	}
 
 	return quickNotes, nil
+}
+
+func totalDocumentsOnDatesQuery(parameters common.TotalNotesOnDaysQueryParameters) (string, []interface{}) {
+	args := make([]interface{}, 0)
+
+	// language=SQL
+	query := `select document.document_time::date as date,
+       count(*)
+from document`
+
+	if parameters.StartDate.Valid && parameters.EndDate.Valid {
+		query += " where document.document_time::date between $1 and $2"
+		args = append(args, parameters.StartDate.String, parameters.EndDate.String)
+	} else if parameters.StartDate.Valid {
+		query += " where document.document_time::date >= $1"
+		args = append(args, parameters.StartDate.String)
+	} else if parameters.EndDate.Valid {
+		query += " where document.document_time::date <= $1"
+		args = append(args, parameters.EndDate.String)
+	}
+
+	query += " group by date order by date asc"
+
+	return query, args
+}
+
+// TODO: make this take more generic filter criteria (tags, authors, sources, etc.)
+func GetTotalDocumentsOnDates(dao c.DAO, parameters common.TotalNotesOnDaysQueryParameters) ([]*DocumentsOnDate, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetTotalDocumentsOnDates")
+	defer c.LogRepoReturn(log)
+
+	SQL, args := totalDocumentsOnDatesQuery(parameters)
+
+	documentsOnDates := make([]*DocumentsOnDate, 0)
+	err := dao.Select(&documentsOnDates, SQL, args...)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return documentsOnDates, nil
 }
