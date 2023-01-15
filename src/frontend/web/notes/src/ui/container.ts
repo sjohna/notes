@@ -1,33 +1,28 @@
 import {View} from "../utility/view";
-import {clear, newCheckbox, newDiv} from "../utility/element";
+import {AnyBuilder, clear, DivBuilder, newCheckbox, div, flexRow} from "../utility/element";
 import {TagView} from "./tagView";
 import {QuickNoteView} from "./quickNoteView";
 
 
 export class ContainerView implements View {
-    constructor(private container: HTMLElement) {}
+    constructor(private container: AnyBuilder) {}
 
-    private tabBar: HTMLDivElement;
+    private tabBar: DivBuilder;
 
-    private mainContainer?: HTMLDivElement;
+    private mainContainer?: DivBuilder;
 
     private view: View;
 
     private selectedTab?: string;
 
     setup(): void {
-        this.tabBar = newDiv()
-            .display('flex')
-            .flexDirection('row')
-            .marginVertical('4px')
+        this.tabBar = flexRow()
             .in(this.container)
-            .element();
+            .marginVertical('4px');
 
         this.selectedTab = 'notes';
 
-        this.mainContainer = newDiv()
-            .in(this.container)
-            .element();
+        this.mainContainer = div().in(this.container);
 
         this.renderView();
     }
@@ -35,11 +30,10 @@ export class ContainerView implements View {
     private renderTabs() {
         clear(this.tabBar);
 
-        const notesTab = newDiv()
+        const notesTab = div('Notes')
             .width('100px')
             .cursor('pointer')
             .textAlign('center')
-            .innerText('Notes')
             .onclick(() => {this.selectedTab = 'notes'; this.renderView();})
 
         if (this.selectedTab === 'notes') {
@@ -48,11 +42,10 @@ export class ContainerView implements View {
 
         notesTab.in(this.tabBar);
 
-        const tagsTab = newDiv()
+        const tagsTab = div('Tags')
             .width('100px')
             .cursor('pointer')
             .textAlign('center')
-            .innerText('Tags')
             .onclick(() => {this.selectedTab = 'tags'; this.renderView();})
 
         if (this.selectedTab === 'tags') {

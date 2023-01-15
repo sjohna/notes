@@ -2,9 +2,9 @@ import "@js-joda/timezone";
 import {fetchQuickNotes, fetchQuickNotesInDateRange} from "./service/quickNotes";
 import {LocalDate} from "@js-joda/core";
 import {ContainerView} from "./ui/container";
+import {div} from "./utility/element";
 
-const topLevelContainer = document.createElement('div') as HTMLDivElement;
-document.body.appendChild(topLevelContainer);
+const topLevelContainer = div().inElement(document.body);
 
 const view = new ContainerView(topLevelContainer);
 view.setup();

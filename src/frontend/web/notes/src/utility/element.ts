@@ -9,16 +9,32 @@ export class ElementBuilder<E extends HTMLElement> {
         return this.el;
     }
 
-    public withChild(child: HTMLElement): ElementBuilder<E> {
+    public withChildElement(child: HTMLElement): ElementBuilder<E> {
         this.el.appendChild(child);
         return this;
     }
 
-    public inDiv(): ElementBuilder<HTMLDivElement> {
-        return newDiv().withChild(this.el);
+    public withChild(child: AnyBuilder): ElementBuilder<E> {
+        return this.withChildElement(child.element());
     }
 
-    public in(parent: HTMLElement): ElementBuilder<E> {
+    public withChildren(children: Array<AnyBuilder>): ElementBuilder<E> {
+        for (let child of children) {
+            this.withChild(child);
+        }
+        return this;
+    }
+
+    public inDiv(): ElementBuilder<HTMLDivElement> {
+        return div().withChild(this);
+    }
+
+    public in<P extends HTMLElement>(parent: ElementBuilder<P>): ElementBuilder<E> {
+        parent.withChild(this);
+        return this;
+    }
+
+    public inElement(parent: HTMLElement): ElementBuilder<E> {
         parent.appendChild(this.el);
         return this;
     }
@@ -121,28 +137,58 @@ export class ElementBuilder<E extends HTMLElement> {
         this.el.style.border = s;
         return this;
     }
+
+    public clone(innerText?: string): ElementBuilder<E> {
+        const builder = new ElementBuilder<E>(this.element().cloneNode() as E);
+        if (innerText !== undefined && innerText !== null) {
+            builder.innerText(innerText);
+        }
+        return builder;
+    }
 }
 
-export function newInput(): ElementBuilder<HTMLInputElement> {
+export type AnyBuilder = ElementBuilder<HTMLElement>;
+export type DivBuilder = ElementBuilder<HTMLDivElement>;
+export type InputBuilder = ElementBuilder<HTMLInputElement>;
+
+export function input(): ElementBuilder<HTMLInputElement> {
     return new ElementBuilder(document.createElement('input') as HTMLInputElement);
 }
 
-export function newTextArea(): ElementBuilder<HTMLTextAreaElement> {
+export function textArea(): ElementBuilder<HTMLTextAreaElement> {
     return new ElementBuilder(document.createElement('textarea') as HTMLTextAreaElement);
 }
 
-export function newButton(): ElementBuilder<HTMLButtonElement> {
-    return new ElementBuilder(document.createElement('button') as HTMLButtonElement);
+export function button(innerText?: string): ElementBuilder<HTMLButtonElement> {
+    const builder = new ElementBuilder(document.createElement('button') as HTMLButtonElement);
+    if (innerText !== undefined && innerText !== null) {
+        builder.innerText(innerText);
+    }
+    return builder;
 }
 
-export function newDiv(): ElementBuilder<HTMLDivElement> {
-    return new ElementBuilder(document.createElement('div') as HTMLDivElement);
+export function div(innerText?: string): ElementBuilder<HTMLDivElement> {
+    const builder = new ElementBuilder(document.createElement('div') as HTMLDivElement);
+    if (innerText !== undefined && innerText !== null) {
+        builder.innerText(innerText);
+    }
+    return builder;
 }
 
-export function newSpan(): ElementBuilder<HTMLSpanElement> {
-    return new ElementBuilder(document.createElement('span') as HTMLSpanElement);
+export function flexRow(): ElementBuilder<HTMLDivElement> {
+    return new ElementBuilder(document.createElement('div') as HTMLDivElement)
+        .display('flex')
+        .flexDirection('row');
 }
-export function newHr(): ElementBuilder<HTMLHRElement> {
+
+export function span(innerText?: string): ElementBuilder<HTMLSpanElement> {
+    const builder = new ElementBuilder(document.createElement('span') as HTMLDivElement);
+    if (innerText !== undefined && innerText !== null) {
+        builder.innerText(innerText);
+    }
+    return builder;
+}
+export function hr(): ElementBuilder<HTMLHRElement> {
     return new ElementBuilder(document.createElement('hr') as HTMLHRElement);
 }
 
@@ -152,7 +198,11 @@ export function newCheckbox(): ElementBuilder<HTMLInputElement> {
     return new ElementBuilder(element);
 }
 
-export function clear(element: HTMLElement): void {
+export function clear(builder: AnyBuilder): void {
+    clearElement(builder.element());
+}
+
+export function clearElement(element: HTMLElement): void {
     while (element.firstChild) {
         element.removeChild(element.firstChild)
     }

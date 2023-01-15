@@ -1,43 +1,37 @@
 import {SubViewCollection, View} from "../utility/view";
 import {Document, fetchQuickNotes, quickNotes$} from "../service/quickNotes"
-import {clear, newCheckbox, newDiv, newHr, newSpan} from "../utility/element";
+import {AnyBuilder, clear, DivBuilder, InputBuilder, newCheckbox, div, hr, span, flexRow} from "../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {QuickNoteCardView} from "./quickNoteCardView";
 import {Subscription} from "rxjs";
 
 export class QuickNoteColumnView implements View {
-    constructor(private container: HTMLElement) {}
+    constructor(private container: AnyBuilder) {}
 
     private subViews = new SubViewCollection();
 
     quickNotesSubscription?: Subscription;
 
-    private noteContainer?: HTMLDivElement;
-    private reverseOrderCheckbox?: HTMLInputElement;
+    private noteContainer?: DivBuilder;
+    private reverseOrderCheckbox?: InputBuilder;
 
     setup(): void {
         clear(this.container)
 
         this.reverseOrderCheckbox = newCheckbox()
             .onchange((ev: Event) => {
-                fetchQuickNotes(this.reverseOrderCheckbox.checked ? "ascending" : "descending");
-            })
-            .element();
+                fetchQuickNotes(this.reverseOrderCheckbox.element().checked ? "ascending" : "descending");
+            });
 
-        newDiv()
-            .display('flex')
-            .flexDirection('row')
+        flexRow()
             .withChild(this.reverseOrderCheckbox)
             .withChild(
-                newDiv()
-                    .innerText('Reverse Order')
-                    .element()
+                div('Reverse Order')
             )
             .in(this.container);
 
-        this.noteContainer = newDiv()
-            .in(this.container)
-            .element();
+        this.noteContainer = div()
+            .in(this.container);
 
         this.quickNotesSubscription?.unsubscribe();
         this.quickNotesSubscription = quickNotes$.subscribe(notes => this.renderNotes(notes?.documents));
@@ -56,7 +50,7 @@ export class QuickNoteColumnView implements View {
             const createdDateTime = ZonedDateTime.parse(note.documentTime).withZoneSameInstant(ZoneId.of('America/Denver'));
             const createdDate = createdDateTime.format(DateTimeFormatter.ofPattern('y-M-d'))
             if (createdDate !== lastDate) {
-                this.noteContainer.appendChild(this.dateHeader(createdDate));
+                this.noteContainer.withChild(this.dateHeader(createdDate));
 
                 lastDate = createdDate;
             }
@@ -71,28 +65,19 @@ export class QuickNoteColumnView implements View {
         this.quickNotesSubscription?.unsubscribe();
     }
 
-    private dateHeader(date: string): HTMLDivElement {
-        return newDiv()
+    private dateHeader(date: string): DivBuilder {
+        return div()
             .width('380px')
             .display('inline-flex')
             .marginHorizontal('8px')
             .padding('4px')
-            .withChild( // left line
-                newHr()
-                    .flexGrow('1')
-                    .element()
-            )
-            .withChild( // date
-                newSpan()
-                    .marginHorizontal('24px')
-                    .innerText(date)
-                    .element()
-            )
-            .withChild( // right line
-                newHr()
-                    .flexGrow('1')
-                    .element()
-            )
-            .element();
+            .withChildren([
+                hr()
+                    .flexGrow('1'),
+                span(date)
+                    .marginHorizontal('24px'),
+                hr()
+                    .flexGrow('1'),
+            ]);
     }
 }

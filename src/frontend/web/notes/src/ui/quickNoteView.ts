@@ -1,30 +1,38 @@
 import {createNote} from "../service/quickNotes";
-import {clear, newButton, newCheckbox, newDiv, newTextArea} from "../utility/element";
+import {
+    AnyBuilder,
+    clear,
+    DivBuilder,
+    InputBuilder,
+    button,
+    newCheckbox,
+    div,
+    textArea, flexRow
+} from "../utility/element";
 import {View} from "../utility/view";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
 import {QuickNoteDateColumnsView} from "./quickNoteDateColumnsView";
 import {QuickNoteCalendarView} from "./quickNoteCalendarView";
 
 export class QuickNoteView implements View {
-    noteContainer: HTMLDivElement;
+    noteContainer: DivBuilder;
     newNoteText: HTMLTextAreaElement;
 
     private noteView: View;
 
-    private dateColumnViewCheckbox: HTMLInputElement;
-    private calendarViewCheckbox: HTMLInputElement;
+    private dateColumnViewCheckbox: InputBuilder;
+    private calendarViewCheckbox: InputBuilder;
 
-    constructor(private container: HTMLElement) { }
+    constructor(private container: AnyBuilder) { }
 
     public setup(): void {
         clear(this.container);
-        newButton()
-            .innerText('New Note')
+        button('New Note')
             .onclick(() => {createNote(this.newNoteText.value); this.newNoteText.value = '';})
             .inDiv()
             .in(this.container);
 
-        const newNoteTextBuilder = newTextArea()
+        const newNoteTextBuilder = textArea()
             .keydown((event: KeyboardEvent) => {
                 if (event.ctrlKey && event.code == "Enter") {
                     createNote(this.newNoteText.value);
@@ -42,43 +50,32 @@ export class QuickNoteView implements View {
 
         this.dateColumnViewCheckbox = newCheckbox()
             .onchange((ev: Event) => {
-                this.calendarViewCheckbox.checked = false;
+                this.calendarViewCheckbox.element().checked = false;
                 this.renderNotes();
-            })
-            .element();
+            });
 
         this.calendarViewCheckbox = newCheckbox()
             .onchange((ev: Event) => {
-                this.dateColumnViewCheckbox.checked = false;
+                this.dateColumnViewCheckbox.element().checked = false;
                 this.renderNotes();
-            })
-            .element();
+            });
 
-        newDiv()
-            .display('flex')
-            .flexDirection('row')
-            .withChild(this.dateColumnViewCheckbox)
-            .withChild(
-                newDiv()
-                    .innerText('Date Column View')
-                    .element()
-            )
+        flexRow()
+            .withChildren([
+                this.dateColumnViewCheckbox,
+                div('Date Column View'),
+            ])
             .in(this.container);
 
-        newDiv()
-            .display('flex')
-            .flexDirection('row')
-            .withChild(this.calendarViewCheckbox)
-            .withChild(
-                newDiv()
-                    .innerText('Calendar View')
-                    .element()
-            )
+        flexRow()
+            .withChildren([
+                this.calendarViewCheckbox,
+                div('Calendar View'),
+            ])
             .in(this.container);
 
-        this.noteContainer = newDiv()
-            .in(this.container)
-            .element();
+        this.noteContainer = div()
+            .in(this.container);
 
         this.renderNotes();
     }
@@ -89,9 +86,9 @@ export class QuickNoteView implements View {
 
     private renderNotes() {
         this.noteView?.teardown();
-        if (this.dateColumnViewCheckbox.checked) {
+        if (this.dateColumnViewCheckbox.element().checked) {
             this.noteView = new QuickNoteDateColumnsView(this.noteContainer);
-        } else if (this.calendarViewCheckbox.checked) {
+        } else if (this.calendarViewCheckbox.element().checked) {
             this.noteView = new QuickNoteCalendarView(this.noteContainer);
         } else {
             this.noteView = new QuickNoteColumnView(this.noteContainer);

@@ -1,18 +1,18 @@
 import {View} from "../utility/view";
 import {Subscription} from "rxjs";
 import {createTag, fetchTags, Tag, tags$} from "../service/tags";
-import {clear, newButton, newDiv, newInput} from "../utility/element";
+import {AnyBuilder, clear, DivBuilder, InputBuilder, button, div, input, flexRow} from "../utility/element";
 
 export class TagView implements View {
-    constructor(private container: HTMLElement) {}
+    constructor(private container: AnyBuilder) {}
 
-    private tagListContainer: HTMLDivElement;
+    private tagListContainer: DivBuilder;
 
     private tagSubscription?: Subscription;
 
-    private tagNameElement: HTMLInputElement;
-    private tagDescriptionElement: HTMLInputElement;
-    private tagColorElement: HTMLInputElement;
+    private tagNameElement: InputBuilder;
+    private tagDescriptionElement: InputBuilder;
+    private tagColorElement: InputBuilder;
 
     setup(): void {
         this.tagSubscription?.unsubscribe();
@@ -25,95 +25,66 @@ export class TagView implements View {
     private render() {
         clear(this.container);
 
-        this.tagNameElement = newInput()
-            .width('100%')
-            .element();
-        this.tagDescriptionElement = newInput()
-            .width('100%')
-            .element();
-        this.tagColorElement = newInput()
-            .width('100%')
-            .element();
+        this.tagNameElement = input()
+            .width('100%');
+        this.tagDescriptionElement = input()
+            .width('100%');
+        this.tagColorElement = input()
+            .width('100%');
 
-        newDiv()
-            .withChild(
-                newDiv()
-                    .display('flex')
-                    .flexDirection('row')
-                    .width('400px')
-                    .withChild(newDiv()
-                        .width('100px')
-                        .innerText('Name:')
-                        .element()
-                    )
-                    .withChild(this.tagNameElement)
-                    .element()
-            )
-            .withChild(
-                newDiv()
-                    .display('flex')
-                    .flexDirection('row')
-                    .width('400px')
-                    .withChild(newDiv()
-                        .width('100px')
-                        .innerText('Description:')
-                        .element()
-                    )
-                    .withChild(this.tagDescriptionElement)
-                    .element()
-            )
-            .withChild(
-                newDiv()
-                    .display('flex')
-                    .flexDirection('row')
-                    .width('400px')
-                    .withChild(newDiv()
-                        .width('100px')
-                        .innerText('Color:')
-                        .element()
-                    )
-                    .withChild(this.tagColorElement)
-                    .element()
-            )
-            .withChild(
-                newButton()
-                    .innerText('Create Tag')
-                    .onclick(() => this.createTag())
-                    .element()
-            )
-            .in(this.container);
-
-        this.tagListContainer = newDiv()
+        div()
             .in(this.container)
-            .element();
+            .withChildren([
+                flexRow()
+                    .width('400px')
+                    .withChildren([
+                        div('Name:')
+                            .width('100px'),
+                        this.tagNameElement
+                    ]),
+                flexRow()
+                    .width('400px')
+                    .withChildren([
+                        div('Description:')
+                            .width('100px'),
+                        this.tagDescriptionElement,
+                    ]),
+                flexRow()
+                    .width('400px')
+                    .withChildren([
+                        div('Color:')
+                            .width('100px'),
+                        this.tagColorElement
+                    ]),
+                button('Create Tag')
+                    .onclick(() => this.createTag())
+            ]);
+
+        this.tagListContainer = div()
+            .in(this.container);
     }
 
     private createTag() {
-        createTag(this.tagNameElement.value, this.tagColorElement.value, this.tagDescriptionElement.value ?? undefined);
+        createTag(this.tagNameElement.element().value, this.tagColorElement.element().value, this.tagDescriptionElement.element().value ?? undefined);
     }
 
     private renderTags(tags: Tag[]) {
         clear(this.tagListContainer);
         for (const tag of tags) {
-            newDiv()
+            flexRow()
                 .margin('8px')
                 .padding('8px')
-                .display('flex')
-                .flexDirection('row')
                 .withChild(
-                    newDiv()
+                    div()
                         .width('16px')
                         .height('16px')
                         .borderRadius('8px')
                         .marginHorizontal('4px')
                         .background('#' + tag.color)
-                        .element()
                 )
                 .withChild(
-                    newDiv()
+                    div(`${tag.name}${tag.description ? ' - ' + tag.description : ''}`)
                         .marginHorizontal('4px')
-                        .innerText(`${tag.name}${tag.description ? ' - ' + tag.description : ''}`)
-                        .element()
                 )
                 .in(this.tagListContainer)
         }

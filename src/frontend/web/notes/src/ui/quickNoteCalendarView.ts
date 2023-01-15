@@ -1,121 +1,68 @@
 import {View} from "../utility/view";
-import {clear, newDiv} from "../utility/element";
+import {AnyBuilder, clear, div, flexRow} from "../utility/element";
 
 
 export class QuickNoteCalendarView implements View {
-    private notesContainer: HTMLDivElement;
-
-    constructor(private container: HTMLElement) {}
+    constructor(private container: AnyBuilder) {}
 
     setup(): void {
         clear(this.container);
 
-        const calendarBuilder = newDiv()
-            .display('inline-block')
-            .in(this.container);
+        const calendarBuilder = div()
+            .in(this.container)
+            .display('inline-block');
 
         // hardcode to January 2023 for now
         const dayOfMonthOfFirstCalendarCell = 1;
         const numDaysInMonth = 31;
 
         // Month and days of week
-        newDiv()
+        div('January')
+            .in(calendarBuilder)
             .textAlign('center')
-            .innerText('January')
-            .border('1px solid')
-            .in(calendarBuilder.element())
+            .border('1px solid');
 
-        newDiv()
-            .display('flex')
-            .flexDirection('row')
-            .withChild(
-                newDiv()
-                    .innerText('Sunday')
-                    .border('1px solid')
-                    .width('75px')
-                    .textAlign('center')
-                    .element()
-            )
-            .withChild(
-                newDiv()
-                    .innerText('Monday')
-                    .border('1px solid')
-                    .width('75px')
-                    .textAlign('center')
-                    .element()
-            )
-            .withChild(
-                newDiv()
-                    .innerText('Tuesday')
-                    .border('1px solid')
-                    .width('75px')
-                    .textAlign('center')
-                    .element()
-            )
-            .withChild(
-                newDiv()
-                    .innerText('Wednesday')
-                    .border('1px solid')
-                    .width('75px')
-                    .textAlign('center')
-                    .element()
-            )
-            .withChild(
-                newDiv()
-                    .innerText('Thursday')
-                    .border('1px solid')
-                    .width('75px')
-                    .textAlign('center')
-                    .element()
-            )
-            .withChild(
-                newDiv()
-                    .innerText('Friday')
-                    .border('1px solid')
-                    .width('75px')
-                    .textAlign('center')
-                    .element()
-            )
-            .withChild(
-                newDiv()
-                    .innerText('Saturday')
-                    .border('1px solid')
-                    .width('75px')
-                    .textAlign('center')
-                    .element()
-            )
-            .in(calendarBuilder.element())
+        const dayTemplate = div()
+            .border('1px solid')
+            .width('75px')
+            .textAlign('center');
+
+        flexRow()
+            .withChildren([
+                dayTemplate.clone('Sunday'),
+                dayTemplate.clone('Monday'),
+                dayTemplate.clone('Tuesday'),
+                dayTemplate.clone('Wednesday'),
+                dayTemplate.clone('Thursday'),
+                dayTemplate.clone('Friday'),
+                dayTemplate.clone('Saturday'),
+            ])
+            .in(calendarBuilder)
 
         let currentDay = dayOfMonthOfFirstCalendarCell;
         while (currentDay <= numDaysInMonth) {
-            const row = newDiv()
-                .display('flex')
-                .flexDirection('row')
-                .in(calendarBuilder.element())
-                .element();
+            const row = flexRow()
+                .in(calendarBuilder)
             for (let i = 0; i < 7; ++i) {
-                const cell = newDiv()
-                    .border('1px solid')
-                    .width('75px')
+                const cell = div()
                     .in(row)
-                    .element();
+                    .border('1px solid')
+                    .width('75px');
 
                 const cellDay = currentDay + i;
                 let cellDayHeader = '';
                 if (cellDay > 0 && cellDay <= numDaysInMonth) {
                     cellDayHeader = String(cellDay);
 
-                    newDiv()
+                    div(cellDayHeader)
+                        .in(cell)
                         .textAlign('center')
-                        .border('1px solid')
-                        .innerText(cellDayHeader)
-                        .in(cell);
+                        .border('1px solid');
 
                     // TODO: show number of notes, with link
-                    newDiv()
-                        .textAlign('center')
-                        .innerText('X')
-                        .in(cell);
+                    div('X')
+                        .in(cell)
+                        .textAlign('center');
                 }
             }
 
