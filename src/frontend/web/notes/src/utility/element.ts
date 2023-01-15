@@ -116,6 +116,11 @@ export class ElementBuilder<E extends HTMLElement> {
         this.el.style.textAlign = s;
         return this;
     }
+
+    public border(s: string): ElementBuilder<E> {
+        this.el.style.border = s;
+        return this;
+    }
 }
 
 export function newInput(): ElementBuilder<HTMLInputElement> {

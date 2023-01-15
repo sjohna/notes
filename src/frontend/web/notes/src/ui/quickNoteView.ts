@@ -3,6 +3,7 @@ import {clear, newButton, newCheckbox, newDiv, newTextArea} from "../utility/ele
 import {View} from "../utility/view";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
 import {QuickNoteDateColumnsView} from "./quickNoteDateColumnsView";
+import {QuickNoteCalendarView} from "./quickNoteCalendarView";
 
 export class QuickNoteView implements View {
     noteContainer: HTMLDivElement;
@@ -11,6 +12,7 @@ export class QuickNoteView implements View {
     private noteView: View;
 
     private dateColumnViewCheckbox: HTMLInputElement;
+    private calendarViewCheckbox: HTMLInputElement;
 
     constructor(private container: HTMLElement) { }
 
@@ -40,7 +42,15 @@ export class QuickNoteView implements View {
 
         this.dateColumnViewCheckbox = newCheckbox()
             .onchange((ev: Event) => {
-                this.renderNotes()
+                this.calendarViewCheckbox.checked = false;
+                this.renderNotes();
+            })
+            .element();
+
+        this.calendarViewCheckbox = newCheckbox()
+            .onchange((ev: Event) => {
+                this.dateColumnViewCheckbox.checked = false;
+                this.renderNotes();
             })
             .element();
 
@@ -51,6 +61,17 @@ export class QuickNoteView implements View {
             .withChild(
                 newDiv()
                     .innerText('Date Column View')
+                    .element()
+            )
+            .in(this.container);
+
+        newDiv()
+            .display('flex')
+            .flexDirection('row')
+            .withChild(this.calendarViewCheckbox)
+            .withChild(
+                newDiv()
+                    .innerText('Calendar View')
                     .element()
             )
             .in(this.container);
@@ -70,6 +91,8 @@ export class QuickNoteView implements View {
         this.noteView?.teardown();
         if (this.dateColumnViewCheckbox.checked) {
             this.noteView = new QuickNoteDateColumnsView(this.noteContainer);
+        } else if (this.calendarViewCheckbox.checked) {
+            this.noteView = new QuickNoteCalendarView(this.noteContainer);
         } else {
             this.noteView = new QuickNoteColumnView(this.noteContainer);
         }
