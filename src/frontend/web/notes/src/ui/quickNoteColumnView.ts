@@ -24,11 +24,11 @@ export class QuickNoteColumnView implements View {
             });
 
         flexRow()
-            .withChild(this.reverseOrderCheckbox)
-            .withChild(
-                div('Reverse Order')
-            )
-            .in(this.container);
+            .in(this.container)
+            .withChildren([
+                this.reverseOrderCheckbox,
+                div('Reverse Order'),
+            ]);
 
         this.noteContainer = div()
             .in(this.container);

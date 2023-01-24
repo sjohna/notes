@@ -51,17 +51,11 @@ export class QuickNoteDateColumnsView implements View {
             .display('inline-flex')
             .marginHorizontal('8px')
             .padding('4px')
-            .withChild( // left line
-                hr()
-                    .flexGrow('1')
-            )
-            .withChild( // date
-                span(date)
-                    .marginHorizontal('24px')
-            )
-            .withChild( // right line
-                hr()
-                    .flexGrow('1')
-            );
+            .withChildren([
+                hr().flexGrow('1'),
+                span(date).marginHorizontal('24px'),
+                hr().flexGrow('1')
+
+            ]);
     }
 }

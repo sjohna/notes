@@ -61,18 +61,18 @@ export class QuickNoteView implements View {
             });
 
         flexRow()
+            .in(this.container)
             .withChildren([
                 this.dateColumnViewCheckbox,
                 div('Date Column View'),
-            ])
-            .in(this.container);
+            ]);
 
         flexRow()
+            .in(this.container)
             .withChildren([
                 this.calendarViewCheckbox,
                 div('Calendar View'),
-            ])
-            .in(this.container);
+            ]);
 
         this.noteContainer = div()
             .in(this.container);

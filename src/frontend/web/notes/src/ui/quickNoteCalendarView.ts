@@ -1,7 +1,6 @@
 import {View} from "../utility/view";
 import {AnyBuilder, clear, div, flexRow} from "../utility/element";
 
-
 export class QuickNoteCalendarView implements View {
     constructor(private container: AnyBuilder) {}
 
@@ -28,6 +27,7 @@ export class QuickNoteCalendarView implements View {
             .textAlign('center');
 
         flexRow()
+            .in(calendarBuilder)
             .withChildren([
                 dayTemplate.clone('Sunday'),
                 dayTemplate.clone('Monday'),
@@ -36,8 +36,7 @@ export class QuickNoteCalendarView implements View {
                 dayTemplate.clone('Thursday'),
                 dayTemplate.clone('Friday'),
                 dayTemplate.clone('Saturday'),
-            ])
-            .in(calendarBuilder)
+            ]);
 
         let currentDay = dayOfMonthOfFirstCalendarCell;
         while (currentDay <= numDaysInMonth) {
