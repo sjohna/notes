@@ -15,7 +15,7 @@ func (handler *QuickNoteHandler) ConfigureRoutes(base *chi.Mux) {
 	base.Post("/quicknote/create", handler.CreateQuickNote)
 	base.Get("/quicknote", handler.GetQuickNotes)
 	base.Get("/quicknote/daterange", handler.GetNotesInDateRange)
-	base.Get("/quicknote/total_by_date", handler.GetTotalNotesOnDays)
+	base.Post("/quicknote/total_by_date", handler.GetTotalNotesOnDays)
 	base.Post("/quicknote", handler.GetQuickNotes2)
 }
 
@@ -190,6 +190,6 @@ func (handler *QuickNoteHandler) GetTotalNotesOnDays(w http.ResponseWriter, r *h
 		c.RespondInternalServerError(log, w, err)
 		return
 	}
-
+	
 	c.RespondJSON(log, w, totalNotesOnDays)
 }

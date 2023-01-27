@@ -79,11 +79,11 @@ func (svc *QuickNoteService) GetTotalNotesOnDays(logger *logrus.Entry, parameter
 	log := c.ServiceFunctionLogger(logger, "GetTotalNotesOnDays")
 	defer c.LogServiceReturn(log)
 
-	quickNotes, err := repo.GetTotalDocumentsOnDates(svc.Repo.NonTx(log), parameters)
+	quickNotesOnDates, err := repo.GetTotalDocumentsOnDates(svc.Repo.NonTx(log), parameters)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
 	}
 
-	return quickNotes, nil
+	return quickNotesOnDates, nil
 }

@@ -138,6 +138,11 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public visibility(s: string): ElementBuilder<E> {
+        this.el.style.visibility = s;
+        return this;
+    }
+
     public clone(innerText?: string): ElementBuilder<E> {
         const builder = new ElementBuilder<E>(this.element().cloneNode() as E);
         if (innerText !== undefined && innerText !== null) {

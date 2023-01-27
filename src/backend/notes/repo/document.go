@@ -216,7 +216,7 @@ func totalDocumentsOnDatesQuery(parameters common.TotalNotesOnDaysQueryParameter
 	args := make([]interface{}, 0)
 
 	// language=SQL
-	query := `select document.document_time::date as date,
+	query := `select to_char(document.document_time::date, 'YYYY-MM-DD') as date,
        count(*)
 from document`
 
