@@ -1,13 +1,12 @@
 import {SubViewCollection, View} from "../utility/view";
-import {Document, fetchQuickNotes, quickNotes$} from "../service/quickNotes"
+import {Document, fetchQuickNotes, quickNoteDataHandle, quickNotes$} from "../service/quickNotes"
 import {AnyBuilder, clear, DivBuilder, InputBuilder, newCheckbox, div, hr, span, flexRow} from "../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {QuickNoteCardView} from "./quickNoteCardView";
 import {Subscription} from "rxjs";
+import {QuickNoteDataHandle} from "../service/quickNoteDataHandle";
 
 export class QuickNoteColumnView implements View {
-    constructor(private container: AnyBuilder) {}
-
     private subViews = new SubViewCollection();
 
     quickNotesSubscription?: Subscription;
@@ -15,12 +14,20 @@ export class QuickNoteColumnView implements View {
     private noteContainer?: DivBuilder;
     private reverseOrderCheckbox?: InputBuilder;
 
+    private dataHandle: QuickNoteDataHandle;
+
+    constructor(private container: AnyBuilder) {
+        this.dataHandle = quickNoteDataHandle;
+    }
+
     setup(): void {
-        clear(this.container)
+        this.quickNotesSubscription?.unsubscribe();
+        clear(this.container);
 
         this.reverseOrderCheckbox = newCheckbox()
             .onchange((ev: Event) => {
-                fetchQuickNotes(this.reverseOrderCheckbox.element().checked ? "ascending" : "descending");
+                this.dataHandle.parameters.sortDirection = this.reverseOrderCheckbox.element().checked ? 'ascending' : 'descending';
+                this.dataHandle.get();
             });
 
         flexRow()
@@ -33,8 +40,8 @@ export class QuickNoteColumnView implements View {
         this.noteContainer = div()
             .in(this.container);
 
-        this.quickNotesSubscription?.unsubscribe();
-        this.quickNotesSubscription = quickNotes$.subscribe(notes => this.renderNotes(notes?.documents));
+        this.quickNotesSubscription = this.dataHandle.notes$.subscribe(notes => this.renderNotes(notes));
+        this.dataHandle.get();
     }
 
     private renderNotes(notes?: Document[]) {

@@ -1,6 +1,7 @@
 import {BehaviorSubject, shareReplay} from "rxjs";
 import {DateTimeFormatter, LocalDate} from "@js-joda/core";
 import {environment} from "../environment/environment";
+import {QuickNoteDataHandle} from "./quickNoteDataHandle";
 
 export interface Document {
     content: string;
@@ -32,6 +33,10 @@ export interface QuickNoteResponse {
 
 const quickNotes$$ = new BehaviorSubject<QuickNoteResponse>(null);
 export const quickNotes$ = quickNotes$$.pipe(shareReplay(1));
+
+export const quickNoteDataHandle = new QuickNoteDataHandle();
+quickNoteDataHandle.parameters.sortBy = 'document_time';
+quickNoteDataHandle.parameters.sortDirection = 'descending';
 
 export function fetchQuickNotes(sortDirection?: string) {
     const body: DocumentQueryParameters = {

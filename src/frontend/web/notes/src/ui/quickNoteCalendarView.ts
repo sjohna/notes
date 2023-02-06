@@ -2,10 +2,12 @@ import {View} from "../utility/view";
 import {AnyBuilder, clear, div, flexRow} from "../utility/element";
 import {TotalQuickNotesOnDateDataHandle} from "../service/totalQuickNotesOnDateDataHandle";
 import {LocalDate, LocalDateTime, ZonedDateTime} from "@js-joda/core";
-import {take} from "rxjs";
+import {Subscription, take} from "rxjs";
 
 export class QuickNoteCalendarView implements View {
     private totalQuickNotesOnDates: TotalQuickNotesOnDateDataHandle;
+
+    private subscription: Subscription;
 
     constructor(private container: AnyBuilder) {
         this.totalQuickNotesOnDates = new TotalQuickNotesOnDateDataHandle();
@@ -17,7 +19,8 @@ export class QuickNoteCalendarView implements View {
     }
 
     setup(): void {
-        this.totalQuickNotesOnDates.notesOnDates$
+        this.subscription?.unsubscribe();
+        this.subscription = this.totalQuickNotesOnDates.notesOnDates$
             .subscribe(
             (totalNotesOnDates) => {
                 if (!totalNotesOnDates) {
@@ -110,6 +113,7 @@ export class QuickNoteCalendarView implements View {
     }
 
     teardown(): void {
+        this.subscription?.unsubscribe();
     }
 
 }
