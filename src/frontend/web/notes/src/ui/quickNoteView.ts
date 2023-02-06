@@ -1,4 +1,4 @@
-import {createNote} from "../service/quickNotes";
+import {createNote, quickNoteDataHandle} from "../service/quickNotes";
 import {
     AnyBuilder,
     clear,
@@ -91,7 +91,7 @@ export class QuickNoteView implements View {
         } else if (this.calendarViewCheckbox.element().checked) {
             this.noteView = new QuickNoteCalendarView(this.noteContainer);
         } else {
-            this.noteView = new QuickNoteColumnView(this.noteContainer);
+            this.noteView = new QuickNoteColumnView(this.noteContainer, quickNoteDataHandle);
         }
         this.noteView.setup();
     }

@@ -1,11 +1,11 @@
 import {Document} from "./quickNotes";
 import {BehaviorSubject, Observable, shareReplay, Subject, takeUntil} from "rxjs";
-import {LocalDateTime} from "@js-joda/core";
+import {DateTimeFormatter, LocalDateTime, ZonedDateTime} from "@js-joda/core";
 import {environment} from "../environment/environment";
 
 export interface QuickNoteQueryParameters {
-    startTime?: LocalDateTime;
-    endTime?: LocalDateTime;
+    startTime?: ZonedDateTime;
+    endTime?: ZonedDateTime;
     sortBy?: string;
     sortDirection?: string;
 }
@@ -26,7 +26,12 @@ export class QuickNoteDataHandle {
     public get() {
         fetch(`${environment.apiUrl}/quicknote`, {
             'method': 'POST',
-            'body': JSON.stringify(this.parameters)
+            'body': JSON.stringify({
+                startTime: this.parameters.startTime?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                endTime: this.parameters.endTime?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                sortBy: this.parameters.sortBy,
+                sortDirection: this.parameters.sortDirection,
+            })
         })
             .then(async (response) => {
                 this.notes$$.next((await response.json() as GetQuickNotesResponse).documents);

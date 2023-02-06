@@ -16,8 +16,11 @@ export class QuickNoteColumnView implements View {
 
     private dataHandle: QuickNoteDataHandle;
 
-    constructor(private container: AnyBuilder) {
-        this.dataHandle = quickNoteDataHandle;
+    constructor(
+        private container: AnyBuilder,
+        private handle: QuickNoteDataHandle,
+    ) {
+        this.dataHandle = handle;
     }
 
     setup(): void {
