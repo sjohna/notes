@@ -31,26 +31,9 @@ export interface QuickNoteResponse {
     parameters: DocumentQueryParameters;
 }
 
-const quickNotes$$ = new BehaviorSubject<QuickNoteResponse>(null);
-export const quickNotes$ = quickNotes$$.pipe(shareReplay(1));
-
 export const quickNoteDataHandle = new QuickNoteDataHandle();
 quickNoteDataHandle.parameters.sortBy = 'document_time';
 quickNoteDataHandle.parameters.sortDirection = 'descending';
-
-export function fetchQuickNotes(sortDirection?: string) {
-    const body: DocumentQueryParameters = {
-        sortBy: 'document_time',
-        sortDirection,
-    }
-
-    fetch(`${environment.apiUrl}/quicknote`, {
-        'method': 'POST',
-        'body': JSON.stringify(body),
-    })
-        .then(async response => quickNotes$$.next(await response.json() as QuickNoteResponse))
-        .catch(err => console.log(err))
-}
 
 export function createNote(content: string) {
     if (!content) {
@@ -62,7 +45,7 @@ export function createNote(content: string) {
         'body': JSON.stringify({content})
     })
         .then(() => {
-            fetchQuickNotes();
+            quickNoteDataHandle.get();
             const today = LocalDate.now();
             const fourDaysAgo = today.minusDays(4);
             fetchQuickNotesInDateRange(fourDaysAgo, today);

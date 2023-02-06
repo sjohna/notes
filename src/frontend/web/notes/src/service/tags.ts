@@ -1,7 +1,5 @@
 import {BehaviorSubject, shareReplay} from "rxjs";
 import {environment} from "../environment/environment";
-import {LocalDate} from "@js-joda/core";
-import {fetchQuickNotes, fetchQuickNotesInDateRange} from "./quickNotes";
 
 export interface Tag {
     id: number;

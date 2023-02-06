@@ -1,6 +1,6 @@
-import {Document, fetchQuickNotes, fetchQuickNotesInDateRange} from "./quickNotes";
+import {Document} from "./quickNotes";
 import {BehaviorSubject, Observable, shareReplay, Subject, takeUntil} from "rxjs";
-import {LocalDate, LocalDateTime} from "@js-joda/core";
+import {LocalDateTime} from "@js-joda/core";
 import {environment} from "../environment/environment";
 
 export interface QuickNoteQueryParameters {

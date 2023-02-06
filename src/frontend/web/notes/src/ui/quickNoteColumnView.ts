@@ -1,5 +1,5 @@
 import {SubViewCollection, View} from "../utility/view";
-import {Document, fetchQuickNotes, quickNoteDataHandle, quickNotes$} from "../service/quickNotes"
+import {Document, quickNoteDataHandle} from "../service/quickNotes"
 import {AnyBuilder, clear, DivBuilder, InputBuilder, newCheckbox, div, hr, span, flexRow} from "../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {QuickNoteCardView} from "./quickNoteCardView";
