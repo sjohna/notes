@@ -1,8 +1,8 @@
-import {View} from "../utility/view";
-import {Document} from "../service/quickNotes";
+import {View} from "../../utility/view";
+import {Document} from "../../service/quickNotes";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
-import {AnyBuilder, div} from "../utility/element";
+import {AnyBuilder, div} from "../../utility/element";
 
 export class QuickNoteCardView implements View {
     constructor(private container: AnyBuilder, private note: Document) {}

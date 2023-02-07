@@ -1,9 +1,9 @@
-import {SubViewCollection, View} from "../utility/view";
-import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../utility/element";
-import {TotalQuickNotesOnDateDataHandle} from "../service/totalQuickNotesOnDateDataHandle";
+import {SubViewCollection, View} from "../../utility/view";
+import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../utility/element";
+import {TotalQuickNotesOnDateDataHandle} from "../../service/totalQuickNotesOnDateDataHandle";
 import {LocalDate, LocalDateTime, LocalTime, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Subscription, take} from "rxjs";
-import {QuickNoteDataHandle} from "../service/quickNoteDataHandle";
+import {QuickNoteDataHandle} from "../../service/quickNoteDataHandle";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
 
 export class QuickNoteCalendarView implements View {

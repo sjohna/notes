@@ -1,6 +1,6 @@
-import {SubViewCollection, View} from "../utility/view";
-import {DocumentsForDate, quickNotesInDateRange$} from "../service/quickNotes";
-import {clear, DivBuilder, div, hr, span, flexRow} from "../utility/element";
+import {SubViewCollection, View} from "../../utility/view";
+import {DocumentsForDate, quickNotesInDateRange$} from "../../service/quickNotes";
+import {clear, DivBuilder, div, hr, span, flexRow} from "../../utility/element";
 import {Subscription} from "rxjs";
 import {QuickNoteCardView} from "./quickNoteCardView";
 import {DateTimeFormatter, LocalDate} from "@js-joda/core";

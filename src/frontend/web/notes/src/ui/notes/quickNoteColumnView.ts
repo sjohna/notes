@@ -1,10 +1,11 @@
-import {SubViewCollection, View} from "../utility/view";
-import {Document, quickNoteDataHandle} from "../service/quickNotes"
-import {AnyBuilder, clear, DivBuilder, InputBuilder, checkbox, div, hr, span, flexRow} from "../utility/element";
+import {SubViewCollection, View} from "../../utility/view";
+import {Document, quickNoteDataHandle} from "../../service/quickNotes"
+import {AnyBuilder, clear, DivBuilder, InputBuilder, checkbox, div, hr, span, flexRow} from "../../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {QuickNoteCardView} from "./quickNoteCardView";
 import {Subscription} from "rxjs";
-import {QuickNoteDataHandle} from "../service/quickNoteDataHandle";
+import {QuickNoteDataHandle} from "../../service/quickNoteDataHandle";
+import {LabeledCheckbox} from "../component/labeledCheckbox";
 
 export class QuickNoteColumnView implements View {
     private subViews = new SubViewCollection();
@@ -12,7 +13,7 @@ export class QuickNoteColumnView implements View {
     quickNotesSubscription?: Subscription;
 
     private noteContainer?: DivBuilder;
-    private reverseOrderCheckbox?: InputBuilder;
+    private reverseOrderCheckbox?: LabeledCheckbox;
 
     private dataHandle: QuickNoteDataHandle;
 
@@ -27,18 +28,12 @@ export class QuickNoteColumnView implements View {
         this.quickNotesSubscription?.unsubscribe();
         clear(this.container);
 
-        this.reverseOrderCheckbox = checkbox()
+        this.reverseOrderCheckbox = new LabeledCheckbox('Reverse Order')
+            .in(this.container)
             .onchange((ev: Event) => {
-                this.dataHandle.parameters.sortDirection = this.reverseOrderCheckbox.element().checked ? 'ascending' : 'descending';
+                this.dataHandle.parameters.sortDirection = this.reverseOrderCheckbox.checked ? 'ascending' : 'descending';
                 this.dataHandle.get();
             });
-
-        flexRow()
-            .in(this.container)
-            .withChildren([
-                this.reverseOrderCheckbox,
-                div('Reverse Order'),
-            ]);
 
         this.noteContainer = div()
             .in(this.container);

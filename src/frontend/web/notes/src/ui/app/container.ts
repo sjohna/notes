@@ -1,7 +1,7 @@
-import {View} from "../utility/view";
-import {AnyBuilder, clear, DivBuilder, checkbox, div, flexRow} from "../utility/element";
-import {TagView} from "./tagView";
-import {QuickNoteView} from "./quickNoteView";
+import {View} from "../../utility/view";
+import {AnyBuilder, clear, DivBuilder, checkbox, div, flexRow} from "../../utility/element";
+import {TagView} from "../notes/tagView";
+import {QuickNoteView} from "../notes/quickNoteView";
 
 
 export class ContainerView implements View {

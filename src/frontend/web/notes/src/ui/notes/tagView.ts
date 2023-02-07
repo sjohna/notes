@@ -1,7 +1,7 @@
-import {View} from "../utility/view";
+import {View} from "../../utility/view";
 import {Subscription} from "rxjs";
-import {createTag, fetchTags, Tag, tags$} from "../service/tags";
-import {AnyBuilder, clear, DivBuilder, InputBuilder, button, div, input, flexRow} from "../utility/element";
+import {createTag, fetchTags, Tag, tags$} from "../../service/tags";
+import {AnyBuilder, clear, DivBuilder, InputBuilder, button, div, input, flexRow} from "../../utility/element";
 
 export class TagView implements View {
     constructor(private container: AnyBuilder) {}

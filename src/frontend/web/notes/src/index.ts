@@ -1,7 +1,7 @@
 import "@js-joda/timezone";
 import {fetchQuickNotesInDateRange} from "./service/quickNotes";
 import {LocalDate} from "@js-joda/core";
-import {ContainerView} from "./ui/container";
+import {ContainerView} from "./ui/app/container";
 import {div} from "./utility/element";
 
 const topLevelContainer = div().inElement(document.body);
