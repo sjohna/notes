@@ -143,6 +143,11 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public justifyContent(s: string): ElementBuilder<E> {
+        this.el.style.justifyContent = s;
+        return this;
+    }
+
     public clone(innerText?: string): ElementBuilder<E> {
         const builder = new ElementBuilder<E>(this.element().cloneNode(true) as E);
         if (innerText !== undefined && innerText !== null) {

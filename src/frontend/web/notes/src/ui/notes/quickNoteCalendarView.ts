@@ -1,7 +1,7 @@
 import {SubViewCollection, View} from "../../utility/view";
 import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../utility/element";
 import {TotalQuickNotesOnDateDataHandle} from "../../service/totalQuickNotesOnDateDataHandle";
-import {LocalDate, LocalDateTime, LocalTime, ZonedDateTime, ZoneId} from "@js-joda/core";
+import {LocalDate, LocalDateTime, LocalTime, TemporalAdjusters, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Subscription, take} from "rxjs";
 import {QuickNoteDataHandle} from "../../service/quickNoteDataHandle";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
@@ -18,17 +18,26 @@ export class QuickNoteCalendarView implements View {
 
     private notesHandle: QuickNoteDataHandle;
 
+    // date of first day of month
+    private currentMonth: LocalDate;
+
     constructor(private container: AnyBuilder) {
         this.totalQuickNotesOnDates = new TotalQuickNotesOnDateDataHandle();
 
-        this.totalQuickNotesOnDates.parameters.startDate = LocalDate.of(2023,1,1);
-        this.totalQuickNotesOnDates.parameters.endDate = LocalDate.of(2023, 1, 31);
+        this.currentMonth = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
 
-        this.totalQuickNotesOnDates.get();
+        this.get();
 
         this.notesHandle = new QuickNoteDataHandle();
         this.notesHandle.parameters.sortDirection = 'descending';
         this.notesHandle.parameters.sortBy = 'document_time';
+    }
+
+    private get() {
+        this.totalQuickNotesOnDates.parameters.startDate = this.currentMonth.with(TemporalAdjusters.firstDayOfMonth());
+        this.totalQuickNotesOnDates.parameters.endDate = this.currentMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+        this.totalQuickNotesOnDates.get();
     }
 
     setup(): void {
@@ -47,13 +56,9 @@ export class QuickNoteCalendarView implements View {
         this.subscription = this.totalQuickNotesOnDates.notesOnDates$
             .subscribe(
             (totalNotesOnDates) => {
-                console.log('subscribe hit');
-
                 if (!totalNotesOnDates) {
                     return;
                 }
-
-                console.log('there are total notes on dates');
 
                 clear(this.calendarContainer);
 
@@ -63,12 +68,31 @@ export class QuickNoteCalendarView implements View {
                     .in(this.calendarContainer)
                     .display('inline-block');
 
-                // hardcode to January 2023 for now
-                const dayOfMonthOfFirstCalendarCell = 1;
-                const numDaysInMonth = 31;
+                const linkRow = flexRow()
+                    .in(calendarBuilder)
+                    .justifyContent('space-between')
+                    .withChildren([
+                        div('< Prev')
+                            .cursor('pointer')
+                            .onclick((ev) => {
+                                this.currentMonth = this.currentMonth.minusMonths(1);
+                                this.get();
+                            }),
+                        div('Next >')
+                            .cursor('pointer')
+                            .onclick((ev) => {
+                                this.currentMonth = this.currentMonth.plusMonths(1);
+                                this.get();
+                            }),
+                    ])
+
+                const dayOfMonthOfFirstCalendarCell = 1 - this.currentMonth.dayOfWeek().value();
+                const numDaysInMonth = this.currentMonth.month().length(this.currentMonth.isLeapYear());
+
+                const currentMonthName = this.currentMonth.month().name();
 
                 // Month and days of week
-                div('January')
+                div(currentMonthName + ' ' + this.currentMonth.year())
                     .in(calendarBuilder)
                     .textAlign('center')
                     .border('1px solid');
@@ -113,13 +137,14 @@ export class QuickNoteCalendarView implements View {
                             if (index < totalNotesOnDates.length) {
                                 const nextInList = totalNotesOnDates[index];
                                 const localDateOfIndex = LocalDate.parse(nextInList.date);
-                                const dateOfCell = LocalDate.of(2023,1,cellDay);
+                                const dateOfCell = LocalDate.of(this.currentMonth.year(),this.currentMonth.monthValue(),cellDay);
 
                                 if (localDateOfIndex.equals(dateOfCell)) {
                                     div(String(nextInList.count))
                                         .in(cell)
                                         .textAlign('center')
                                         .cursor('pointer')
+                                        .background('lightgray')
                                         .onclick(() => {
                                             const startDate = localDateOfIndex.atTime(LocalTime.of(0,0,0)).atZone(ZoneId.of('America/Denver')).withZoneSameInstant(ZoneId.UTC);
                                             this.notesHandle.parameters.startTime = startDate;
