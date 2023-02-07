@@ -5,7 +5,7 @@ import {
     DivBuilder,
     InputBuilder,
     button,
-    newCheckbox,
+    checkbox,
     div,
     textArea, flexRow
 } from "../utility/element";
@@ -48,13 +48,13 @@ export class QuickNoteView implements View {
             .inDiv()
             .in(this.container);
 
-        this.dateColumnViewCheckbox = newCheckbox()
+        this.dateColumnViewCheckbox = checkbox()
             .onchange((ev: Event) => {
                 this.calendarViewCheckbox.element().checked = false;
                 this.renderNotes();
             });
 
-        this.calendarViewCheckbox = newCheckbox()
+        this.calendarViewCheckbox = checkbox()
             .onchange((ev: Event) => {
                 this.dateColumnViewCheckbox.element().checked = false;
                 this.renderNotes();

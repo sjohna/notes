@@ -72,21 +72,20 @@ export class TagView implements View {
         clear(this.tagListContainer);
         for (const tag of tags) {
             flexRow()
+                .in(this.tagListContainer)
                 .margin('8px')
                 .padding('8px')
-                .withChild(
+                .withChildren([
                     div()
                         .width('16px')
                         .height('16px')
                         .borderRadius('8px')
                         .marginHorizontal('4px')
-                        .background('#' + tag.color)
-                )
-                .withChild(
+                        .background('#' + tag.color),
                     div(`${tag.name}${tag.description ? ' - ' + tag.description : ''}`)
-                        .marginHorizontal('4px')
+                        .marginHorizontal('4px'),
+                    ]
                 )
-                .in(this.tagListContainer)
         }
     }
 

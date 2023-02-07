@@ -1,6 +1,6 @@
 import {SubViewCollection, View} from "../utility/view";
 import {Document, quickNoteDataHandle} from "../service/quickNotes"
-import {AnyBuilder, clear, DivBuilder, InputBuilder, newCheckbox, div, hr, span, flexRow} from "../utility/element";
+import {AnyBuilder, clear, DivBuilder, InputBuilder, checkbox, div, hr, span, flexRow} from "../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {QuickNoteCardView} from "./quickNoteCardView";
 import {Subscription} from "rxjs";
@@ -27,7 +27,7 @@ export class QuickNoteColumnView implements View {
         this.quickNotesSubscription?.unsubscribe();
         clear(this.container);
 
-        this.reverseOrderCheckbox = newCheckbox()
+        this.reverseOrderCheckbox = checkbox()
             .onchange((ev: Event) => {
                 this.dataHandle.parameters.sortDirection = this.reverseOrderCheckbox.element().checked ? 'ascending' : 'descending';
                 this.dataHandle.get();

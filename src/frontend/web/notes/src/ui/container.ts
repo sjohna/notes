@@ -1,5 +1,5 @@
 import {View} from "../utility/view";
-import {AnyBuilder, clear, DivBuilder, newCheckbox, div, flexRow} from "../utility/element";
+import {AnyBuilder, clear, DivBuilder, checkbox, div, flexRow} from "../utility/element";
 import {TagView} from "./tagView";
 import {QuickNoteView} from "./quickNoteView";
 

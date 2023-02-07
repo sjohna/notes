@@ -144,7 +144,7 @@ export class ElementBuilder<E extends HTMLElement> {
     }
 
     public clone(innerText?: string): ElementBuilder<E> {
-        const builder = new ElementBuilder<E>(this.element().cloneNode() as E);
+        const builder = new ElementBuilder<E>(this.element().cloneNode(true) as E);
         if (innerText !== undefined && innerText !== null) {
             builder.innerText(innerText);
         }
@@ -197,7 +197,7 @@ export function hr(): ElementBuilder<HTMLHRElement> {
     return new ElementBuilder(document.createElement('hr') as HTMLHRElement);
 }
 
-export function newCheckbox(): ElementBuilder<HTMLInputElement> {
+export function checkbox(): ElementBuilder<HTMLInputElement> {
     const element = document.createElement('input') as HTMLInputElement;
     element.type = 'checkbox';
     return new ElementBuilder(element);
