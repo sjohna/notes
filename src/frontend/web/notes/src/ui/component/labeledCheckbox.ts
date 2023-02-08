@@ -4,8 +4,7 @@ export class LabeledCheckbox {
     public checkboxContainer: DivBuilder;
     public checkbox: InputBuilder;
     public labelDiv: DivBuilder;
-
-    // parameters are just to support cloning
+    
     constructor(label: string = null) {
         this.checkbox = checkbox();
         this.labelDiv = div();

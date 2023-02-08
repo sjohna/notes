@@ -176,5 +176,4 @@ export class QuickNoteCalendarView implements View {
         this.subscription?.unsubscribe();
         this.subviews?.teardown();
     }
-
 }

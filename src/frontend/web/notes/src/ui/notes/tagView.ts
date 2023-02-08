@@ -2,6 +2,7 @@ import {View} from "../../utility/view";
 import {Subscription} from "rxjs";
 import {createTag, fetchTags, Tag, tags$} from "../../service/tags";
 import {AnyBuilder, clear, DivBuilder, InputBuilder, button, div, input, flexRow} from "../../utility/element";
+import {LabeledTextInput} from "../component/labeledTextInput";
 
 export class TagView implements View {
     constructor(private container: AnyBuilder) {}
@@ -10,9 +11,9 @@ export class TagView implements View {
 
     private tagSubscription?: Subscription;
 
-    private tagNameElement: InputBuilder;
-    private tagDescriptionElement: InputBuilder;
-    private tagColorElement: InputBuilder;
+    private tagName: LabeledTextInput;
+    private tagDescription: LabeledTextInput;
+    private tagColor: LabeledTextInput;
 
     setup(): void {
         this.tagSubscription?.unsubscribe();
@@ -25,37 +26,16 @@ export class TagView implements View {
     private render() {
         clear(this.container);
 
-        this.tagNameElement = input()
-            .width('100%');
-        this.tagDescriptionElement = input()
-            .width('100%');
-        this.tagColorElement = input()
-            .width('100%');
+        this.tagName = new LabeledTextInput('Name:')
+        this.tagDescription = new LabeledTextInput('Description:')
+        this.tagColor = new LabeledTextInput('Color:')
 
         div()
             .in(this.container)
             .withChildren([
-                flexRow()
-                    .width('400px')
-                    .withChildren([
-                        div('Name:')
-                            .width('100px'),
-                        this.tagNameElement
-                    ]),
-                flexRow()
-                    .width('400px')
-                    .withChildren([
-                        div('Description:')
-                            .width('100px'),
-                        this.tagDescriptionElement,
-                    ]),
-                flexRow()
-                    .width('400px')
-                    .withChildren([
-                        div('Color:')
-                            .width('100px'),
-                        this.tagColorElement
-                    ]),
+                this.tagName.container,
+                this.tagDescription.container,
+                this.tagColor.container,
                 button('Create Tag')
                     .onclick(() => this.createTag())
             ]);
@@ -65,7 +45,7 @@ export class TagView implements View {
     }
 
     private createTag() {
-        createTag(this.tagNameElement.element().value, this.tagColorElement.element().value, this.tagDescriptionElement.element().value ?? undefined);
+        createTag(this.tagName.value, this.tagColor.value, this.tagDescription.value ?? undefined);
     }
 
     private renderTags(tags: Tag[]) {
