@@ -22,6 +22,7 @@ func (svc *TagService) CreateTag(logger *logrus.Entry, name string, description 
 		return nil, err
 	}
 
+	log.WithField("tagID", createdTag.ID).Infof("Created tag ID %d", createdTag.ID)
 	return createdTag, nil
 }
 

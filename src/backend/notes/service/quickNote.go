@@ -32,6 +32,7 @@ func (svc *QuickNoteService) CreateQuickNote(logger *logrus.Entry, content strin
 		return nil, err
 	}
 
+	log.WithField("documentID", createdNote.ID).Infof("Created quick note ID %d", createdNote.ID)
 	return createdNote, nil
 }
 

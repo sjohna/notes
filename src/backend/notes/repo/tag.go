@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"github.com/sirupsen/logrus"
 	c "github.com/sjohna/go-server-common/repo"
 	"gopkg.in/guregu/null.v4"
 )
@@ -46,4 +47,61 @@ from tag`
 	}
 
 	return tags, nil
+}
+
+// TODO: this will error out if tag already set. Maybe optional argument to handle that case?
+func AddDocumentTag(dao c.DAO, documentID int64, tagID int64) error {
+	log := c.RepoFunctionLogger(dao.Logger().WithFields(logrus.Fields{
+		"documentID": documentID,
+		"tagID":      tagID,
+	}), "AddDocumentTag")
+	defer c.LogRepoReturn(log)
+
+	// language=SQL
+	SQL := `insert into document_tag (document_id, tag_id)
+values ($1, $2)`
+
+	result, err := dao.Exec(SQL, documentID, tagID)
+	if err != nil {
+		log.WithError(err).Error()
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.WithError(err).Error()
+		return err
+	}
+
+	log.WithField("rowsAffected", rowsAffected).Info()
+	return nil
+}
+
+func RemoveDocumentTag(dao c.DAO, documentID int64, tagID int64) error {
+	log := c.RepoFunctionLogger(dao.Logger().WithFields(logrus.Fields{
+		"documentID": documentID,
+		"tagID":      tagID,
+	}), "RemoveDocumentTag")
+	defer c.LogRepoReturn(log)
+
+	// language=SQL
+	SQL := `update document_tag
+set archived_at = now()
+where document_tag.document_id = $1
+  and document_tag.tag_id = $2`
+
+	result, err := dao.Exec(SQL, documentID, tagID)
+	if err != nil {
+		log.WithError(err).Error()
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.WithError(err).Error()
+		return err
+	}
+
+	log.WithField("rowsAffected", rowsAffected).Info()
+	return nil
 }
