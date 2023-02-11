@@ -12,6 +12,7 @@ export interface Document {
     insertedAt: string;
     id: number;
     type: string;
+    tagNames?: string[];
 }
 
 export interface DocumentsForDate {
@@ -46,24 +47,6 @@ export function createNote(content: string) {
     })
         .then(() => {
             quickNoteDataHandle.get();
-            const today = LocalDate.now();
-            const fourDaysAgo = today.minusDays(4);
-            fetchQuickNotesInDateRange(fourDaysAgo, today);
         } )
-        .catch(err => console.log(err))
-}
-
-const quickNotesInDateRange$$ = new BehaviorSubject<DocumentsForDate[]>([]);
-export const quickNotesInDateRange$ = quickNotesInDateRange$$.pipe(shareReplay(1));
-
-export function fetchQuickNotesInDateRange(startDate: LocalDate, endDate: LocalDate) {
-    const url = new URL(`${environment.apiUrl}/quicknote/daterange`);
-    url.searchParams.append('begin', startDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
-    url.searchParams.append('end', endDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
-
-    fetch(url, {
-        'method': 'GET'
-    })
-        .then(async response => quickNotesInDateRange$$.next(await response.json() as DocumentsForDate[]))
         .catch(err => console.log(err))
 }
