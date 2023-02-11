@@ -98,23 +98,6 @@ func GetQuickNote(dao c.DAO, documentID int64) (*Document, error) {
 	return &quickNote, nil
 }
 
-func GetQuickNotes(dao c.DAO) ([]*Document, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes")
-	defer c.LogRepoReturn(log)
-
-	// language=SQL
-	SQL := quickNoteQueryBase + ` order by created_at desc`
-
-	quickNotes := make([]*Document, 0)
-	err := dao.Select(&quickNotes, SQL)
-	if err != nil {
-		log.WithError(err).Error()
-		return nil, err
-	}
-
-	return quickNotes, nil
-}
-
 var allowedSortColumns = []string{
 	"created_at",
 	"document_time",
@@ -173,8 +156,8 @@ func appendQueryParameters(query string, parameters common.QuickNoteQueryParamet
 	return newQuery, args, nil
 }
 
-func GetQuickNotes2(dao c.DAO, parameters common.QuickNoteQueryParameters) ([]*Document, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes2")
+func GetQuickNotes(dao c.DAO, parameters common.QuickNoteQueryParameters) ([]*Document, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes")
 	defer c.LogRepoReturn(log)
 
 	SQL, args, err := appendQueryParameters(quickNoteQueryBase, parameters)

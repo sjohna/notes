@@ -36,24 +36,11 @@ func (svc *QuickNoteService) CreateQuickNote(logger *logrus.Entry, content strin
 	return createdNote, nil
 }
 
-func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry) ([]*repo.Document, error) {
+func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry, parameters common.QuickNoteQueryParameters) ([]*repo.Document, error) {
 	log := c.ServiceFunctionLogger(logger, "GetQuickNotes")
 	defer c.LogServiceReturn(log)
 
-	quickNotes, err := repo.GetQuickNotes(svc.Repo.NonTx(log))
-	if err != nil {
-		log.WithError(err).Error()
-		return nil, err
-	}
-
-	return quickNotes, nil
-}
-
-func (svc *QuickNoteService) GetQuickNotes2(logger *logrus.Entry, parameters common.QuickNoteQueryParameters) ([]*repo.Document, error) {
-	log := c.ServiceFunctionLogger(logger, "GetQuickNotes2")
-	defer c.LogServiceReturn(log)
-
-	quickNotes, err := repo.GetQuickNotes2(svc.Repo.NonTx(log), parameters)
+	quickNotes, err := repo.GetQuickNotes(svc.Repo.NonTx(log), parameters)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
