@@ -6,7 +6,6 @@ import (
 	c "github.com/sjohna/go-server-common/service"
 	"notes/common"
 	"notes/repo"
-	"time"
 )
 
 type QuickNoteService struct {
@@ -41,19 +40,6 @@ func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry, parameters comm
 	defer c.LogServiceReturn(log)
 
 	quickNotes, err := repo.GetQuickNotes(svc.Repo.NonTx(log), parameters)
-	if err != nil {
-		log.WithError(err).Error()
-		return nil, err
-	}
-
-	return quickNotes, nil
-}
-
-func (svc *QuickNoteService) GetQuickNotesInTimeRange(logger *logrus.Entry, begin time.Time, end time.Time) ([]*repo.Document, error) {
-	log := c.ServiceFunctionLogger(logger, "GetQuickNotesInTimeRange")
-	defer c.LogServiceReturn(log)
-
-	quickNotes, err := repo.GetQuickNotesInTimeRange(svc.Repo.NonTx(log), begin, end)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err

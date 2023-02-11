@@ -185,25 +185,6 @@ func GetQuickNotes(dao c.DAO, parameters common.QuickNoteQueryParameters) ([]*Do
 	return quickNotes, nil
 }
 
-func GetQuickNotesInTimeRange(dao c.DAO, begin time.Time, end time.Time) ([]*Document, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotesInTimeRange")
-	defer c.LogRepoReturn(log)
-
-	// TODO: effective_time or similar instead of created_at for documents
-	// language=SQL
-	SQL := quickNoteQueryBase + ` and document.created_at between $1 and $2
-order by created_at desc`
-
-	quickNotes := make([]*Document, 0)
-	err := dao.Select(&quickNotes, SQL, begin, end)
-	if err != nil {
-		log.WithError(err).Error()
-		return nil, err
-	}
-
-	return quickNotes, nil
-}
-
 func totalDocumentsOnDatesQuery(parameters common.TotalNotesOnDaysQueryParameters) (string, []interface{}) {
 	args := make([]interface{}, 0)
 

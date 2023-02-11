@@ -22,8 +22,7 @@ export function createTag(name: string, description?: string) {
     if (!name) {
         return;
     }
-
-    // how is an undefined description going to be handled here?
+    
     fetch(`${environment.apiUrl}/tag`, {
         'method': 'POST',
         'body': JSON.stringify({name, description})
