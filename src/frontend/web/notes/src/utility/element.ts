@@ -66,6 +66,18 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public paddingHorizontal(s: string): ElementBuilder<E> {
+        this.el.style.paddingLeft = s;
+        this.el.style.paddingRight = s;
+        return this;
+    }
+
+    public paddingVertical(s: string): ElementBuilder<E> {
+        this.el.style.paddingTop = s;
+        this.el.style.paddingBottom = s;
+        return this;
+    }
+
     public margin(s: string): ElementBuilder<E> {
         this.el.style.margin = s;
         return this;
@@ -80,6 +92,16 @@ export class ElementBuilder<E extends HTMLElement> {
     public marginVertical(s: string): ElementBuilder<E> {
         this.el.style.marginTop = s;
         this.el.style.marginBottom = s;
+        return this;
+    }
+
+    public marginLeft(s: string): ElementBuilder<E> {
+        this.el.style.marginLeft = s;
+        return this;
+    }
+
+    public marginRight(s: string): ElementBuilder<E> {
+        this.el.style.marginRight = s;
         return this;
     }
 
@@ -123,6 +145,16 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public fontWeight(s: string): ElementBuilder<E> {
+        this.el.style.fontWeight = s;
+        return this;
+    }
+
+    public fontFamily(s: string): ElementBuilder<E> {
+        this.el.style.fontFamily = s;
+        return this;
+    }
+
     public cursor(s: string): ElementBuilder<E> {
         this.el.style.cursor = s;
         return this;
@@ -145,6 +177,11 @@ export class ElementBuilder<E extends HTMLElement> {
 
     public justifyContent(s: string): ElementBuilder<E> {
         this.el.style.justifyContent = s;
+        return this;
+    }
+
+    public alignItems(s: string): ElementBuilder<E> {
+        this.el.style.alignItems = s;
         return this;
     }
 

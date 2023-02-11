@@ -12,9 +12,11 @@ export class QuickNoteCardView implements View {
         const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('h:mm a').withLocale(Locale.US));
 
         const timeAndTags = flexRow()
+            .alignItems('center')
             .withChild(
                 div(createdTimeString)
                     .fontSize('12px')
+                    .marginRight('4px')
             )
 
         if (this.note.tagNames) {
@@ -22,9 +24,12 @@ export class QuickNoteCardView implements View {
                 timeAndTags
                     .withChild(
                         div(tag)
-                            .fontSize('10px')
+                            .fontSize('12px')
+                            .fontFamily('monospace')
+                            .fontWeight('bold')
                             .marginHorizontal('4px')
-                            .padding('2px')
+                            .paddingVertical('2px')
+                            .paddingHorizontal('4px')
                             .background('white')
                             .borderRadius('4px')
                     )
