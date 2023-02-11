@@ -68,22 +68,31 @@ export class QuickNoteCalendarView implements View {
                     .in(this.calendarContainer)
                     .display('inline-block');
 
+                // TODO: maybe do this with a flex-col instead?
+                const spacer = div().width('16px');
+
                 const linkRow = flexRow()
                     .in(calendarBuilder)
-                    .justifyContent('space-between')
+                    .width('100%')
                     .withChildren([
-                        div('< Prev')
-                            .cursor('pointer')
-                            .onclick((ev) => {
-                                this.currentMonth = this.currentMonth.minusMonths(1);
-                                this.get();
-                            }),
-                        div('Next >')
-                            .cursor('pointer')
-                            .onclick((ev) => {
-                                this.currentMonth = this.currentMonth.plusMonths(1);
-                                this.get();
-                            }),
+                        spacer.clone(),
+                        flexRow()
+                            .width('100%')
+                            .justifyContent('space-between')
+                            .withChildren([
+                                div('< Prev')
+                                    .cursor('pointer')
+                                    .onclick((ev) => {
+                                        this.currentMonth = this.currentMonth.minusMonths(1);
+                                        this.get();
+                                    }),
+                                div('Next >')
+                                    .cursor('pointer')
+                                    .onclick((ev) => {
+                                        this.currentMonth = this.currentMonth.plusMonths(1);
+                                        this.get();
+                                    }),
+                            ])
                     ])
 
                 const dayOfMonthOfFirstCalendarCell = 1 - this.currentMonth.dayOfWeek().value();
@@ -92,10 +101,17 @@ export class QuickNoteCalendarView implements View {
                 const currentMonthName = this.currentMonth.month().name();
 
                 // Month and days of week
-                div(currentMonthName + ' ' + this.currentMonth.year())
+                flexRow()
                     .in(calendarBuilder)
-                    .textAlign('center')
-                    .border('1px solid');
+                    .width('100%')
+                    .withChildren([
+                        spacer.clone(),
+                        div(currentMonthName + ' ' + this.currentMonth.year())
+                            .width('100%')
+                            .in(calendarBuilder)
+                            .textAlign('center')
+                            .border('1px solid'),
+                    ]);
 
                 const dayTemplate = div()
                     .border('1px solid')
@@ -105,6 +121,7 @@ export class QuickNoteCalendarView implements View {
                 flexRow()
                     .in(calendarBuilder)
                     .withChildren([
+                        spacer.clone(),
                         dayTemplate.clone('Sunday'),
                         dayTemplate.clone('Monday'),
                         dayTemplate.clone('Tuesday'),
@@ -117,7 +134,15 @@ export class QuickNoteCalendarView implements View {
                 let currentDay = dayOfMonthOfFirstCalendarCell;
                 while (currentDay <= numDaysInMonth) {
                     const row = flexRow()
-                        .in(calendarBuilder)
+                        .in(calendarBuilder);
+
+                    // week cell
+                    const weekLink = spacer.clone()
+                        .in(row)
+                        .height('full')
+
+                    let anyNotesThisWeek = false;
+
                     for (let i = 0; i < 7; ++i) {
                         const cell = div()
                             .in(row)
@@ -140,6 +165,7 @@ export class QuickNoteCalendarView implements View {
                                 const dateOfCell = LocalDate.of(this.currentMonth.year(),this.currentMonth.monthValue(),cellDay);
 
                                 if (localDateOfIndex.equals(dateOfCell)) {
+                                    anyNotesThisWeek = true;
                                     div(String(nextInList.count))
                                         .in(cell)
                                         .textAlign('center')
@@ -164,6 +190,23 @@ export class QuickNoteCalendarView implements View {
                                     .visibility('hidden');
                             }
                         }
+                    }
+
+                    if (anyNotesThisWeek) {
+                        const currentDayCapture = currentDay;
+                        weekLink
+                            .background('lightgray')
+                            .width('14px')
+                            .border('1px solid')
+                            .cursor('pointer')
+                            .onclick((ev) => {
+                                console.log(currentDay)
+                                const startDate = LocalDate.of(this.currentMonth.year(), this.currentMonth.month(), Math.max(currentDayCapture, 1)).atTime(LocalTime.of(0,0,0)).atZone(ZoneId.of('America/Denver')).withZoneSameInstant(ZoneId.UTC);
+                                const endDate = LocalDate.of(this.currentMonth.year(), this.currentMonth.month(), Math.min(currentDayCapture+7, numDaysInMonth)).atTime(LocalTime.of(0,0,0)).atZone(ZoneId.of('America/Denver')).withZoneSameInstant(ZoneId.UTC);
+                                this.notesHandle.parameters.startTime = startDate;
+                                this.notesHandle.parameters.endTime = endDate;
+                                this.notesHandle.get();
+                            })
                     }
 
                     currentDay += 7;

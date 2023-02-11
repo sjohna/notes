@@ -3,15 +3,12 @@ import {
     AnyBuilder,
     clear,
     DivBuilder,
-    InputBuilder,
     button,
-    checkbox,
     div,
-    textArea, flexRow
+    textArea,
 } from "../../utility/element";
 import {View} from "../../utility/view";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
-import {QuickNoteDateColumnsView} from "./quickNoteDateColumnsView";
 import {QuickNoteCalendarView} from "./quickNoteCalendarView";
 import {LabeledCheckbox} from "../component/labeledCheckbox";
 
@@ -21,7 +18,6 @@ export class QuickNoteView implements View {
 
     private noteView: View;
 
-    private dateColumnViewCheckbox: LabeledCheckbox;
     private calendarViewCheckbox: LabeledCheckbox;
 
     constructor(private container: AnyBuilder) { }
@@ -49,17 +45,9 @@ export class QuickNoteView implements View {
             .inDiv()
             .in(this.container);
 
-        this.dateColumnViewCheckbox = new LabeledCheckbox('Date Column View')
-            .in(this.container)
-            .onchange((ev: Event) => {
-                this.calendarViewCheckbox.checked = false;
-                this.renderNotes();
-            });
-
         this.calendarViewCheckbox = new LabeledCheckbox('Calendar View')
             .in(this.container)
             .onchange((ev: Event) => {
-                this.dateColumnViewCheckbox.checked = false;
                 this.renderNotes();
             });
 
@@ -75,9 +63,7 @@ export class QuickNoteView implements View {
 
     private renderNotes() {
         this.noteView?.teardown();
-        if (this.dateColumnViewCheckbox.checked) {
-            this.noteView = new QuickNoteDateColumnsView(this.noteContainer);
-        } else if (this.calendarViewCheckbox.checked) {
+        if (this.calendarViewCheckbox.checked) {
             this.noteView = new QuickNoteCalendarView(this.noteContainer);
         } else {
             this.noteView = new QuickNoteColumnView(this.noteContainer, quickNoteDataHandle);
