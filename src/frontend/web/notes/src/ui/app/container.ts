@@ -3,6 +3,7 @@ import {AnyBuilder, clear, DivBuilder, checkbox, div, flexRow} from "../../utili
 import {TagView} from "../notes/tagView";
 import {QuickNoteView} from "../notes/quickNoteView";
 import {Tabs} from "../component/tabs";
+import {TagPaletteView} from "../notes/tagPaletteView";
 
 
 export class ContainerView implements View {
@@ -10,29 +11,54 @@ export class ContainerView implements View {
 
     private tabBar: Tabs;
 
+    private topLevelContainer?: DivBuilder;
+    private sideContainer?: DivBuilder;
     private mainContainer?: DivBuilder;
+    private mainViewContainer?: DivBuilder;
+
+    private sideView: View;
 
     private view: View;
 
     setup(): void {
-        this.tabBar = new Tabs()
+        this.topLevelContainer = flexRow()
             .in(this.container)
+            .height('100%');
+
+        this.sideContainer = div()
+            .in(this.topLevelContainer)
+            .height('100%')
+            .background('lightgray')
+            .marginRight('8px')
+
+        this.sideView = new TagPaletteView(this.sideContainer);
+
+        this.mainContainer = div()
+            .in(this.topLevelContainer)
+            .height('100%');
+
+        this.tabBar = new Tabs()
+            .in(this.mainContainer)
             .withTab('notes', 'Notes', true)
             .withTab('tags', 'Tags')
-            .selectionChange(() => this.renderView())
+            .selectionChange(() => this.renderMainView())
 
-        this.mainContainer = div().in(this.container);
+        this.mainViewContainer = div()
+            .in(this.mainContainer)
+            .height('100%')
+            .overflow('auto');
 
         this.tabBar.renderTabs();
-        this.renderView();
+        this.sideView.setup();
+        this.renderMainView();
     }
 
-    private renderView() {
+    private renderMainView() {
         this.view?.teardown();
         if (this.tabBar.selectedTab === 'tags') {
-            this.view = new TagView(this.mainContainer);
+            this.view = new TagView(this.mainViewContainer);
         } else {
-            this.view = new QuickNoteView(this.mainContainer);
+            this.view = new QuickNoteView(this.mainViewContainer);
         }
         this.view?.setup();
     }

@@ -185,6 +185,11 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public overflow(s: string): ElementBuilder<E> {
+        this.el.style.overflow = s;
+        return this;
+    }
+
     public clone(innerText?: string): ElementBuilder<E> {
         const builder = new ElementBuilder<E>(this.element().cloneNode(true) as E);
         if (innerText !== undefined && innerText !== null) {
@@ -226,6 +231,24 @@ export function flexRow(): ElementBuilder<HTMLDivElement> {
     return new ElementBuilder(document.createElement('div') as HTMLDivElement)
         .display('flex')
         .flexDirection('row');
+}
+
+export function inlineFlexRow(): ElementBuilder<HTMLDivElement> {
+    return new ElementBuilder(document.createElement('div') as HTMLDivElement)
+        .display('inline-flex')
+        .flexDirection('row');
+}
+
+export function flexColumn(): ElementBuilder<HTMLDivElement> {
+    return new ElementBuilder(document.createElement('div') as HTMLDivElement)
+        .display('flex')
+        .flexDirection('column');
+}
+
+export function inlineFlexColumn(): ElementBuilder<HTMLDivElement> {
+    return new ElementBuilder(document.createElement('div') as HTMLDivElement)
+        .display('inline-flex')
+        .flexDirection('column');
 }
 
 export function span(innerText?: string): ElementBuilder<HTMLSpanElement> {
