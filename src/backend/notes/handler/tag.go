@@ -24,7 +24,6 @@ func (handler *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Name        string      `json:"name"`
 		Description null.String `json:"description"`
-		Color       string      `json:"color"`
 	}
 
 	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
@@ -33,7 +32,7 @@ func (handler *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdTag, err := handler.Service.CreateTag(log, body.Name, body.Description, body.Color)
+	createdTag, err := handler.Service.CreateTag(log, body.Name, body.Description)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return

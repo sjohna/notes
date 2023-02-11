@@ -5,7 +5,6 @@ export interface Tag {
     id: number;
     name: string;
     description?: string;
-    color: string;
 }
 
 const tags$$ = new BehaviorSubject<Tag[]>([])
@@ -19,15 +18,15 @@ export function fetchTags() {
         .catch(err => console.log(err))
 }
 
-export function createTag(name: string, color: string, description?: string) {
-    if (!name || !color) {
+export function createTag(name: string, description?: string) {
+    if (!name) {
         return;
     }
 
     // how is an undefined description going to be handled here?
     fetch(`${environment.apiUrl}/tag`, {
         'method': 'POST',
-        'body': JSON.stringify({name, description, color})
+        'body': JSON.stringify({name, description})
     })
         .then(() => {
             fetchTags();

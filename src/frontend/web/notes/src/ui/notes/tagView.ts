@@ -13,7 +13,6 @@ export class TagView implements View {
 
     private tagName: LabeledTextInput;
     private tagDescription: LabeledTextInput;
-    private tagColor: LabeledTextInput;
 
     setup(): void {
         this.tagSubscription?.unsubscribe();
@@ -28,14 +27,12 @@ export class TagView implements View {
 
         this.tagName = new LabeledTextInput('Name:')
         this.tagDescription = new LabeledTextInput('Description:')
-        this.tagColor = new LabeledTextInput('Color:')
 
         div()
             .in(this.container)
             .withChildren([
                 this.tagName.container,
                 this.tagDescription.container,
-                this.tagColor.container,
                 button('Create Tag')
                     .onclick(() => this.createTag())
             ]);
@@ -45,27 +42,15 @@ export class TagView implements View {
     }
 
     private createTag() {
-        createTag(this.tagName.value, this.tagColor.value, this.tagDescription.value ?? undefined);
+        createTag(this.tagName.value, this.tagDescription.value ?? undefined);
     }
 
     private renderTags(tags: Tag[]) {
         clear(this.tagListContainer);
         for (const tag of tags) {
-            flexRow()
+            div(`${tag.name}${tag.description ? ' - ' + tag.description : ''}`)
                 .in(this.tagListContainer)
-                .margin('8px')
-                .padding('8px')
-                .withChildren([
-                    div()
-                        .width('16px')
-                        .height('16px')
-                        .borderRadius('8px')
-                        .marginHorizontal('4px')
-                        .background('#' + tag.color),
-                    div(`${tag.name}${tag.description ? ' - ' + tag.description : ''}`)
-                        .marginHorizontal('4px'),
-                    ]
-                )
+                .marginHorizontal('4px')
         }
     }
 

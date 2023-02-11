@@ -9,20 +9,19 @@ type Tag struct {
 	ID          int64       `db:"id" json:"id"`
 	Name        string      `db:"name" json:"name"`
 	Description null.String `db:"description" json:"description"`
-	Color       string      `db:"color" json:"color"`
 }
 
-func CreateTag(dao c.DAO, name string, description null.String, color string) (*Tag, error) {
+func CreateTag(dao c.DAO, name string, description null.String) (*Tag, error) {
 	log := c.RepoFunctionLogger(dao.Logger(), "CreateTag")
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
-	SQL := `insert into tag(name, description, color)
-values ($1, $2, $3)
+	SQL := `insert into tag(name, description)
+values ($1, $2)
 returning *`
 
 	var createdTag Tag
-	err := dao.Get(&createdTag, SQL, name, description, color)
+	err := dao.Get(&createdTag, SQL, name, description)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
@@ -36,7 +35,7 @@ func GetTags(dao c.DAO) ([]*Tag, error) {
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
-	SQL := `select tag.id, tag.name, tag.description, tag.color
+	SQL := `select tag.id, tag.name, tag.description
 from tag`
 
 	tags := make([]*Tag, 0)

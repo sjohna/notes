@@ -12,11 +12,11 @@ type TagService struct {
 	Repo *r.Repo
 }
 
-func (svc *TagService) CreateTag(logger *logrus.Entry, name string, description null.String, color string) (*repo.Tag, error) {
+func (svc *TagService) CreateTag(logger *logrus.Entry, name string, description null.String) (*repo.Tag, error) {
 	log := c.ServiceFunctionLogger(logger, "CreateTag")
 	defer c.LogServiceReturn(log)
 
-	createdTag, err := repo.CreateTag(svc.Repo.NonTx(log), name, description, color)
+	createdTag, err := repo.CreateTag(svc.Repo.NonTx(log), name, description)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
