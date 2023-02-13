@@ -13,6 +13,7 @@ func (handler *QuickNoteHandler) ConfigureRoutes(base *chi.Mux) {
 	base.Post("/quicknote/create", handler.CreateQuickNote)
 	base.Post("/quicknote", handler.GetQuickNotes)
 	base.Post("/quicknote/total_by_date", handler.GetTotalNotesOnDays)
+	base.Post("/quicknote/update_tags", handler.UpdateDocumentTags)
 }
 
 type QuickNoteHandler struct {
@@ -88,4 +89,27 @@ func (handler *QuickNoteHandler) GetTotalNotesOnDays(w http.ResponseWriter, r *h
 	}
 
 	c.RespondJSON(log, w, totalNotesOnDays)
+}
+
+func (handler *QuickNoteHandler) UpdateDocumentTags(w http.ResponseWriter, r *http.Request) {
+	log := c.HandlerLogger(r, "UpdateDocumentTags")
+	defer c.LogHandlerReturn(log)
+
+	var body struct {
+		DocumentID int64                      `json:"documentId"`
+		TagUpdates []common.DocumentTagUpdate `json:"tagUpdates"`
+	}
+	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
+		// TODO: respond client error instead
+		c.RespondInternalServerError(log, w, err)
+		return
+	}
+
+	document, err := handler.Service.ApplyDocumentTagUpdates(log, body.DocumentID, body.TagUpdates)
+	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
+		c.RespondInternalServerError(log, w, err)
+		return
+	}
+
+	c.RespondJSON(log, w, document)
 }

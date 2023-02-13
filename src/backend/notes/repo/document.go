@@ -86,6 +86,7 @@ join lateral (
     from document_tag
     join tag on document_tag.tag_id = tag.id
     where document_tag.document_id = document.id
+      and document_tag.archived_at is null
 ) document_tags on true
 where document.type = 'quick_note'
 `

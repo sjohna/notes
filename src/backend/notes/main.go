@@ -21,6 +21,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// TODO: look at logging at all levels (handler, service, repo): am I logging everything relevant?
+// TODO: review and update log levels
+// TODO: log different levels to different files (probably a change in server common)
+
 func configureBasicLogging() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 }
