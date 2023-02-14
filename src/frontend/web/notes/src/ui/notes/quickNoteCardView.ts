@@ -5,7 +5,7 @@ import {Locale} from "@js-joda/locale_en-us";
 import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../utility/element";
 import {tagLabel} from "../component/tagLabel";
 import {getDragData} from "../../service/dragDropService";
-import {addTagToDocument} from "../../service/tags";
+import {addTagToDocument, removeTagFromDocument, Tag} from "../../service/tags";
 
 export class QuickNoteCardView implements View {
     private card: DivBuilder;
@@ -40,6 +40,11 @@ export class QuickNoteCardView implements View {
                 tagLabel(tag.name)
                     .in(timeAndTags)
                     .marginHorizontal('4px')
+                    .onclick((ev: MouseEvent) => {  // TODO: some kind of style while ctrl+hovering
+                        if (ev.ctrlKey) {
+                            this.removeTag(tag)
+                        }
+                    })
             }
         }
 
@@ -99,6 +104,12 @@ export class QuickNoteCardView implements View {
         }
 
         console.log(`Drop document ${this.note.id}`);
+    }
+
+    private removeTag(tagToRemove: Tag) {
+        removeTagFromDocument(tagToRemove.id, this.note.id)
+        this.note.tags = this.note.tags.filter((tag) => tag.id !== tagToRemove.id)
+        this.renderCard()
     }
 
     public teardown(): void {
