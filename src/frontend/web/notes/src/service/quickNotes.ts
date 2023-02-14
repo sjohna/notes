@@ -2,6 +2,7 @@ import {BehaviorSubject, shareReplay} from "rxjs";
 import {DateTimeFormatter, LocalDate} from "@js-joda/core";
 import {environment} from "../environment/environment";
 import {QuickNoteDataHandle} from "./quickNoteDataHandle";
+import {Tag} from "./tags";
 
 export interface Document {
     content: string;
@@ -12,7 +13,7 @@ export interface Document {
     insertedAt: string;
     id: number;
     type: string;
-    tagNames?: string[];
+    tags?: Tag[];
 }
 
 export interface DocumentsForDate {

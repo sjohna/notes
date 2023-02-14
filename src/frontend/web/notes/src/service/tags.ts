@@ -53,3 +53,21 @@ export function addTagToDocument(tagId: number, documentId: number) {
     })
         .catch(err => console.log(err))
 }
+
+export function removeTagFromDocument(tagId: number, documentId: number) {
+    const body = {
+        documentId,
+        tagUpdates: [
+            {
+                tagId,
+                updateType: TAG_UPDATE_REMOVE,
+            }
+        ]
+    }
+
+    fetch(`${environment.apiUrl}/quicknote/update_tags`, {
+        'method': 'POST',
+        'body': JSON.stringify(body)
+    })
+        .catch(err => console.log(err))
+}

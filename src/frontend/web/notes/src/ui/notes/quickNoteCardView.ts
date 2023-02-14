@@ -35,9 +35,9 @@ export class QuickNoteCardView implements View {
                     .marginRight('4px')
             )
 
-        if (this.note.tagNames) {
-            for (let tag of this.note.tagNames) {
-                tagLabel(tag)
+        if (this.note.tags) {
+            for (let tag of this.note.tags) {
+                tagLabel(tag.name)
                     .in(timeAndTags)
                     .marginHorizontal('4px')
             }
@@ -84,17 +84,17 @@ export class QuickNoteCardView implements View {
         this.dragCounter = 0;
         this.setCardBackground();
 
-        const tag = getDragData();
+        const newTag = getDragData();
 
-        if (!this.note.tagNames || !this.note.tagNames.find((name) => name === tag.name)) {
+        if (!this.note.tags || !this.note.tags.find((tag) => newTag.name === tag.name)) {
             // TODO: figure out how to refresh just this document
-            addTagToDocument(tag.id, this.note.id);
+            addTagToDocument(newTag.id, this.note.id);
 
-            if (!this.note.tagNames) {
-                this.note.tagNames = [];
+            if (!this.note.tags) {
+                this.note.tags = [];
             }
 
-            this.note.tagNames.push(tag.name);
+            this.note.tags.push(newTag);
             this.renderCard();
         }
 

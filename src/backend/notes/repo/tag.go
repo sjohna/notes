@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"encoding/json"
 	"github.com/sirupsen/logrus"
 	c "github.com/sjohna/go-server-common/repo"
 	"gopkg.in/guregu/null.v4"
@@ -10,6 +11,15 @@ type Tag struct {
 	ID          int64       `db:"id" json:"id"`
 	Name        string      `db:"name" json:"name"`
 	Description null.String `db:"description" json:"description"`
+}
+
+type TagList []*Tag
+
+func (r *TagList) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+	return json.Unmarshal(src.([]byte), r)
 }
 
 func CreateTag(dao c.DAO, name string, description null.String) (*Tag, error) {

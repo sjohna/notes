@@ -3,22 +3,21 @@ package repo
 import (
 	"errors"
 	"fmt"
-	"github.com/lib/pq"
 	c "github.com/sjohna/go-server-common/repo"
 	"notes/common"
 	"time"
 )
 
 type Document struct {
-	ID                    int64          `db:"id" json:"id"`
-	Type                  string         `db:"type" json:"type"`
-	Content               string         `db:"content" json:"content"`
-	CreatedAt             time.Time      `db:"created_at" json:"createdAt"`
-	CreatedAtPrecision    string         `db:"created_at_precision" json:"createdAtPrecision"`
-	DocumentTime          time.Time      `db:"document_time" json:"documentTime"`
-	DocumentTimePrecision string         `db:"document_time_precision" json:"documentTimePrecision"`
-	InsertedAt            time.Time      `db:"inserted_at" json:"insertedAt"`
-	TagNames              pq.StringArray `db:"tag_names" json:"tagNames"`
+	ID                    int64     `db:"id" json:"id"`
+	Type                  string    `db:"type" json:"type"`
+	Content               string    `db:"content" json:"content"`
+	CreatedAt             time.Time `db:"created_at" json:"createdAt"`
+	CreatedAtPrecision    string    `db:"created_at_precision" json:"createdAtPrecision"`
+	DocumentTime          time.Time `db:"document_time" json:"documentTime"`
+	DocumentTimePrecision string    `db:"document_time_precision" json:"documentTimePrecision"`
+	InsertedAt            time.Time `db:"inserted_at" json:"insertedAt"`
+	Tags                  *TagList  `db:"tags" json:"tags"`
 }
 
 type DocumentsOnDate struct {
@@ -72,7 +71,7 @@ select document.id,
        document.document_time,
        document.document_time_precision,
        document.inserted_at,
-	   document_tags.tag_names
+	   document_tags.tags as tags
 from document
 join lateral (
     select document_content.content
@@ -82,7 +81,7 @@ join lateral (
     limit 1
 ) latest_content_version on true
 join lateral (
-    select array_agg(name) as tag_names
+    select jsonb_agg(json_build_object('id', tag.id, 'name', tag.name, 'description', tag.description)) as tags
     from document_tag
     join tag on document_tag.tag_id = tag.id
     where document_tag.document_id = document.id
