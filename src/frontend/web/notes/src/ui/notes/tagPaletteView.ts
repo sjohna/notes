@@ -14,6 +14,7 @@ import {
 } from "../../utility/element";
 import {LabeledTextInput} from "../component/labeledTextInput";
 import {tagLabel} from "../component/tagLabel";
+import {startDragging, stopDragging} from "../../service/dragDropService";
 
 export class TagPaletteView implements View {
     constructor(private container: AnyBuilder) {}
@@ -38,10 +39,23 @@ export class TagPaletteView implements View {
                 .in(this.tagListContainer)
                 .width('fit-content')
                 .margin('4px')
+                .ondragstart(() => this.dragStart(tag))
+                .ondragend(() => this.dragEnd(tag))
+
         }
     }
 
-    teardown(): void {
+    private dragStart(tag: Tag) {
+        startDragging(tag)
+        console.log(`Drag start from ${tag.name}`)
+    }
+
+    private dragEnd(tag: Tag) {
+        stopDragging()
+        console.log(`Drag end from ${tag.name}`)
+    }
+
+    public teardown(): void {
         this.tagSubscription?.unsubscribe();
     }
 }

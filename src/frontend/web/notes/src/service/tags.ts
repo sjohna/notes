@@ -7,6 +7,9 @@ export interface Tag {
     description?: string;
 }
 
+const TAG_UPDATE_ADD = 1;
+const TAG_UPDATE_REMOVE = 2;
+
 const tags$$ = new BehaviorSubject<Tag[]>([])
 export const tags$ = tags$$.pipe(shareReplay(1));
 
@@ -22,7 +25,7 @@ export function createTag(name: string, description?: string) {
     if (!name) {
         return;
     }
-    
+
     fetch(`${environment.apiUrl}/tag`, {
         'method': 'POST',
         'body': JSON.stringify({name, description})
@@ -30,5 +33,23 @@ export function createTag(name: string, description?: string) {
         .then(() => {
             fetchTags();
         } )
+        .catch(err => console.log(err))
+}
+
+export function addTagToDocument(tagId: number, documentId: number) {
+    const body = {
+        documentId,
+        tagUpdates: [
+            {
+                tagId,
+                updateType: TAG_UPDATE_ADD,
+            }
+        ]
+    }
+
+    fetch(`${environment.apiUrl}/quicknote/update_tags`, {
+        'method': 'POST',
+        'body': JSON.stringify(body)
+    })
         .catch(err => console.log(err))
 }

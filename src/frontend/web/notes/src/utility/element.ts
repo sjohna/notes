@@ -49,6 +49,37 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public ondragstart(handler: (ev: DragEvent) => void): ElementBuilder<E> {
+        this.el.draggable = true;
+        this.el.ondragstart = handler;
+        return this;
+    }
+
+    public ondragend(handler: (ev: DragEvent) => void): ElementBuilder<E> {
+        this.el.ondragend = handler;
+        return this;
+    }
+
+    public ondragenter(handler: (ev: DragEvent) => void): ElementBuilder<E> {
+        this.el.ondragenter = handler;
+        return this;
+    }
+
+    public ondragleave(handler: (ev: DragEvent) => void): ElementBuilder<E> {
+        this.el.ondragleave = handler;
+        return this;
+    }
+
+    public ondragover(handler: (ev: DragEvent) => void): ElementBuilder<E> {
+        this.el.ondragover = handler;
+        return this;
+    }
+
+    public ondrop(handler: (ev: DragEvent) => void): ElementBuilder<E> {
+        this.el.ondrop = handler;
+        return this;
+    }
+
     // TODO: figure out the correct type for the event handler
     public onchange(handler: (ev?:  Event) => void): ElementBuilder<E> {
         this.el.onchange = handler;
