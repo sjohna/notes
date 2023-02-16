@@ -1,8 +1,7 @@
-import {BehaviorSubject, shareReplay} from "rxjs";
-import {DateTimeFormatter, LocalDate} from "@js-joda/core";
 import {environment} from "../environment/environment";
 import {QuickNoteDataHandle} from "./quickNoteDataHandle";
 import {Tag} from "./tags";
+import {Subject} from "rxjs";
 
 export interface Document {
     content: string;
@@ -14,11 +13,6 @@ export interface Document {
     id: number;
     type: string;
     tags?: Tag[];
-}
-
-export interface DocumentsForDate {
-    date: string;
-    notes: Document[];
 }
 
 export interface DocumentQueryParameters {
@@ -51,3 +45,5 @@ export function createNote(content: string) {
         } )
         .catch(err => console.log(err))
 }
+
+export const documentUpdated$$ = new Subject<Document>();

@@ -1,5 +1,7 @@
 import {BehaviorSubject, shareReplay} from "rxjs";
+import {Document} from "./quickNotes";
 import {environment} from "../environment/environment";
+import {documentUpdated$$} from "./quickNotes";
 
 export interface Tag {
     id: number;
@@ -51,6 +53,9 @@ export function addTagToDocument(tagId: number, documentId: number) {
         'method': 'POST',
         'body': JSON.stringify(body)
     })
+        .then(async (response) => {
+            documentUpdated$$.next(await response.json() as Document)
+        })
         .catch(err => console.log(err))
 }
 
@@ -69,5 +74,8 @@ export function removeTagFromDocument(tagId: number, documentId: number) {
         'method': 'POST',
         'body': JSON.stringify(body)
     })
+        .then(async (response) => {
+            documentUpdated$$.next(await response.json() as Document)
+        })
         .catch(err => console.log(err))
 }
