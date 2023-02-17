@@ -1,9 +1,10 @@
 import {View} from "../../utility/view";
-import {AnyBuilder, clear, DivBuilder, checkbox, div, flexRow} from "../../utility/element";
+import {AnyBuilder, DivBuilder, div, flexRow} from "../../utility/element";
 import {TagView} from "../notes/tagView";
 import {QuickNoteView} from "../notes/quickNoteView";
 import {Tabs} from "../component/tabs";
 import {TagPaletteView} from "../notes/tagPaletteView";
+import {SidebarView} from "./sidebar";
 
 
 export class ContainerView implements View {
@@ -18,7 +19,7 @@ export class ContainerView implements View {
 
     private sideView: View;
 
-    private view: View;
+    private mainView: View;
 
     setup(): void {
         this.topLevelContainer = flexRow()
@@ -28,10 +29,9 @@ export class ContainerView implements View {
         this.sideContainer = div()
             .in(this.topLevelContainer)
             .height('100%')
-            .background('lightgray')
             .marginRight('8px')
 
-        this.sideView = new TagPaletteView(this.sideContainer);
+        this.sideView = new SidebarView(this.sideContainer);
 
         this.mainContainer = div()
             .in(this.topLevelContainer)
@@ -54,13 +54,13 @@ export class ContainerView implements View {
     }
 
     private renderMainView() {
-        this.view?.teardown();
+        this.mainView?.teardown();
         if (this.tabBar.selectedTab === 'tags') {
-            this.view = new TagView(this.mainViewContainer);
+            this.mainView = new TagView(this.mainViewContainer);
         } else {
-            this.view = new QuickNoteView(this.mainViewContainer);
+            this.mainView = new QuickNoteView(this.mainViewContainer);
         }
-        this.view?.setup();
+        this.mainView?.setup();
     }
 
     teardown(): void {
