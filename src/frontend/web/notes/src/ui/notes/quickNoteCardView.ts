@@ -40,13 +40,24 @@ export class QuickNoteCardView implements View {
 
         if (this.note.tags) {
             for (let tag of this.note.tags) {
-                tagLabel(tag.name)
+                const currentTag = tagLabel(tag.name)
                     .in(timeAndTags)
                     .marginHorizontal('4px')
-                    .onclick((ev: MouseEvent) => {  // TODO: some kind of style while ctrl+hovering
+                    .onclick((ev: MouseEvent) => {
                         if (ev.ctrlKey) {
                             this.removeTag(tag)
                         }
+                    })
+                    // TODO: better detect and immediately remove red background when ctrl key is released. This will only change the background when the mouse moves
+                    .onmousemove((ev: MouseEvent) => {
+                        if (ev.ctrlKey) {
+                            currentTag.background('red')
+                        } else {
+                            currentTag.background('white')
+                        }
+                    })
+                    .onmouseleave(() => {
+                        currentTag.background('white')
                     })
             }
         }

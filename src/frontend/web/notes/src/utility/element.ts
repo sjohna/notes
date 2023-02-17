@@ -49,6 +49,31 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public onmouseover(handler: (ev?: MouseEvent) => void): ElementBuilder<E> {
+        this.el.onmouseover = handler;
+        return this;
+    }
+
+    public onmouseenter(handler: (ev?: MouseEvent) => void): ElementBuilder<E> {
+        this.el.onmouseenter = handler;
+        return this;
+    }
+
+    public onmouseleave(handler: (ev?: MouseEvent) => void): ElementBuilder<E> {
+        this.el.onmouseleave = handler;
+        return this;
+    }
+
+    public onmousemove(handler: (ev?: MouseEvent) => void): ElementBuilder<E> {
+        this.el.onmousemove = handler;
+        return this;
+    }
+
+    public onkeyup(handler: (ev?: KeyboardEvent) => void): ElementBuilder<E> {
+        this.el.onkeyup = handler;
+        return this;
+    }
+
     public ondragstart(handler: (ev: DragEvent) => void): ElementBuilder<E> {
         this.el.draggable = true;
         this.el.ondragstart = handler;
