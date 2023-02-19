@@ -15,6 +15,11 @@ import {
 import {LabeledTextInput} from "../component/labeledTextInput";
 import {tagLabel} from "../component/tagLabel";
 import {startDragging, stopDragging} from "../../service/dragDropService";
+import Fuse from "fuse.js";
+
+const tagSearchOptions = {
+    keys: ['name']
+}
 
 export class TagPaletteView implements View {
     constructor(private container: AnyBuilder) {}
@@ -23,13 +28,43 @@ export class TagPaletteView implements View {
 
     private tagSubscription?: Subscription;
 
+    private tagFuse: Fuse<Tag>;
+
+    private tagSearchBox: InputBuilder;
+
+    private unfilteredTags: Tag[];
+
     setup(): void {
+        this.tagSearchBox = input() // TODO: fix right margin on this
+            .in(this.container)
+            .width('100%')
+            .marginVertical('4px')
+            .onkeyup((ev: KeyboardEvent) => {
+                if (this.tagFuse && this.tagSearchBox?.element()?.value) {
+                    const filteredTags = this.tagFuse.search(this.tagSearchBox.element().value).map((r) => r.item)
+                    this.renderTags(filteredTags)
+                } else {
+                    this.renderTags(this.unfilteredTags);
+                }
+            })
+
         this.tagSubscription?.unsubscribe();
         this.tagListContainer = inlineFlexColumn()
             .in(this.container)
             .height('100%');
 
-        this.tagSubscription = tags$.subscribe((tags) => this.renderTags(tags))
+        this.tagSubscription = tags$.subscribe((tags) => this.tagsUpdated(tags))
+    }
+
+    private tagsUpdated(tags: Tag[]) {
+        this.unfilteredTags = tags;
+        this.tagFuse = new Fuse(tags, tagSearchOptions);
+        if (this.tagFuse && this.tagSearchBox?.element()?.value) {
+            const filteredTags = this.tagFuse.search(this.tagSearchBox.element().value).map((r) => r.item)
+            this.renderTags(filteredTags)
+        } else {
+            this.renderTags(this.unfilteredTags);
+        }
     }
 
     private renderTags(tags: Tag[]) {
