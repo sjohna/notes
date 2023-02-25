@@ -2,6 +2,7 @@ import {environment} from "../environment/environment";
 import {QuickNoteDataHandle} from "./quickNoteDataHandle";
 import {Tag} from "./tags";
 import {Subject} from "rxjs";
+import {DocumentFilterHandle} from "./documentFilterHandle";
 
 export interface Document {
     content: string;
@@ -27,9 +28,11 @@ export interface QuickNoteResponse {
     parameters: DocumentQueryParameters;
 }
 
+export const documentFilters = new DocumentFilterHandle();
+documentFilters.filter.sortBy = 'document_time';
+documentFilters.filter.sortDirection = 'descending';
+
 export const quickNoteDataHandle = new QuickNoteDataHandle();
-quickNoteDataHandle.parameters.sortBy = 'document_time';
-quickNoteDataHandle.parameters.sortDirection = 'descending';
 
 export function createNote(content: string) {
     if (!content) {

@@ -1,5 +1,5 @@
 import {SubViewCollection, View} from "../../utility/view";
-import {Document, quickNoteDataHandle} from "../../service/quickNotes"
+import {Document, documentFilters, quickNoteDataHandle} from "../../service/quickNotes"
 import {AnyBuilder, clear, DivBuilder, InputBuilder, checkbox, div, hr, span, flexRow} from "../../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {QuickNoteCardView} from "./quickNoteCardView";
@@ -31,8 +31,8 @@ export class QuickNoteColumnView implements View {
         this.reverseOrderCheckbox = new LabeledCheckbox('Reverse Order')
             .in(this.container)
             .onchange((ev: Event) => {
-                this.dataHandle.parameters.sortDirection = this.reverseOrderCheckbox.checked ? 'ascending' : 'descending';
-                this.dataHandle.get();
+                documentFilters.filter.sortDirection = this.reverseOrderCheckbox.checked ? 'ascending' : 'descending';
+                documentFilters.update();
             });
 
         this.noteContainer = div()

@@ -5,6 +5,7 @@ import {LocalDate, LocalDateTime, LocalTime, TemporalAdjusters, ZonedDateTime, Z
 import {Subscription, take} from "rxjs";
 import {QuickNoteDataHandle} from "../../service/quickNoteDataHandle";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
+import {documentFilters, quickNoteDataHandle} from "../../service/quickNotes";
 
 export class QuickNoteCalendarView implements View {
     private totalQuickNotesOnDates: TotalQuickNotesOnDateDataHandle;
@@ -28,9 +29,9 @@ export class QuickNoteCalendarView implements View {
 
         this.get();
 
-        this.notesHandle = new QuickNoteDataHandle();
-        this.notesHandle.parameters.sortDirection = 'descending';
-        this.notesHandle.parameters.sortBy = 'document_time';
+        this.notesHandle = quickNoteDataHandle;
+        documentFilters.filter.sortDirection = 'descending';
+        documentFilters.filter.sortBy = 'document_time';
     }
 
     private get() {
@@ -173,9 +174,9 @@ export class QuickNoteCalendarView implements View {
                                         .background('lightgray')
                                         .onclick(() => {
                                             const startDate = localDateOfIndex.atTime(LocalTime.of(0,0,0)).atZone(ZoneId.of('America/Denver')).withZoneSameInstant(ZoneId.UTC);
-                                            this.notesHandle.parameters.startTime = startDate;
-                                            this.notesHandle.parameters.endTime = startDate.plusDays(1);
-                                            this.notesHandle.get();
+                                            documentFilters.filter.startTime = startDate;
+                                            documentFilters.filter.endTime = startDate.plusDays(1);
+                                            documentFilters.update();
                                         });
 
                                     ++index;
@@ -203,9 +204,9 @@ export class QuickNoteCalendarView implements View {
                                 console.log(currentDay)
                                 const startDate = LocalDate.of(this.currentMonth.year(), this.currentMonth.month(), Math.max(currentDayCapture, 1)).atTime(LocalTime.of(0,0,0)).atZone(ZoneId.of('America/Denver')).withZoneSameInstant(ZoneId.UTC);
                                 const endDate = LocalDate.of(this.currentMonth.year(), this.currentMonth.month(), Math.min(currentDayCapture+7, numDaysInMonth)).atTime(LocalTime.of(0,0,0)).atZone(ZoneId.of('America/Denver')).withZoneSameInstant(ZoneId.UTC);
-                                this.notesHandle.parameters.startTime = startDate;
-                                this.notesHandle.parameters.endTime = endDate;
-                                this.notesHandle.get();
+                                documentFilters.filter.startTime = startDate;
+                                documentFilters.filter.endTime = endDate;
+                                documentFilters.update();
                             })
                     }
 

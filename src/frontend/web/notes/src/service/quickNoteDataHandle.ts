@@ -1,5 +1,5 @@
-import {Document} from "./quickNotes";
-import {BehaviorSubject, Observable, shareReplay, Subject, takeUntil} from "rxjs";
+import {Document, documentFilters} from "./quickNotes";
+import {BehaviorSubject, lastValueFrom, Observable, shareReplay, Subject, take, takeUntil} from "rxjs";
 import {DateTimeFormatter, ZonedDateTime} from "@js-joda/core";
 import {environment} from "../environment/environment";
 
@@ -41,12 +41,18 @@ export class QuickNoteDataHandle {
     private notes$$ = new BehaviorSubject<Document[]>([]);
     public notes$: Observable<Document[]> = this.notes$$.pipe(takeUntil(this.close$$), shareReplay(1));
 
-    public parameters = new QuickNoteQueryParameters();
+    public parameters$ = documentFilters.filter$;
 
-    public get() {
+    constructor() {
+        this.parameters$.subscribe(() => this.get());
+    }
+
+    public async get() {
+        const parameters = await lastValueFrom(this.parameters$.pipe(take(1)));
+
         fetch(`${environment.apiUrl}/quicknote`, {
             'method': 'POST',
-            'body': this.parameters.toBodyString()
+            'body': parameters.toBodyString()
         })
             .then(async (response) => {
                 this.notes$$.next((await response.json() as GetQuickNotesResponse).documents);
