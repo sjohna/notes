@@ -3,6 +3,7 @@ package repo
 import (
 	"errors"
 	"fmt"
+	"github.com/lib/pq"
 	c "github.com/sjohna/go-server-common/repo"
 	"notes/common"
 	"time"
@@ -62,16 +63,8 @@ values ($1, $2, $3, 1)`
 }
 
 // language=SQL
-var quickNoteQueryBase string = `
-select document.id,
-       document.type,
-       latest_content_version.content,
-       document.created_at,
-       document.created_at_precision,
-       document.document_time,
-       document.document_time_precision,
-       document.inserted_at,
-	   document_tags.tags as tags
+var quickNoteFilterQueryBase string = `
+select document.id
 from document
 join lateral (
     select document_content.content
@@ -95,16 +88,25 @@ func GetQuickNote(dao c.DAO, documentID int64) (*Document, error) {
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
-	SQL := quickNoteQueryBase + ` and document.id = $1`
-
-	var quickNote Document
-	err := dao.Get(&quickNote, SQL, documentID)
+	documents, err := GetDocumentsByIDs(dao, []int64{documentID}, common.QuickNoteQueryParameters{})
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
 	}
 
-	return &quickNote, nil
+	if len(documents) == 0 {
+		err = fmt.Errorf("No document found with id %d", documentID)
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	if len(documents) > 1 {
+		err = fmt.Errorf("Too many documents with id %d, this should not happen! (Expected 1, got %d)", documentID, len(documents))
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return documents[0], nil
 }
 
 var allowedSortColumns = []string{
@@ -130,6 +132,17 @@ func appendQueryParameters(query string, parameters common.QuickNoteQueryParamet
 		args = append(args, parameters.EndTime.Time)
 	}
 
+	newQuery, err := appendSortParameters(newQuery, parameters)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return newQuery, args, nil
+}
+
+func appendSortParameters(query string, parameters common.QuickNoteQueryParameters) (string, error) {
+	newQuery := query
+
 	if parameters.SortBy.Valid {
 		var sortColumn string
 		for _, allowedCol := range allowedSortColumns {
@@ -141,7 +154,7 @@ func appendQueryParameters(query string, parameters common.QuickNoteQueryParamet
 
 		if len(sortColumn) == 0 {
 			// TODO: custom error for this
-			return "", nil, errors.New(fmt.Sprintf("Invalid sortBy: %s", parameters.SortBy.String))
+			return "", errors.New(fmt.Sprintf("Invalid sortBy: %s", parameters.SortBy.String))
 		}
 
 		sortDirection := " desc"
@@ -151,7 +164,7 @@ func appendQueryParameters(query string, parameters common.QuickNoteQueryParamet
 			} else if parameters.SortDirection.String == "descending" {
 				sortDirection = " desc"
 			} else {
-				return "", nil, errors.New(fmt.Sprintf("Invalid sortDirection: %s", parameters.SortDirection.String))
+				return "", errors.New(fmt.Sprintf("Invalid sortDirection: %s", parameters.SortDirection.String))
 			}
 		}
 
@@ -162,21 +175,20 @@ func appendQueryParameters(query string, parameters common.QuickNoteQueryParamet
 		newQuery += " order by document_time desc"
 	}
 
-	return newQuery, args, nil
+	return newQuery, nil
 }
 
 func GetQuickNotes(dao c.DAO, parameters common.QuickNoteQueryParameters) ([]*Document, error) {
 	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes")
 	defer c.LogRepoReturn(log)
 
-	SQL, args, err := appendQueryParameters(quickNoteQueryBase, parameters)
+	ids, err := GetDocumentIDsMatchingFilter(dao, parameters)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
 	}
 
-	quickNotes := make([]*Document, 0)
-	err = dao.Select(&quickNotes, SQL, args...)
+	quickNotes, err := GetDocumentsByIDs(dao, ids, parameters)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
@@ -224,4 +236,74 @@ func GetTotalDocumentsOnDates(dao c.DAO, parameters common.TotalNotesOnDaysQuery
 	}
 
 	return documentsOnDates, nil
+}
+
+// parameters only for sorting for now
+// TODO: handle sort parameters better
+func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.QuickNoteQueryParameters) ([]*Document, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetDocumentsByIds")
+	defer c.LogRepoReturn(log)
+
+	// language=SQL
+	SQL := `select document.id,
+       document.type,
+       latest_content_version.content,
+       document.created_at,
+       document.created_at_precision,
+       document.document_time,
+       document.document_time_precision,
+       document.inserted_at,
+       document_tags.tags as tags
+from document
+         join lateral (
+    select document_content.content
+    from document_content
+    where document_content.document_id = document.id
+    order by version desc
+    limit 1
+    ) latest_content_version on true
+         join lateral (
+    select jsonb_agg(json_build_object('id', tag.id, 'name', tag.name, 'description', tag.description)) as tags
+    from document_tag
+             join tag on document_tag.tag_id = tag.id
+    where document_tag.document_id = document.id
+      and document_tag.archived_at is null
+    ) document_tags on true
+where document.id = any($1)
+`
+
+	SQL, err := appendSortParameters(SQL, parameters)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	documents := make([]*Document, 0)
+	err = dao.Select(&documents, SQL, pq.Array(ids))
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return documents, nil
+}
+
+func GetDocumentIDsMatchingFilter(dao c.DAO, parameters common.QuickNoteQueryParameters) ([]int64, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes")
+	defer c.LogRepoReturn(log)
+
+	SQL, args, err := appendQueryParameters(quickNoteFilterQueryBase, parameters)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	documentIDs := make([]int64, 0)
+	err = dao.Select(&documentIDs, SQL, args...)
+	if err != nil {
+		log.WithError(err).Error()
+		return nil, err
+	}
+
+	return documentIDs, nil
 }
