@@ -3,8 +3,8 @@ package common
 import "gopkg.in/guregu/null.v4"
 
 type TagQueryParameter struct {
-	Tag     string `json:"tag"`
-	Exclude bool   `json:"exclude"`
+	Tag     int64 `json:"tag"`
+	Exclude bool  `json:"exclude"`
 }
 
 type QuickNoteQueryParameters struct {

@@ -66,20 +66,6 @@ values ($1, $2, $3, 1)`
 var quickNoteFilterQueryBase string = `
 select document.id
 from document
-join lateral (
-    select document_content.content
-    from document_content
-    where document_content.document_id = document.id
-    order by version desc
-    limit 1
-) latest_content_version on true
-join lateral (
-    select jsonb_agg(json_build_object('id', tag.id, 'name', tag.name, 'description', tag.description)) as tags
-    from document_tag
-    join tag on document_tag.tag_id = tag.id
-    where document_tag.document_id = document.id
-      and document_tag.archived_at is null
-) document_tags on true
 where document.type = 'quick_note'
 `
 
@@ -109,35 +95,30 @@ func GetQuickNote(dao c.DAO, documentID int64) (*Document, error) {
 	return documents[0], nil
 }
 
-var allowedSortColumns = []string{
-	"created_at",
-	"document_time",
-	"inserted_at",
-}
-
 func appendQueryParameters(query string, parameters common.QuickNoteQueryParameters) (string, []interface{}, error) {
-	newQuery := query
+	basicQuery := query
 
 	args := make([]interface{}, 0)
 
 	// TODO: make this more general. Right now, it assumes there's already a where clause, so adds everything with and
 	if parameters.StartTime.Valid && parameters.EndTime.Valid {
-		newQuery += " and document.document_time between $1 and $2"
+		basicQuery += " and document.document_time between $1 and $2"
 		args = append(args, parameters.StartTime.Time, parameters.EndTime.Time)
 	} else if parameters.StartTime.Valid {
-		newQuery += " and document.document_time >= $1"
+		basicQuery += " and document.document_time >= $1"
 		args = append(args, parameters.StartTime.Time)
 	} else if parameters.EndTime.Valid {
-		newQuery += " and document.document_time <= $1"
+		basicQuery += " and document.document_time <= $1"
 		args = append(args, parameters.EndTime.Time)
 	}
 
-	newQuery, err := appendSortParameters(newQuery, parameters)
-	if err != nil {
-		return "", nil, err
-	}
+	return basicQuery, args, nil
+}
 
-	return newQuery, args, nil
+var allowedSortColumns = []string{
+	"created_at",
+	"document_time",
+	"inserted_at",
 }
 
 func appendSortParameters(query string, parameters common.QuickNoteQueryParameters) (string, error) {
@@ -288,18 +269,53 @@ where document.id = any($1)
 	return documents, nil
 }
 
+func getQueryAndArgs(parameters common.QuickNoteQueryParameters) (string, []interface{}) {
+	// language=SQL
+	SQL := `select distinct document.id
+from document
+         left join document_tag on document.id = document_tag.document_id
+where document.document_time between coalesce($1, '-infinity'::timestamptz) and coalesce($2, 'infinity'::timestamptz) -- TODO: handle querying based on other timestamps
+  and ($3 is false or document_tag.tag_id = any ($4))
+except
+select distinct document.id
+from document
+         left join document_tag on document.id = document_tag.document_id
+where document.document_time between coalesce($1, '-infinity'::timestamptz) and coalesce($2, 'infinity'::timestamptz) -- TODO: handle querying based on other timestamps
+  and ($5 is true and document_tag.tag_id = any ($6))`
+
+	includeTags := make([]int64, 0)
+	excludeTags := make([]int64, 0)
+
+	if parameters.Tags != nil {
+		for _, tagFilter := range parameters.Tags {
+			if tagFilter.Exclude {
+				excludeTags = append(excludeTags, tagFilter.Tag)
+			} else {
+				includeTags = append(includeTags, tagFilter.Tag)
+			}
+		}
+	}
+
+	args := []interface{}{
+		parameters.StartTime,
+		parameters.EndTime,
+		len(includeTags) > 0,
+		pq.Array(includeTags),
+		len(excludeTags) > 0,
+		pq.Array(excludeTags),
+	}
+
+	return SQL, args
+}
+
 func GetDocumentIDsMatchingFilter(dao c.DAO, parameters common.QuickNoteQueryParameters) ([]int64, error) {
 	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes")
 	defer c.LogRepoReturn(log)
 
-	SQL, args, err := appendQueryParameters(quickNoteFilterQueryBase, parameters)
-	if err != nil {
-		log.WithError(err).Error()
-		return nil, err
-	}
+	SQL, args := getQueryAndArgs(parameters)
 
 	documentIDs := make([]int64, 0)
-	err = dao.Select(&documentIDs, SQL, args...)
+	err := dao.Select(&documentIDs, SQL, args...)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err

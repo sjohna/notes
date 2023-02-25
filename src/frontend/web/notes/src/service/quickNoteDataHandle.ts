@@ -3,13 +3,21 @@ import {BehaviorSubject, Observable, shareReplay, Subject, takeUntil} from "rxjs
 import {DateTimeFormatter, ZonedDateTime} from "@js-joda/core";
 import {environment} from "../environment/environment";
 
+export interface TagQueryParameter {
+    tag: number;
+    exclude: boolean;
+}
+
 export class QuickNoteQueryParameters {
     startTime?: ZonedDateTime;
     endTime?: ZonedDateTime;
     sortBy?: string;
     sortDirection?: string;
+    tags?: TagQueryParameter[];
 
-    constructor() {}
+    constructor() {
+        this.tags = [];
+    }
 
     toBodyString() {
         return JSON.stringify({
@@ -17,6 +25,7 @@ export class QuickNoteQueryParameters {
             endTime: this.endTime?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
             sortBy: this.sortBy,
             sortDirection: this.sortDirection,
+            tags: this.tags,
         });
     };
 }

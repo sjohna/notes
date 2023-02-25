@@ -16,6 +16,7 @@ import {LabeledTextInput} from "../component/labeledTextInput";
 import {tagLabel} from "../component/tagLabel";
 import {startDragging, stopDragging} from "../../service/dragDropService";
 import Fuse from "fuse.js";
+import {quickNoteDataHandle} from "../../service/quickNotes";
 
 const tagSearchOptions = {
     keys: ['name']
@@ -70,12 +71,25 @@ export class TagPaletteView implements View {
     private renderTags(tags: Tag[]) {
         clear(this.tagListContainer);
         for (const tag of tags) {
-            tagLabel(tag.name)
+            const localTag = tag
+            const currentTagLabel = tagLabel(tag.name)
                 .in(this.tagListContainer)
                 .width('fit-content')
                 .margin('4px')
+                .cursor('pointer')
                 .ondragstart(() => this.dragStart(tag))
                 .ondragend(() => this.dragEnd(tag))
+                .onclick(() => {
+                    if (quickNoteDataHandle.parameters.tags.find((t) => t.tag === localTag.id)) {
+                        quickNoteDataHandle.parameters.tags = quickNoteDataHandle.parameters.tags.filter((t) => t.tag !== localTag.id);
+                        quickNoteDataHandle.get();
+                        currentTagLabel.background('white');
+                    } else {
+                        quickNoteDataHandle.parameters.tags.push({tag: localTag.id, exclude: false})
+                        quickNoteDataHandle.get();
+                        currentTagLabel.background('cyan');
+                    }
+                })
 
         }
     }
