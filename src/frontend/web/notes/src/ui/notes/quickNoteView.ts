@@ -11,12 +11,17 @@ import {View} from "../../utility/view";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
 import {QuickNoteCalendarView} from "./quickNoteCalendarView";
 import {LabeledCheckbox} from "../component/labeledCheckbox";
+import {QuickNotesFilterView} from "./quickNotesFilterView";
 
 export class QuickNoteView implements View {
     noteContainer: DivBuilder;
     newNoteText: HTMLTextAreaElement;
 
     private noteView: View;
+
+    private filterContainer: DivBuilder;
+    private filterView: View;
+
 
     private calendarViewCheckbox: LabeledCheckbox;
 
@@ -44,6 +49,13 @@ export class QuickNoteView implements View {
         newNoteTextBuilder
             .inDiv()
             .in(this.container);
+
+        this.filterContainer = div()
+            .in(this.container);
+
+        this.filterView?.teardown();
+        this.filterView = new QuickNotesFilterView(this.filterContainer);
+        this.filterView.setup();
 
         this.calendarViewCheckbox = new LabeledCheckbox('Calendar View')
             .in(this.container)
