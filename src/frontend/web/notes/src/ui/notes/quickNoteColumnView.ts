@@ -1,11 +1,13 @@
 import {SubViewCollection, View} from "../../utility/view";
-import {Document, documentFilters, quickNoteDataHandle} from "../../service/quickNotes"
-import {AnyBuilder, clear, DivBuilder, InputBuilder, checkbox, div, hr, span, flexRow} from "../../utility/element";
+import {AnyBuilder, clear, DivBuilder, div, hr, span} from "../../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {QuickNoteCardView} from "./quickNoteCardView";
 import {Subscription} from "rxjs";
-import {QuickNoteDataHandle} from "../../service/quickNoteDataHandle";
+import {QuickNoteService} from "../../service/quickNoteService";
 import {LabeledCheckbox} from "../component/labeledCheckbox";
+import {DocumentFilterService} from "../../service/documentFilterService";
+import {TagService} from "../../service/tagService";
+import {Document} from "../../service/quickNoteService";
 
 export class QuickNoteColumnView implements View {
     private subViews = new SubViewCollection();
@@ -15,14 +17,12 @@ export class QuickNoteColumnView implements View {
     private noteContainer?: DivBuilder;
     private reverseOrderCheckbox?: LabeledCheckbox;
 
-    private dataHandle: QuickNoteDataHandle;
-
     constructor(
         private container: AnyBuilder,
-        private handle: QuickNoteDataHandle,
-    ) {
-        this.dataHandle = handle;
-    }
+        private quickNotes: QuickNoteService,
+        private documentFilters: DocumentFilterService,
+        private tags: TagService,
+    ) { }
 
     setup(): void {
         this.quickNotesSubscription?.unsubscribe();
@@ -31,15 +31,15 @@ export class QuickNoteColumnView implements View {
         this.reverseOrderCheckbox = new LabeledCheckbox('Reverse Order')
             .in(this.container)
             .onchange((ev: Event) => {
-                documentFilters.filter.sortDirection = this.reverseOrderCheckbox.checked ? 'ascending' : 'descending';
-                documentFilters.update();
+                this.documentFilters.filter.sortDirection = this.reverseOrderCheckbox.checked ? 'ascending' : 'descending';
+                this.documentFilters.update();
             });
 
         this.noteContainer = div()
             .in(this.container);
 
-        this.quickNotesSubscription = this.dataHandle.notes$.subscribe(notes => this.renderNotes(notes));
-        this.dataHandle.get();
+        this.quickNotesSubscription = this.quickNotes.notes$.subscribe(notes => this.renderNotes(notes));
+        this.quickNotes.get();
     }
 
     private renderNotes(notes?: Document[]) {
@@ -61,7 +61,7 @@ export class QuickNoteColumnView implements View {
             }
 
             this.subViews.setupAndAdd(
-                new QuickNoteCardView(this.noteContainer, note)
+                new QuickNoteCardView(this.noteContainer, note, this.quickNotes, this.tags)
             );
         }
     }

@@ -1,18 +1,19 @@
 import {View} from "../../utility/view";
 import {AnyBuilder, clear, div} from "../../utility/element";
-import {DocumentFilterHandle} from "../../service/documentFilterHandle";
-import {QuickNoteQueryParameters} from "../../service/quickNoteDataHandle";
+import {DocumentFilterService} from "../../service/documentFilterService";
+import {QuickNoteQueryParameters} from "../../service/quickNoteService";
 import {Observable, Subscription} from "rxjs";
-import {documentFilters} from "../../service/quickNotes";
-
 
 export class QuickNotesFilterView implements View {
     private parameters$: Observable<QuickNoteQueryParameters>;
 
     private sub: Subscription;
 
-    constructor(private container: AnyBuilder) {
-        this.parameters$ = documentFilters.filter$;
+    constructor(
+        private container: AnyBuilder,
+        private documentFilters: DocumentFilterService,
+    ) {
+        this.parameters$ = this.documentFilters.filter$;
     }
 
     public setup(): void {

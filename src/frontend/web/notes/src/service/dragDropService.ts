@@ -1,4 +1,4 @@
-import {Tag} from "./tags";
+import {Tag} from "./tagService";
 
 let dragData: Tag = null;
 

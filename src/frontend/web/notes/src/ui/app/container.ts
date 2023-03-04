@@ -3,12 +3,21 @@ import {AnyBuilder, DivBuilder, div, flexRow} from "../../utility/element";
 import {TagView} from "../notes/tagView";
 import {QuickNoteView} from "../notes/quickNoteView";
 import {Tabs} from "../component/tabs";
-import {TagPaletteView} from "../notes/tagPaletteView";
 import {SidebarView} from "./sidebar";
+import {QuickNoteService} from "../../service/quickNoteService";
+import {TotalQuickNotesOnDateService} from "../../service/totalQuickNotesOnDateService";
+import {DocumentFilterService} from "../../service/documentFilterService";
+import {TagService} from "../../service/tagService";
 
 
 export class ContainerView implements View {
-    constructor(private container: AnyBuilder) {}
+    constructor(
+        private container: AnyBuilder,
+        private quickNotes: QuickNoteService,
+        private totalQuickNotesOnDates: TotalQuickNotesOnDateService,
+        private documentFilters: DocumentFilterService,
+        private tags: TagService,
+    ) {}
 
     private tabBar: Tabs;
 
@@ -31,7 +40,7 @@ export class ContainerView implements View {
             .height('100%')
             .marginRight('8px')
 
-        this.sideView = new SidebarView(this.sideContainer);
+        this.sideView = new SidebarView(this.sideContainer, this.documentFilters, this.tags);
 
         this.mainContainer = div()
             .in(this.topLevelContainer)
@@ -56,9 +65,9 @@ export class ContainerView implements View {
     private renderMainView() {
         this.mainView?.teardown();
         if (this.tabBar.selectedTab === 'tags') {
-            this.mainView = new TagView(this.mainViewContainer);
+            this.mainView = new TagView(this.mainViewContainer, this.tags);
         } else {
-            this.mainView = new QuickNoteView(this.mainViewContainer);
+            this.mainView = new QuickNoteView(this.mainViewContainer, this.quickNotes, this.totalQuickNotesOnDates, this.documentFilters, this.tags);
         }
         this.mainView?.setup();
     }

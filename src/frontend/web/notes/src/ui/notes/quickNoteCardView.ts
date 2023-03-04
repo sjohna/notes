@@ -1,12 +1,12 @@
 import {View} from "../../utility/view";
-import {Document, documentUpdated$$} from "../../service/quickNotes";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
 import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../utility/element";
 import {tagLabel} from "../component/tagLabel";
 import {getDragData} from "../../service/dragDropService";
-import {addTagToDocument, removeTagFromDocument, Tag} from "../../service/tags";
 import {Subscription} from "rxjs";
+import {Tag, TagService} from "../../service/tagService";
+import {Document, QuickNoteService} from "../../service/quickNoteService";
 
 export class QuickNoteCardView implements View {
     private card: DivBuilder;
@@ -16,7 +16,12 @@ export class QuickNoteCardView implements View {
 
     private updateSubscription: Subscription;
 
-    constructor(private container: AnyBuilder, private note: Document) {}
+    constructor(
+        private container: AnyBuilder,
+        private note: Document,
+        private quickNotes: QuickNoteService,
+        private tags: TagService,
+    ) {}
 
     setup(): void {
         this.cardContainer = div()
@@ -107,10 +112,10 @@ export class QuickNoteCardView implements View {
 
         if (!this.note.tags || !this.note.tags.find((tag) => newTag.name === tag.name)) {
             if (!this.updateSubscription) {
-                this.updateSubscription = documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+                this.updateSubscription = this.quickNotes.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
             }
 
-            addTagToDocument(newTag.id, this.note.id);
+            this.tags.addTagToDocument(newTag.id, this.note.id);
         }
 
         console.log(`Drop document ${this.note.id}`);
@@ -125,9 +130,9 @@ export class QuickNoteCardView implements View {
 
     private removeTag(tagToRemove: Tag) {
         if (!this.updateSubscription) {
-            this.updateSubscription = documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+            this.updateSubscription = this.quickNotes.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
         }
-        removeTagFromDocument(tagToRemove.id, this.note.id)
+        this.tags.removeTagFromDocument(tagToRemove.id, this.note.id)
     }
 
     public teardown(): void {

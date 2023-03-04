@@ -1,38 +1,37 @@
 import {View} from "../../utility/view";
-import {Subscription} from "rxjs";
-import {createTag, fetchTags, Tag, tags$} from "../../service/tags";
+import {Observable, Subscription} from "rxjs";
 import {
     AnyBuilder,
     clear,
     DivBuilder,
     InputBuilder,
-    button,
-    div,
     input,
-    flexRow,
-    flexColumn, inlineFlexColumn
+    inlineFlexColumn
 } from "../../utility/element";
-import {LabeledTextInput} from "../component/labeledTextInput";
 import {tagLabel} from "../component/tagLabel";
 import {startDragging, stopDragging} from "../../service/dragDropService";
 import Fuse from "fuse.js";
-import {documentFilters, quickNoteDataHandle} from "../../service/quickNotes";
+import {DocumentFilterService} from "../../service/documentFilterService";
+import {Tag, TagService} from "../../service/tagService";
 
 const tagSearchOptions = {
     keys: ['name']
 }
 
 export class TagPaletteView implements View {
-    constructor(private container: AnyBuilder) {}
+    constructor(
+        private container: AnyBuilder,
+        private documentFilters: DocumentFilterService,
+        private tags: TagService,
+    ) {
+        this.tags$ = this.tags.tags$;
+    }
 
+    private tags$: Observable<Tag[]>;
     private tagListContainer: DivBuilder;
-
     private tagSubscription?: Subscription;
-
     private tagFuse: Fuse<Tag>;
-
     private tagSearchBox: InputBuilder;
-
     private unfilteredTags: Tag[];
 
     setup(): void {
@@ -54,7 +53,7 @@ export class TagPaletteView implements View {
             .in(this.container)
             .height('100%');
 
-        this.tagSubscription = tags$.subscribe((tags) => this.tagsUpdated(tags))
+        this.tagSubscription = this.tags$.subscribe((tags) => this.tagsUpdated(tags))
     }
 
     private tagsUpdated(tags: Tag[]) {
@@ -80,13 +79,13 @@ export class TagPaletteView implements View {
                 .ondragstart(() => this.dragStart(tag))
                 .ondragend(() => this.dragEnd(tag))
                 .onclick(() => {
-                    if (documentFilters.filter.tags.find((t) => t.tag === localTag.id)) {
-                        documentFilters.filter.tags = documentFilters.filter.tags.filter((t) => t.tag !== localTag.id);
-                        documentFilters.update();
+                    if (this.documentFilters.filter.tags.find((t) => t.tag === localTag.id)) {
+                        this.documentFilters.filter.tags = this.documentFilters.filter.tags.filter((t) => t.tag !== localTag.id);
+                        this.documentFilters.update();
                         currentTagLabel.background('white');
                     } else {
-                        documentFilters.filter.tags.push({tag: localTag.id, exclude: false})
-                        documentFilters.update();
+                        this.documentFilters.filter.tags.push({tag: localTag.id, exclude: false})
+                        this.documentFilters.update();
                         currentTagLabel.background('cyan');
                     }
                 })

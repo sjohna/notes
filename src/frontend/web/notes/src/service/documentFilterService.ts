@@ -1,7 +1,7 @@
-import {QuickNoteQueryParameters} from "./quickNoteDataHandle";
+import {QuickNoteQueryParameters} from "./quickNoteService";
 import {BehaviorSubject, shareReplay} from "rxjs";
 
-export class DocumentFilterHandle {
+export class DocumentFilterService {
     public filter = new QuickNoteQueryParameters();
 
     private filter$$ = new BehaviorSubject<QuickNoteQueryParameters>(this.filter);
