@@ -1,12 +1,9 @@
 import {SubViewCollection, View} from "../../utility/view";
 import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../utility/element";
-import {TotalQuickNotesOnDateService} from "../../service/totalQuickNotesOnDateService";
 import {LocalDate, LocalTime, TemporalAdjusters, ZoneId} from "@js-joda/core";
 import {Subscription} from "rxjs";
-import {QuickNoteService} from "../../service/quickNoteService";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
-import {DocumentFilterService} from "../../service/documentFilterService";
-import {TagService} from "../../service/tagService";
+import {Services} from "../../service/services";
 
 export class QuickNoteCalendarView implements View {
     private subscription: Subscription;
@@ -21,10 +18,7 @@ export class QuickNoteCalendarView implements View {
 
     constructor(
         private container: AnyBuilder,
-        private totalQuickNotesOnDates: TotalQuickNotesOnDateService,
-        private quickNotes: QuickNoteService,
-        private documentFilters: DocumentFilterService,
-        private tags: TagService,
+        private s: Services,
     ) {
         this.currentMonth = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
 
@@ -32,10 +26,10 @@ export class QuickNoteCalendarView implements View {
     }
 
     private get() {
-        this.totalQuickNotesOnDates.parameters.startDate = this.currentMonth.with(TemporalAdjusters.firstDayOfMonth());
-        this.totalQuickNotesOnDates.parameters.endDate = this.currentMonth.with(TemporalAdjusters.lastDayOfMonth());
+        this.s.totalQuickNotesOnDatesService.parameters.startDate = this.currentMonth.with(TemporalAdjusters.firstDayOfMonth());
+        this.s.totalQuickNotesOnDatesService.parameters.endDate = this.currentMonth.with(TemporalAdjusters.lastDayOfMonth());
 
-        this.totalQuickNotesOnDates.get();
+        this.s.totalQuickNotesOnDatesService.get();
     }
 
     setup(): void {
@@ -48,10 +42,10 @@ export class QuickNoteCalendarView implements View {
         this.notesContainer = div().in(this.container);
 
         this.subviews.setupAndAdd(
-            new QuickNoteColumnView(this.notesContainer, this.quickNotes, this.documentFilters, this.tags)
+            new QuickNoteColumnView(this.notesContainer, this.s)
         );
 
-        this.subscription = this.totalQuickNotesOnDates.notesOnDates$
+        this.subscription = this.s.totalQuickNotesOnDatesService.notesOnDates$
             .subscribe(
             (totalNotesOnDates) => {
                 if (!totalNotesOnDates) {
@@ -171,9 +165,9 @@ export class QuickNoteCalendarView implements View {
                                         .background('lightgray')
                                         .onclick(() => {
                                             const startDate = localDateOfIndex.atTime(LocalTime.of(0,0,0)).atZone(ZoneId.of('America/Denver')).withZoneSameInstant(ZoneId.UTC);
-                                            this.documentFilters.filter.startTime = startDate;
-                                            this.documentFilters.filter.endTime = startDate.plusDays(1);
-                                            this.documentFilters.update();
+                                            this.s.documentFilterService.filter.startTime = startDate;
+                                            this.s.documentFilterService.filter.endTime = startDate.plusDays(1);
+                                            this.s.documentFilterService.update();
                                         });
 
                                     ++index;
@@ -200,9 +194,9 @@ export class QuickNoteCalendarView implements View {
                             .onclick((ev) => {
                                 const startDate = LocalDate.of(this.currentMonth.year(), this.currentMonth.month(), Math.max(currentDayCapture, 1)).atTime(LocalTime.of(0,0,0)).atZone(ZoneId.of('America/Denver')).withZoneSameInstant(ZoneId.UTC);
                                 const endDate = LocalDate.of(this.currentMonth.year(), this.currentMonth.month(), Math.min(currentDayCapture+7, numDaysInMonth)).atTime(LocalTime.of(0,0,0)).atZone(ZoneId.of('America/Denver')).withZoneSameInstant(ZoneId.UTC);
-                                this.documentFilters.filter.startTime = startDate;
-                                this.documentFilters.filter.endTime = endDate;
-                                this.documentFilters.update();
+                                this.s.documentFilterService.filter.startTime = startDate;
+                                this.s.documentFilterService.filter.endTime = endDate;
+                                this.s.documentFilterService.update();
                             })
                     }
 

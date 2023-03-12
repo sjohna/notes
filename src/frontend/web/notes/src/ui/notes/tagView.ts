@@ -2,12 +2,13 @@ import {View} from "../../utility/view";
 import {Subscription} from "rxjs";
 import {AnyBuilder, clear, DivBuilder, button, div} from "../../utility/element";
 import {LabeledTextInput} from "../component/labeledTextInput";
-import {Tag, TagService} from "../../service/tagService";
+import {Tag} from "../../service/tagService";
+import {Services} from "../../service/services";
 
 export class TagView implements View {
     constructor(
         private container: AnyBuilder,
-        private tags: TagService,
+        private s: Services,
     ) {}
 
     private tagListContainer: DivBuilder;
@@ -21,8 +22,8 @@ export class TagView implements View {
         this.tagSubscription?.unsubscribe();
 
         this.render();
-        this.tagSubscription = this.tags.tags$.subscribe((tags) => this.renderTags(tags))
-        this.tags.get();
+        this.tagSubscription = this.s.tagService.tags$.subscribe((tags) => this.renderTags(tags))
+        this.s.tagService.get();
     }
 
     private render() {
@@ -45,7 +46,7 @@ export class TagView implements View {
     }
 
     private createTag() {
-        this.tags.createTag(this.tagName.value, this.tagDescription.value ?? undefined);
+        this.s.tagService.createTag(this.tagName.value, this.tagDescription.value ?? undefined);
     }
 
     private renderTags(tags: Tag[]) {

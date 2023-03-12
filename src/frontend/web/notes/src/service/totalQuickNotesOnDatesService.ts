@@ -12,7 +12,7 @@ export interface TotalNotesOnDaysQueryParameters {
     endDate?: LocalDate;
 }
 
-export class TotalQuickNotesOnDateService {
+export class TotalQuickNotesOnDatesService {
     private close$$ = new Subject<boolean>();
 
     private notesOnDates$$ = new BehaviorSubject<DocumentsOnDate[] | null>(null);

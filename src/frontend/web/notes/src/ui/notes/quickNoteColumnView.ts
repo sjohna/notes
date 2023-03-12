@@ -3,11 +3,9 @@ import {AnyBuilder, clear, DivBuilder, div, hr, span} from "../../utility/elemen
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {QuickNoteCardView} from "./quickNoteCardView";
 import {Subscription} from "rxjs";
-import {QuickNoteService} from "../../service/quickNoteService";
 import {LabeledCheckbox} from "../component/labeledCheckbox";
-import {DocumentFilterService} from "../../service/documentFilterService";
-import {TagService} from "../../service/tagService";
 import {Document} from "../../service/quickNoteService";
+import {Services} from "../../service/services";
 
 export class QuickNoteColumnView implements View {
     private subViews = new SubViewCollection();
@@ -19,9 +17,7 @@ export class QuickNoteColumnView implements View {
 
     constructor(
         private container: AnyBuilder,
-        private quickNotes: QuickNoteService,
-        private documentFilters: DocumentFilterService,
-        private tags: TagService,
+        private s: Services,
     ) { }
 
     setup(): void {
@@ -31,15 +27,15 @@ export class QuickNoteColumnView implements View {
         this.reverseOrderCheckbox = new LabeledCheckbox('Reverse Order')
             .in(this.container)
             .onchange((ev: Event) => {
-                this.documentFilters.filter.sortDirection = this.reverseOrderCheckbox.checked ? 'ascending' : 'descending';
-                this.documentFilters.update();
+                this.s.documentFilterService.filter.sortDirection = this.reverseOrderCheckbox.checked ? 'ascending' : 'descending';
+                this.s.documentFilterService.update();
             });
 
         this.noteContainer = div()
             .in(this.container);
 
-        this.quickNotesSubscription = this.quickNotes.notes$.subscribe(notes => this.renderNotes(notes));
-        this.quickNotes.get();
+        this.quickNotesSubscription = this.s.quickNoteService.notes$.subscribe(notes => this.renderNotes(notes));
+        this.s.quickNoteService.get();
     }
 
     private renderNotes(notes?: Document[]) {
@@ -61,7 +57,7 @@ export class QuickNoteColumnView implements View {
             }
 
             this.subViews.setupAndAdd(
-                new QuickNoteCardView(this.noteContainer, note, this.quickNotes, this.tags)
+                new QuickNoteCardView(this.noteContainer, note, this.s)
             );
         }
     }

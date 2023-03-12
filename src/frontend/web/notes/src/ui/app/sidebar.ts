@@ -1,8 +1,7 @@
 import {View} from "../../utility/view";
 import {AnyBuilder, div} from "../../utility/element";
 import {TagPaletteView} from "../notes/tagPaletteView";
-import {DocumentFilterService} from "../../service/documentFilterService";
-import {TagService} from "../../service/tagService";
+import {Services} from "../../service/services";
 
 
 export class SidebarView implements View {
@@ -10,8 +9,7 @@ export class SidebarView implements View {
 
     constructor(
         private container: AnyBuilder,
-        private documentFilters: DocumentFilterService,
-        private tags: TagService,
+        private s: Services,
     ) {}
 
     public setup(): void {
@@ -24,7 +22,7 @@ export class SidebarView implements View {
             .in(subContainer)
             .textAlign('center')
 
-        this.palette = new TagPaletteView(subContainer, this.documentFilters, this.tags);
+        this.palette = new TagPaletteView(subContainer, this.s);
 
         this.palette.setup();
     }

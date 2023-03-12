@@ -11,8 +11,8 @@ import {
 import {tagLabel} from "../component/tagLabel";
 import {startDragging, stopDragging} from "../../service/dragDropService";
 import Fuse from "fuse.js";
-import {DocumentFilterService} from "../../service/documentFilterService";
-import {Tag, TagService} from "../../service/tagService";
+import {Tag} from "../../service/tagService";
+import {Services} from "../../service/services";
 
 const tagSearchOptions = {
     keys: ['name']
@@ -21,10 +21,9 @@ const tagSearchOptions = {
 export class TagPaletteView implements View {
     constructor(
         private container: AnyBuilder,
-        private documentFilters: DocumentFilterService,
-        private tags: TagService,
+        private s: Services,
     ) {
-        this.tags$ = this.tags.tags$;
+        this.tags$ = this.s.tagService.tags$;
     }
 
     private tags$: Observable<Tag[]>;
@@ -79,13 +78,13 @@ export class TagPaletteView implements View {
                 .ondragstart(() => this.dragStart(tag))
                 .ondragend(() => this.dragEnd(tag))
                 .onclick(() => {
-                    if (this.documentFilters.filter.tags.find((t) => t.tag === localTag.id)) {
-                        this.documentFilters.filter.tags = this.documentFilters.filter.tags.filter((t) => t.tag !== localTag.id);
-                        this.documentFilters.update();
+                    if (this.s.documentFilterService.filter.tags.find((t) => t.tag === localTag.id)) {
+                        this.s.documentFilterService.filter.tags = this.s.documentFilterService.filter.tags.filter((t) => t.tag !== localTag.id);
+                        this.s.documentFilterService.update();
                         currentTagLabel.background('white');
                     } else {
-                        this.documentFilters.filter.tags.push({tag: localTag.id, exclude: false})
-                        this.documentFilters.update();
+                        this.s.documentFilterService.filter.tags.push({tag: localTag.id, exclude: false})
+                        this.s.documentFilterService.update();
                         currentTagLabel.background('cyan');
                     }
                 })

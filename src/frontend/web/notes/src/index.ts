@@ -3,8 +3,9 @@ import {ContainerView} from "./ui/app/container";
 import {div} from "./utility/element";
 import {DocumentFilterService} from "./service/documentFilterService";
 import {QuickNoteService} from "./service/quickNoteService";
-import {TotalQuickNotesOnDateService} from "./service/totalQuickNotesOnDateService";
+import {TotalQuickNotesOnDatesService} from "./service/totalQuickNotesOnDatesService";
 import {TagService} from "./service/tagService";
+import {Services} from "./service/services";
 
 document.body.style.height = '100%';
 
@@ -18,10 +19,17 @@ documentFilters.filter.sortDirection = 'descending';
 
 const quickNotes = new QuickNoteService(documentFilters);
 
-const totalQuickNotesOnDates = new TotalQuickNotesOnDateService();
+const totalQuickNotesOnDates = new TotalQuickNotesOnDatesService();
 
 const tags = new TagService(quickNotes);
 
-const view = new ContainerView(topLevelContainer, quickNotes, totalQuickNotesOnDates, documentFilters, tags);
+const services: Services = {
+    documentFilterService: documentFilters,
+    quickNoteService: quickNotes,
+    tagService: tags,
+    totalQuickNotesOnDatesService: totalQuickNotesOnDates,
+}
+
+const view = new ContainerView(topLevelContainer, services);
 tags.get();
 view.setup();

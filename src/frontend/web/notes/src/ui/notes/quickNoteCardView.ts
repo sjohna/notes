@@ -5,8 +5,9 @@ import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../utility/element
 import {tagLabel} from "../component/tagLabel";
 import {getDragData} from "../../service/dragDropService";
 import {Subscription} from "rxjs";
-import {Tag, TagService} from "../../service/tagService";
-import {Document, QuickNoteService} from "../../service/quickNoteService";
+import {Tag} from "../../service/tagService";
+import {Document} from "../../service/quickNoteService";
+import {Services} from "../../service/services";
 
 export class QuickNoteCardView implements View {
     private card: DivBuilder;
@@ -19,8 +20,7 @@ export class QuickNoteCardView implements View {
     constructor(
         private container: AnyBuilder,
         private note: Document,
-        private quickNotes: QuickNoteService,
-        private tags: TagService,
+        private s: Services,
     ) {}
 
     setup(): void {
@@ -112,10 +112,10 @@ export class QuickNoteCardView implements View {
 
         if (!this.note.tags || !this.note.tags.find((tag) => newTag.name === tag.name)) {
             if (!this.updateSubscription) {
-                this.updateSubscription = this.quickNotes.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+                this.updateSubscription = this.s.quickNoteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
             }
 
-            this.tags.addTagToDocument(newTag.id, this.note.id);
+            this.s.tagService.addTagToDocument(newTag.id, this.note.id);
         }
 
         console.log(`Drop document ${this.note.id}`);
@@ -130,9 +130,9 @@ export class QuickNoteCardView implements View {
 
     private removeTag(tagToRemove: Tag) {
         if (!this.updateSubscription) {
-            this.updateSubscription = this.quickNotes.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+            this.updateSubscription = this.s.quickNoteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
         }
-        this.tags.removeTagFromDocument(tagToRemove.id, this.note.id)
+        this.s.tagService.removeTagFromDocument(tagToRemove.id, this.note.id)
     }
 
     public teardown(): void {
