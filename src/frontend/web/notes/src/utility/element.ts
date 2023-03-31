@@ -134,6 +134,16 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public paddingTop(s: string): ElementBuilder<E> {
+        this.el.style.paddingTop = s;
+        return this;
+    }
+
+    public paddingBottom(s: string): ElementBuilder<E> {
+        this.el.style.paddingBottom = s;
+        return this;
+    }
+
     public margin(s: string): ElementBuilder<E> {
         this.el.style.margin = s;
         return this;
@@ -161,6 +171,16 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public marginTop(s: string): ElementBuilder<E> {
+        this.el.style.marginTop = s;
+        return this;
+    }
+
+    public marginBottom(s: string): ElementBuilder<E> {
+        this.el.style.marginBottom = s;
+        return this;
+    }
+
     public width(s: string): ElementBuilder<E> {
         this.el.style.width = s;
         return this;
@@ -168,6 +188,16 @@ export class ElementBuilder<E extends HTMLElement> {
 
     public height(s: string): ElementBuilder<E> {
         this.el.style.height = s;
+        return this;
+    }
+
+    public minHeight(s: string): ElementBuilder<E> {
+        this.el.style.minHeight = s;
+        return this;
+    }
+
+    public maxHeight(s: string): ElementBuilder<E> {
+        this.el.style.maxHeight = s;
         return this;
     }
 
@@ -243,6 +273,16 @@ export class ElementBuilder<E extends HTMLElement> {
 
     public overflow(s: string): ElementBuilder<E> {
         this.el.style.overflow = s;
+        return this;
+    }
+
+    public overflowY(s: string): ElementBuilder<E> {
+        this.el.style.overflowY = s;
+        return this;
+    }
+
+    public flex1(): ElementBuilder<E> {
+        this.el.style.flex = "1 1 0%";
         return this;
     }
 
