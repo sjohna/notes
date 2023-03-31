@@ -128,8 +128,28 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public paddingLeft(s: string): ElementBuilder<E> {
+        this.el.style.paddingLeft = s;
+        return this;
+    }
+
+    public paddingRight(s: string): ElementBuilder<E> {
+        this.el.style.paddingRight = s;
+        return this;
+    }
+
     public paddingVertical(s: string): ElementBuilder<E> {
         this.el.style.paddingTop = s;
+        this.el.style.paddingBottom = s;
+        return this;
+    }
+
+    public paddingTop(s: string): ElementBuilder<E> {
+        this.el.style.paddingTop = s;
+        return this;
+    }
+
+    public paddingBottom(s: string): ElementBuilder<E> {
         this.el.style.paddingBottom = s;
         return this;
     }
@@ -243,6 +263,16 @@ export class ElementBuilder<E extends HTMLElement> {
 
     public overflow(s: string): ElementBuilder<E> {
         this.el.style.overflow = s;
+        return this;
+    }
+
+    public overflowX(s: string): ElementBuilder<E> {
+        this.el.style.overflowX = s;
+        return this;
+    }
+
+    public overflowY(s: string): ElementBuilder<E> {
+        this.el.style.overflowY = s;
         return this;
     }
 

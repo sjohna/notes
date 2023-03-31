@@ -1,6 +1,6 @@
 import "@js-joda/timezone";
 import {ContainerView} from "./ui/app/container";
-import {div} from "./utility/element";
+import {div, flexColumn} from "./utility/element";
 import {DocumentFilterService} from "./service/documentFilterService";
 import {QuickNoteService} from "./service/quickNoteService";
 import {TotalQuickNotesOnDatesService} from "./service/totalQuickNotesOnDatesService";
@@ -8,9 +8,11 @@ import {TagService} from "./service/tagService";
 import {Services} from "./service/services";
 
 document.body.style.height = '100%';
+document.body.style.overflowY = 'hidden';
 
-const topLevelContainer = div()
-    .inElement(document.body);
+const topLevelContainer = flexColumn()
+    .inElement(document.body)
+    .height('100%');
 
 
 const documentFilters = new DocumentFilterService();

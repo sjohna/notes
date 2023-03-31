@@ -1,5 +1,5 @@
 import {View} from "../../utility/view";
-import {AnyBuilder, DivBuilder, div, flexRow} from "../../utility/element";
+import {AnyBuilder, DivBuilder, div, flexRow, flexColumn} from "../../utility/element";
 import {TagView} from "../notes/tagView";
 import {QuickNoteView} from "../notes/quickNoteView";
 import {Tabs} from "../component/tabs";
@@ -36,7 +36,7 @@ export class ContainerView implements View {
 
         this.sideView = new SidebarView(this.sideContainer, this.s);
 
-        this.mainContainer = div()
+        this.mainContainer = flexColumn()
             .in(this.topLevelContainer)
             .height('100%');
 
@@ -46,10 +46,11 @@ export class ContainerView implements View {
             .withTab('tags', 'Tags')
             .selectionChange(() => this.renderMainView())
 
-        this.mainViewContainer = div()
+        this.mainViewContainer = flexColumn()
             .in(this.mainContainer)
             .height('100%')
-            .overflow('auto');
+            .overflow('hidden')
+            .paddingBottom('8px');
 
         this.tabBar.renderTabs();
         this.sideView.setup();

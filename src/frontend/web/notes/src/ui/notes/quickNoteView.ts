@@ -4,7 +4,7 @@ import {
     DivBuilder,
     button,
     div,
-    textArea,
+    textArea, flexColumn,
 } from "../../utility/element";
 import {View} from "../../utility/view";
 import {QuickNoteColumnView} from "./quickNoteColumnView";
@@ -65,8 +65,12 @@ export class QuickNoteView implements View {
                 this.renderNotes();
             });
 
-        this.noteContainer = div()
-            .in(this.container);
+        this.noteContainer = flexColumn()
+            .in(this.container)
+            .flexGrow('1')
+            .overflowY('auto')
+            .paddingRight('20px')
+            .paddingBottom('8px');
 
         this.renderNotes();
     }
