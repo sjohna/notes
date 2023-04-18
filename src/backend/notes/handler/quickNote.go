@@ -14,6 +14,7 @@ func (handler *QuickNoteHandler) ConfigureRoutes(base *chi.Mux) {
 	base.Post("/quicknote", handler.GetQuickNotes)
 	base.Post("/quicknote/total_by_date", handler.GetTotalNotesOnDays)
 	base.Post("/quicknote/update_tags", handler.UpdateDocumentTags)
+	base.Post("/quicknote/update_groups", handler.UpdateDocumentDocumentGroups)
 }
 
 type QuickNoteHandler struct {
@@ -106,6 +107,29 @@ func (handler *QuickNoteHandler) UpdateDocumentTags(w http.ResponseWriter, r *ht
 	}
 
 	document, err := handler.Service.ApplyDocumentTagUpdates(log, body.DocumentID, body.TagUpdates)
+	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
+		c.RespondInternalServerError(log, w, err)
+		return
+	}
+
+	c.RespondJSON(log, w, document)
+}
+
+func (handler *QuickNoteHandler) UpdateDocumentDocumentGroups(w http.ResponseWriter, r *http.Request) {
+	log := c.HandlerLogger(r, "UpdateDocumentDocumentGroups")
+	defer c.LogHandlerReturn(log)
+
+	var body struct {
+		DocumentID   int64                                `json:"documentId"`
+		GroupUpdates []common.DocumentDocumentGroupUpdate `json:"groupUpdates"`
+	}
+	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
+		// TODO: respond client error instead
+		c.RespondInternalServerError(log, w, err)
+		return
+	}
+
+	document, err := handler.Service.ApplyDocumentDocumentGroupUpdates(log, body.DocumentID, body.GroupUpdates)
 	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
 		c.RespondInternalServerError(log, w, err)
 		return

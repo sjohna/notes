@@ -98,7 +98,8 @@ func RemoveDocumentTag(dao c.DAO, documentID int64, tagID int64) error {
 	SQL := `update document_tag
 set archived_at = now()
 where document_tag.document_id = $1
-  and document_tag.tag_id = $2`
+  and document_tag.tag_id = $2
+  and document_tag.archived_at is null`
 
 	result, err := dao.Exec(SQL, documentID, tagID)
 	if err != nil {
