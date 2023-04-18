@@ -91,6 +91,9 @@ func main() {
 	tagService := service.TagService{Repo: &repoInstance}
 	tagHandler := handler.TagHandler{Service: &tagService}
 
+	documentGroupService := service.DocumentGroupService{Repo: &repoInstance}
+	documentGroupHandler := handler.DocumentGroupHandler{Service: &documentGroupService}
+
 	// init chi
 
 	r := chi.NewRouter()
@@ -108,6 +111,7 @@ func main() {
 	r.Use(handler.LogRequestContext)
 	quickNotesHandler.ConfigureRoutes(r)
 	tagHandler.ConfigureRoutes(r)
+	documentGroupHandler.ConfigureRoutes(r)
 
 	portString := fmt.Sprintf(":%d", config.APIPort)
 
