@@ -5,12 +5,16 @@ import (
 	"github.com/sirupsen/logrus"
 	c "github.com/sjohna/go-server-common/repo"
 	"gopkg.in/guregu/null.v4"
+	"time"
 )
 
 type Tag struct {
-	ID          int64       `db:"id" json:"id"`
-	Name        string      `db:"name" json:"name"`
-	Description null.String `db:"description" json:"description"`
+	ID            int64       `db:"id" json:"id"`
+	Name          string      `db:"name" json:"name"`
+	Description   null.String `db:"description" json:"description"`
+	InsertedAt    time.Time   `db:"inserted_at" json:"insertedAt"`
+	ArchivedAt    null.Time   `db:"archived_at" json:"archivedAt"`
+	DocumentCount int         `db:"document_count" json:"documentCount"`
 }
 
 type TagList []*Tag
@@ -46,8 +50,21 @@ func GetTags(dao c.DAO) ([]*Tag, error) {
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
-	SQL := `select tag.id, tag.name, tag.description
-from tag`
+	SQL := `select tag.id,
+       tag.name,
+       tag.description,
+       tag.inserted_at,
+       tag.archived_at,
+       dt.count as document_count
+from tag
+         left join lateral (
+    select count(document_id) as count
+    from document_tag
+    where tag_id = tag.id
+      and archived_at is null
+    ) dt on true
+where tag.archived_at is null
+`
 
 	tags := make([]*Tag, 0)
 	err := dao.Select(&tags, SQL)

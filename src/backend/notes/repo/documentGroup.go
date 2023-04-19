@@ -9,11 +9,12 @@ import (
 )
 
 type DocumentGroup struct {
-	ID          int64       `db:"id" json:"id"`
-	Name        string      `db:"name" json:"name"`
-	Description null.String `db:"description" json:"description"`
-	InsertedAt  time.Time   `db:"inserted_at" json:"insertedAt"`
-	ArchivedAt  null.Time   `db:"archived_at" json:"archivedAt"`
+	ID            int64       `db:"id" json:"id"`
+	Name          string      `db:"name" json:"name"`
+	Description   null.String `db:"description" json:"description"`
+	InsertedAt    time.Time   `db:"inserted_at" json:"insertedAt"`
+	ArchivedAt    null.Time   `db:"archived_at" json:"archivedAt"`
+	DocumentCount int         `db:"document_count" json:"documentCount"`
 }
 
 type DocumentGroupList []*DocumentGroup
@@ -52,8 +53,16 @@ func GetDocumentGroups(dao c.DAO) ([]*DocumentGroup, error) {
 	SQL := `select document_group.id,
        document_group.name,
        document_group.description,
-       document_group.inserted_at
+       document_group.inserted_at,
+       document_group.archived_at,
+       dgd.count as document_count
 from document_group
+         join lateral (
+    select count(*) as count
+    from document_group_document dgd
+    where dgd.document_group_id = document_group.id
+      and dgd.archived_at is null
+    ) as dgd on true
 where document_group.archived_at is null`
 
 	documentGroups := make([]*DocumentGroup, 0)
