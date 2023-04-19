@@ -5,7 +5,6 @@ import (
 	r "github.com/sjohna/go-server-common/repo"
 	c "github.com/sjohna/go-server-common/service"
 	"gopkg.in/guregu/null.v4"
-	"notes/common"
 	"notes/repo"
 )
 
@@ -13,7 +12,7 @@ type DocumentGroupService struct {
 	Repo *r.Repo
 }
 
-func (svc *DocumentGroupService) CreateDocumentGroup(logger *logrus.Entry, name string, description null.String) (*common.DocumentGroup, error) {
+func (svc *DocumentGroupService) CreateDocumentGroup(logger *logrus.Entry, name string, description null.String) (*repo.DocumentGroup, error) {
 	log := c.ServiceFunctionLogger(logger, "CreateDocumentGroup")
 	defer c.LogServiceReturn(log)
 
@@ -27,7 +26,7 @@ func (svc *DocumentGroupService) CreateDocumentGroup(logger *logrus.Entry, name 
 	return createdDocumentGroup, nil
 }
 
-func (svc *DocumentGroupService) GetDocumentGroups(logger *logrus.Entry) ([]*common.DocumentGroup, error) {
+func (svc *DocumentGroupService) GetDocumentGroups(logger *logrus.Entry) ([]*repo.DocumentGroup, error) {
 	log := c.ServiceFunctionLogger(logger, "GetDocumentGroups")
 	defer c.LogServiceReturn(log)
 

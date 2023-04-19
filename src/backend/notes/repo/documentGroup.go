@@ -1,13 +1,31 @@
 package repo
 
 import (
+	"encoding/json"
 	"github.com/sirupsen/logrus"
 	c "github.com/sjohna/go-server-common/repo"
 	"gopkg.in/guregu/null.v4"
-	"notes/common"
+	"time"
 )
 
-func CreateDocumentGroup(dao c.DAO, name string, description null.String) (*common.DocumentGroup, error) {
+type DocumentGroup struct {
+	ID          int64       `db:"id" json:"id"`
+	Name        string      `db:"name" json:"name"`
+	Description null.String `db:"description" json:"description"`
+	InsertedAt  time.Time   `db:"inserted_at" json:"insertedAt"`
+	ArchivedAt  null.Time   `db:"archived_at" json:"archivedAt"`
+}
+
+type DocumentGroupList []*DocumentGroup
+
+func (r *DocumentGroupList) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+	return json.Unmarshal(src.([]byte), r)
+}
+
+func CreateDocumentGroup(dao c.DAO, name string, description null.String) (*DocumentGroup, error) {
 	log := c.RepoFunctionLogger(dao.Logger(), "CreateDocumentGroup")
 	defer c.LogRepoReturn(log)
 
@@ -16,7 +34,7 @@ func CreateDocumentGroup(dao c.DAO, name string, description null.String) (*comm
 values ($1, $2)
 returning *`
 
-	var createdDocumentGroup common.DocumentGroup
+	var createdDocumentGroup DocumentGroup
 	err := dao.Get(&createdDocumentGroup, SQL, name, description)
 	if err != nil {
 		log.WithError(err).Error()
@@ -26,7 +44,7 @@ returning *`
 	return &createdDocumentGroup, nil
 }
 
-func GetDocumentGroups(dao c.DAO) ([]*common.DocumentGroup, error) {
+func GetDocumentGroups(dao c.DAO) ([]*DocumentGroup, error) {
 	log := c.RepoFunctionLogger(dao.Logger(), "GetDocumentGroups")
 	defer c.LogRepoReturn(log)
 
@@ -38,7 +56,7 @@ func GetDocumentGroups(dao c.DAO) ([]*common.DocumentGroup, error) {
 from document_group
 where document_group.archived_at is null`
 
-	documentGroups := make([]*common.DocumentGroup, 0)
+	documentGroups := make([]*DocumentGroup, 0)
 	err := dao.Select(&documentGroups, SQL)
 	if err != nil {
 		log.WithError(err).Error()

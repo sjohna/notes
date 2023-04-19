@@ -10,15 +10,16 @@ import (
 )
 
 type Document struct {
-	ID                    int64     `db:"id" json:"id"`
-	Type                  string    `db:"type" json:"type"`
-	Content               string    `db:"content" json:"content"`
-	CreatedAt             time.Time `db:"created_at" json:"createdAt"`
-	CreatedAtPrecision    string    `db:"created_at_precision" json:"createdAtPrecision"`
-	DocumentTime          time.Time `db:"document_time" json:"documentTime"`
-	DocumentTimePrecision string    `db:"document_time_precision" json:"documentTimePrecision"`
-	InsertedAt            time.Time `db:"inserted_at" json:"insertedAt"`
-	Tags                  *TagList  `db:"tags" json:"tags"`
+	ID                    int64              `db:"id" json:"id"`
+	Type                  string             `db:"type" json:"type"`
+	Content               string             `db:"content" json:"content"`
+	CreatedAt             time.Time          `db:"created_at" json:"createdAt"`
+	CreatedAtPrecision    string             `db:"created_at_precision" json:"createdAtPrecision"`
+	DocumentTime          time.Time          `db:"document_time" json:"documentTime"`
+	DocumentTimePrecision string             `db:"document_time_precision" json:"documentTimePrecision"`
+	InsertedAt            time.Time          `db:"inserted_at" json:"insertedAt"`
+	Tags                  *TagList           `db:"tags" json:"tags"`
+	Groups                *DocumentGroupList `db:"groups" json:"groups"`
 }
 
 type DocumentsOnDate struct {
@@ -234,7 +235,8 @@ func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.QuickNoteQueryP
        document.document_time,
        document.document_time_precision,
        document.inserted_at,
-       document_tags.tags as tags
+       document_tags.tags as tags,
+       document_groups.groups as groups
 from document
          join lateral (
     select document_content.content
@@ -250,7 +252,15 @@ from document
     where document_tag.document_id = document.id
       and document_tag.archived_at is null
     ) document_tags on true
-where document.id = any($1)
+         join lateral (
+    select jsonb_agg(json_build_object('id', document_group.id, 'name', document_group.name, 'description',
+                                       document_group.description)) as groups
+    from document_group
+             join document_group_document on document_group_document.document_group_id = document_group.id
+    where document_group_document.document_id = document.id
+      and document_group_document.archived_at is null
+    ) document_groups on true
+where document.id = any ($1)
 `
 
 	SQL, err := appendSortParameters(SQL, parameters)
