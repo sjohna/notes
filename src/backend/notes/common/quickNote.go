@@ -8,14 +8,14 @@ type TagQueryParameter struct {
 }
 
 type QuickNoteQueryParameters struct {
-	StartTime     null.Time           `json:"startTime"`
-	EndTime       null.Time           `json:"endTime"`
-	Tags          []TagQueryParameter `json:"tags"`
-	SortBy        null.String         `json:"sortBy"`
-	SortDirection null.String         `json:"sortDirection"`
+	StartTime     null.Time           `json:"startTime,omitempty"`
+	EndTime       null.Time           `json:"endTime,omitempty"`
+	Tags          []TagQueryParameter `json:"tags,omitempty"`
+	SortBy        null.String         `json:"sortBy,omitempty"`
+	SortDirection null.String         `json:"sortDirection,omitempty"`
 }
 
 type TotalNotesOnDaysQueryParameters struct {
-	StartDate null.String `json:"startDate"`
-	EndDate   null.String `json:"endDate"`
+	StartDate null.String `json:"startDate,omitempty"`
+	EndDate   null.String `json:"endDate,omitempty"`
 }

@@ -18,8 +18,8 @@ type Document struct {
 	DocumentTime          time.Time          `db:"document_time" json:"documentTime"`
 	DocumentTimePrecision string             `db:"document_time_precision" json:"documentTimePrecision"`
 	InsertedAt            time.Time          `db:"inserted_at" json:"insertedAt"`
-	Tags                  *TagList           `db:"tags" json:"tags"`
-	Groups                *DocumentGroupList `db:"groups" json:"groups"`
+	Tags                  *TagList           `db:"tags" json:"tags,omitempty"`
+	Groups                *DocumentGroupList `db:"groups" json:"groups,omitempty"`
 }
 
 type DocumentsOnDate struct {

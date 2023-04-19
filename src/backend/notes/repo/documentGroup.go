@@ -11,9 +11,9 @@ import (
 type DocumentGroup struct {
 	ID            int64       `db:"id" json:"id"`
 	Name          string      `db:"name" json:"name"`
-	Description   null.String `db:"description" json:"description"`
+	Description   null.String `db:"description" json:"description,omitempty"`
 	InsertedAt    time.Time   `db:"inserted_at" json:"insertedAt"`
-	ArchivedAt    null.Time   `db:"archived_at" json:"archivedAt"`
+	ArchivedAt    null.Time   `db:"archived_at" json:"archivedAt,omitempty"`
 	DocumentCount int         `db:"document_count" json:"documentCount"`
 }
 
