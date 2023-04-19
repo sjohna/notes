@@ -26,6 +26,21 @@ func (r *TagList) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), r)
 }
 
+// TODO maybe make this a generic named ID struct?
+type TagOnDocument struct {
+	ID   int64  `db:"id" json:"id"`
+	Name string `db:"name" json:"name"`
+}
+
+type TagOnDocumentList []*TagOnDocument
+
+func (r *TagOnDocumentList) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+	return json.Unmarshal(src.([]byte), r)
+}
+
 func CreateTag(dao c.DAO, name string, description null.String) (*Tag, error) {
 	log := c.RepoFunctionLogger(dao.Logger(), "CreateTag")
 	defer c.LogRepoReturn(log)

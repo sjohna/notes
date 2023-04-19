@@ -26,6 +26,20 @@ func (r *DocumentGroupList) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), r)
 }
 
+type DocumentGroupOnDocument struct {
+	ID   int64  `db:"id" json:"id"`
+	Name string `db:"name" json:"name"`
+}
+
+type DocumentGroupOnDocumentList []*DocumentGroupOnDocument
+
+func (r *DocumentGroupOnDocumentList) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+	return json.Unmarshal(src.([]byte), r)
+}
+
 func CreateDocumentGroup(dao c.DAO, name string, description null.String) (*DocumentGroup, error) {
 	log := c.RepoFunctionLogger(dao.Logger(), "CreateDocumentGroup")
 	defer c.LogRepoReturn(log)
