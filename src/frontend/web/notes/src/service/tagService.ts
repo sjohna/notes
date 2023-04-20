@@ -10,10 +10,13 @@ export interface Tag {
     id: number;
     name: string;
     description?: string;
+    insertedAt?: string;
+    archivedAt?: string;
+    documentCount: number;
 }
 
 export class TagService {
-    private tags$$ = new BehaviorSubject<Tag[]>([])
+    private tags$$ = new BehaviorSubject<Tag[]>([]);
     public tags$ = this.tags$$.pipe(shareReplay(1));
 
     constructor(
@@ -21,7 +24,7 @@ export class TagService {
     ) {}
 
     public get() {
-        fetch('http://localhost:3000/tag', {
+        fetch(`${environment.apiUrl}/tag`, {
             'method': 'GET'
         })
             .then(async response => this.tags$$.next(await response.json() as Tag[]))

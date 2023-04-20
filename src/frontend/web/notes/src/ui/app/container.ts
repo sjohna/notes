@@ -1,6 +1,6 @@
 import {View} from "../../utility/view";
 import {AnyBuilder, DivBuilder, div, flexRow, flexColumn} from "../../utility/element";
-import {TagView} from "../notes/tagView";
+import {TagListView} from "../notes/tagListView";
 import {QuickNoteView} from "../notes/quickNoteView";
 import {Tabs} from "../component/tabs";
 import {SidebarView} from "./sidebar";
@@ -60,7 +60,7 @@ export class ContainerView implements View {
     private renderMainView() {
         this.mainView?.teardown();
         if (this.tabBar.selectedTab === 'tags') {
-            this.mainView = new TagView(this.mainViewContainer, this.s);
+            this.mainView = new TagListView(this.mainViewContainer, this.s);
         } else {
             this.mainView = new QuickNoteView(this.mainViewContainer, this.s);
         }

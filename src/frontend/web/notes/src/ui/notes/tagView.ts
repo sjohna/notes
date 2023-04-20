@@ -1,64 +1,50 @@
 import {View} from "../../utility/view";
-import {Subscription} from "rxjs";
-import {AnyBuilder, clear, DivBuilder, button, div} from "../../utility/element";
-import {LabeledTextInput} from "../component/labeledTextInput";
-import {Tag} from "../../service/tagService";
 import {Services} from "../../service/services";
+import {AnyBuilder, div, flexCol, flexRow} from "../../utility/element";
+import {Tag} from "../../service/tagService";
+import {tagLabel} from "../component/tagLabel";
+import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
+import {Locale} from "@js-joda/locale_en-us";
 
 export class TagView implements View {
     constructor(
         private container: AnyBuilder,
+        private tag: Tag,
         private s: Services,
     ) {}
 
-    private tagListContainer: DivBuilder;
-
-    private tagSubscription?: Subscription;
-
-    private tagName: LabeledTextInput;
-    private tagDescription: LabeledTextInput;
-
     setup(): void {
-        this.tagSubscription?.unsubscribe();
+        const createdDateTime = ZonedDateTime.parse(this.tag.insertedAt).withZoneSameInstant(ZoneId.of('America/Denver'));
+        const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('yyyy-M-dd h:mm a').withLocale(Locale.US));
 
-        this.render();
-        this.tagSubscription = this.s.tagService.tags$.subscribe((tags) => this.renderTags(tags))
-        this.s.tagService.get();
-    }
-
-    private render() {
-        clear(this.container);
-
-        this.tagName = new LabeledTextInput('Name:')
-        this.tagDescription = new LabeledTextInput('Description:')
-
-        div()
+        flexCol()
             .in(this.container)
+            .background('lightgray')
+            .margin('8px')
+            .padding('4px')
+            .width('380px')
+            .borderRadius('10px')
             .withChildren([
-                this.tagName.container,
-                this.tagDescription.container,
-                button('Create Tag')
-                    .onclick(() => this.createTag())
-            ]);
-
-        this.tagListContainer = div()
-            .in(this.container);
-    }
-
-    private createTag() {
-        this.s.tagService.createTag(this.tagName.value, this.tagDescription.value ?? undefined);
-    }
-
-    private renderTags(tags: Tag[]) {
-        clear(this.tagListContainer);
-        for (const tag of tags) {
-            div(`${tag.name}${tag.description ? ' - ' + tag.description : ''}`)
-                .in(this.tagListContainer)
-                .marginHorizontal('4px')
-        }
+                flexRow()
+                    .withChildren([
+                        tagLabel(this.tag.name)
+                            .marginRight('8px'),
+                        div(String(this.tag.documentCount))
+                            .fontSize('16px')
+                            .borderRadius('16px')
+                            .background('blue')
+                            .color('white')
+                            .width('16px')
+                            .textAlign('center')
+                            .marginRight('8px'),
+                        div(createdTimeString)
+                            .fontSize('12px'),
+                ]),
+                div(this.tag.description),
+            ])
     }
 
     teardown(): void {
-        this.tagSubscription?.unsubscribe();
     }
+
 }

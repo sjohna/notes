@@ -211,6 +211,11 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
+    public color(s: string): ElementBuilder<E> {
+        this.el.style.color = s;
+        return this;
+    }
+
     public borderRadius(s: string): ElementBuilder<E> {
         this.el.style.borderRadius = s;
         return this;
@@ -317,6 +322,12 @@ export function flexRow(): ElementBuilder<HTMLDivElement> {
     return new ElementBuilder(document.createElement('div') as HTMLDivElement)
         .display('flex')
         .flexDirection('row');
+}
+
+export function flexCol(): ElementBuilder<HTMLDivElement> {
+    return new ElementBuilder(document.createElement('div') as HTMLDivElement)
+        .display('flex')
+        .flexDirection('column');
 }
 
 export function inlineFlexRow(): ElementBuilder<HTMLDivElement> {
