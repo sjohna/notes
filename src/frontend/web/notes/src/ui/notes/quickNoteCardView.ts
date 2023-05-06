@@ -8,6 +8,7 @@ import {Subscription} from "rxjs";
 import {Tag} from "../../service/tagService";
 import {Document} from "../../service/quickNoteService";
 import {Services} from "../../service/services";
+import {DocumentGroup} from "../../service/documentGroupService";
 
 export class QuickNoteCardView implements View {
     private card: DivBuilder;
@@ -108,14 +109,28 @@ export class QuickNoteCardView implements View {
         this.dragCounter = 0;
         this.setCardBackground();
 
-        const newTag = getDragData();
+        const dragData = getDragData();
 
-        if (!this.note.tags || !this.note.tags.find((tag) => newTag.name === tag.name)) {
-            if (!this.updateSubscription) {
-                this.updateSubscription = this.s.quickNoteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+        if (dragData?.type === 'tag') {
+            const newTag = dragData.data as Tag;
+
+            if (!this.note.tags || !this.note.tags.find((tag) => newTag.id === tag.id)) {
+                if (!this.updateSubscription) {
+                    this.updateSubscription = this.s.quickNoteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+                }
+
+                this.s.tagService.addTagToDocument(newTag.id, this.note.id);
             }
+        } else if (dragData?.type === 'documentGroup') {
+            const newDocumentGroup = dragData.data as DocumentGroup;
 
-            this.s.tagService.addTagToDocument(newTag.id, this.note.id);
+            if (!this.note.groups || !this.note.groups.find((group) => newDocumentGroup.id === group.id)) {
+                if (!this.updateSubscription) {
+                    this.updateSubscription = this.s.quickNoteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+                }
+
+                this.s.documentGroupService.addDocumentToGroup(newDocumentGroup.id, this.note.id);
+            }
         }
 
         console.log(`Drop document ${this.note.id}`);

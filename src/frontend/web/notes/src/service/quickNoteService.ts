@@ -3,6 +3,7 @@ import {DateTimeFormatter, ZonedDateTime} from "@js-joda/core";
 import {environment} from "../environment/environment";
 import {DocumentFilterService} from "./documentFilterService";
 import {Tag} from "./tagService";
+import {DocumentGroup} from "./documentGroupService";
 
 export interface Document {
     content: string;
@@ -13,7 +14,8 @@ export interface Document {
     insertedAt: string;
     id: number;
     type: string;
-    tags?: Tag[];
+    tags?: Tag[];               // TODO: minimal types for these...
+    groups?: DocumentGroup[];
 }
 
 export interface DocumentQueryParameters {

@@ -44,7 +44,7 @@ export class DocumentGroupService {
             .catch(err => console.log(err))
     }
 
-    public addGroupToDocument(groupId: number, documentId: number) {
+    public addDocumentToGroup(groupId: number, documentId: number) {
         const body = {
             documentId,
             groupUpdates: [
@@ -65,7 +65,7 @@ export class DocumentGroupService {
             .catch(err => console.log(err))
     }
 
-    public removeGroupFromDocument(groupId: number, documentId: number) {
+    public removeDocumentFromGroup(groupId: number, documentId: number) {
         const body = {
             documentId,
             groupUpdates: [

@@ -9,7 +9,7 @@ import {
     inlineFlexColumn
 } from "../../utility/element";
 import {tagLabel} from "../component/tagLabel";
-import {startDragging, stopDragging} from "../../service/dragDropService";
+import {startDraggingTag, stopDragging} from "../../service/dragDropService";
 import Fuse from "fuse.js";
 import {Tag} from "../../service/tagService";
 import {Services} from "../../service/services";
@@ -30,23 +30,11 @@ export class TagPaletteView implements View {
     private tagListContainer: DivBuilder;
     private tagSubscription?: Subscription;
     private tagFuse: Fuse<Tag>;
-    private tagSearchBox: InputBuilder;
     private unfilteredTags: Tag[];
 
-    setup(): void {
-        this.tagSearchBox = input() // TODO: fix right margin on this
-            .in(this.container)
-            .width('100%')
-            .marginVertical('4px')
-            .onkeyup((ev: KeyboardEvent) => {
-                if (this.tagFuse && this.tagSearchBox?.element()?.value) {
-                    const filteredTags = this.tagFuse.search(this.tagSearchBox.element().value).map((r) => r.item)
-                    this.renderTags(filteredTags)
-                } else {
-                    this.renderTags(this.unfilteredTags);
-                }
-            })
+    private search?: string;
 
+    public setup(): void {
         this.tagSubscription?.unsubscribe();
         this.tagListContainer = inlineFlexColumn()
             .in(this.container)
@@ -55,11 +43,21 @@ export class TagPaletteView implements View {
         this.tagSubscription = this.tags$.subscribe((tags) => this.tagsUpdated(tags))
     }
 
+    public setSearch(search: string) {
+        this.search = search;
+        if (this.tagFuse && this.search) {
+            const filteredTags = this.tagFuse.search(this.search).map((r) => r.item)
+            this.renderTags(filteredTags)
+        } else {
+            this.renderTags(this.unfilteredTags);
+        }
+    }
+
     private tagsUpdated(tags: Tag[]) {
         this.unfilteredTags = tags;
         this.tagFuse = new Fuse(tags, tagSearchOptions);
-        if (this.tagFuse && this.tagSearchBox?.element()?.value) {
-            const filteredTags = this.tagFuse.search(this.tagSearchBox.element().value).map((r) => r.item)
+        if (this.tagFuse && this.search) {
+            const filteredTags = this.tagFuse.search(this.search).map((r) => r.item)
             this.renderTags(filteredTags)
         } else {
             this.renderTags(this.unfilteredTags);
@@ -93,7 +91,7 @@ export class TagPaletteView implements View {
     }
 
     private dragStart(tag: Tag) {
-        startDragging(tag)
+        startDraggingTag(tag)
         console.log(`Drag start from ${tag.name}`)
     }
 

@@ -1,12 +1,28 @@
 import {Tag} from "./tagService";
+import {DocumentGroup} from "./documentGroupService";
 
-let dragData: Tag = null;
-
-export function startDragging(tag: Tag) {
-    dragData = tag;
+export interface DragData {
+    type: string;
+    data: any;
 }
 
-export function getDragData(): Tag {
+let dragData: DragData = null;
+
+export function startDraggingTag(tag: Tag) {
+    dragData = {
+        type: 'tag',
+        data: tag,
+    };
+}
+
+export function startDraggingDocumentGroup(documentGroup: DocumentGroup) {
+    dragData = {
+        type: 'documentGroup',
+        data: documentGroup,
+    };
+}
+
+export function getDragData(): DragData {
     return dragData;
 }
 

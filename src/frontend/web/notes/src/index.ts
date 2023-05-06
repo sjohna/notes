@@ -38,4 +38,5 @@ const services: Services = {
 
 const view = new ContainerView(topLevelContainer, services);
 tags.get();
+documentGroups.get();
 view.setup();
