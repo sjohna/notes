@@ -65,5 +65,6 @@ export class TagListView implements View {
 
     teardown(): void {
         this.tagSubscription?.unsubscribe();
+        this.tagViews.teardown();
     }
 }

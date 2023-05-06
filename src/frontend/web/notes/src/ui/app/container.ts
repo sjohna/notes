@@ -5,6 +5,7 @@ import {QuickNoteView} from "../notes/quickNoteView";
 import {Tabs} from "../component/tabs";
 import {SidebarView} from "./sidebar";
 import {Services} from "../../service/services";
+import {DocumentGroupListView} from "../notes/documentGroupListView";
 
 
 export class ContainerView implements View {
@@ -44,6 +45,7 @@ export class ContainerView implements View {
             .in(this.mainContainer)
             .withTab('notes', 'Notes', true)
             .withTab('tags', 'Tags')
+            .withTab('documentGroups', 'Groups')
             .selectionChange(() => this.renderMainView())
 
         this.mainViewContainer = flexColumn()
@@ -61,6 +63,8 @@ export class ContainerView implements View {
         this.mainView?.teardown();
         if (this.tabBar.selectedTab === 'tags') {
             this.mainView = new TagListView(this.mainViewContainer, this.s);
+        } else if (this.tabBar.selectedTab === 'documentGroups') {
+            this.mainView = new DocumentGroupListView(this.mainViewContainer, this.s);
         } else {
             this.mainView = new QuickNoteView(this.mainViewContainer, this.s);
         }

@@ -1,12 +1,10 @@
 import {BehaviorSubject, shareReplay} from "rxjs";
+import {Document, QuickNoteService} from "./quickNoteService";
 import {environment} from "../environment/environment";
-import {QuickNoteService} from "./quickNoteService";
-import {Document} from "./quickNoteService";
+import {DOCUMENT_METADATA_UPDATE_ADD, DOCUMENT_METADATA_UPDATE_REMOVE} from "./tagService";
 
-export const DOCUMENT_METADATA_UPDATE_ADD = 1;
-export const DOCUMENT_METADATA_UPDATE_REMOVE = 2;
 
-export interface Tag {
+export interface DocumentGroup {
     id: number;
     name: string;
     description?: string;
@@ -15,28 +13,28 @@ export interface Tag {
     documentCount: number;
 }
 
-export class TagService {
-    private tags$$ = new BehaviorSubject<Tag[]>([]);
-    public tags$ = this.tags$$.pipe(shareReplay(1));
+export class DocumentGroupService {
+    private documentGroups$$ = new BehaviorSubject<DocumentGroup[]>([]);
+    public documentGroups$ = this.documentGroups$$.pipe(shareReplay(1));
 
     constructor(
         private quickNotes: QuickNoteService,
     ) {}
 
     public get() {
-        fetch(`${environment.apiUrl}/tag`, {
-            'method': 'GET'
+        fetch(`${environment.apiUrl}/document_group`, {
+            'method': 'POST'
         })
-            .then(async response => this.tags$$.next(await response.json() as Tag[]))
+            .then(async response => this.documentGroups$$.next(await response.json() as DocumentGroup[]))
             .catch(err => console.log(err))
     }
 
-    public createTag(name: string, description?: string) {
+    public createDocumentGroup(name: string, description?: string) {
         if (!name) {
             return;
         }
 
-        fetch(`${environment.apiUrl}/tag`, {
+        fetch(`${environment.apiUrl}/document_group/create`, {
             'method': 'POST',
             'body': JSON.stringify({name, description})
         })
@@ -46,18 +44,18 @@ export class TagService {
             .catch(err => console.log(err))
     }
 
-    public addTagToDocument(tagId: number, documentId: number) {
+    public addGroupToDocument(groupId: number, documentId: number) {
         const body = {
             documentId,
-            tagUpdates: [
+            groupUpdates: [
                 {
-                    tagId,
+                    groupId: groupId,
                     updateType: DOCUMENT_METADATA_UPDATE_ADD,
                 }
             ]
         }
 
-        fetch(`${environment.apiUrl}/quicknote/update_tags`, {
+        fetch(`${environment.apiUrl}/quicknote/update_groups`, {
             'method': 'POST',
             'body': JSON.stringify(body)
         })
@@ -67,18 +65,18 @@ export class TagService {
             .catch(err => console.log(err))
     }
 
-    public removeTagFromDocument(tagId: number, documentId: number) {
+    public removeGroupFromDocument(groupId: number, documentId: number) {
         const body = {
             documentId,
-            tagUpdates: [
+            groupUpdates: [
                 {
-                    tagId,
+                    groupId: groupId,
                     updateType: DOCUMENT_METADATA_UPDATE_REMOVE,
                 }
             ]
         }
 
-        fetch(`${environment.apiUrl}/quicknote/update_tags`, {
+        fetch(`${environment.apiUrl}/quicknote/update_groups`, {
             'method': 'POST',
             'body': JSON.stringify(body)
         })

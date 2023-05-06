@@ -138,6 +138,4 @@ export class QuickNoteCardView implements View {
     public teardown(): void {
         this.updateSubscription?.unsubscribe();
     }
-
-
 }

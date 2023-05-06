@@ -6,6 +6,7 @@ import {QuickNoteService} from "./service/quickNoteService";
 import {TotalQuickNotesOnDatesService} from "./service/totalQuickNotesOnDatesService";
 import {TagService} from "./service/tagService";
 import {Services} from "./service/services";
+import {DocumentGroupService} from "./service/documentGroupService";
 
 document.body.style.height = '100%';
 document.body.style.overflowY = 'hidden';
@@ -25,11 +26,14 @@ const totalQuickNotesOnDates = new TotalQuickNotesOnDatesService();
 
 const tags = new TagService(quickNotes);
 
+const documentGroups = new DocumentGroupService(quickNotes);
+
 const services: Services = {
     documentFilterService: documentFilters,
     quickNoteService: quickNotes,
     tagService: tags,
     totalQuickNotesOnDatesService: totalQuickNotesOnDates,
+    documentGroupService: documentGroups,
 }
 
 const view = new ContainerView(topLevelContainer, services);
