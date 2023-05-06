@@ -6,7 +6,7 @@ import {
     DivBuilder,
     InputBuilder,
     input,
-    inlineFlexColumn
+    inlineFlexColumn, div
 } from "../../utility/element";
 import {tagLabel} from "../component/tagLabel";
 import {startDraggingDocumentGroup, startDraggingTag, stopDragging} from "../../service/dragDropService";
@@ -67,6 +67,12 @@ export class GroupPaletteView implements View {
 
     private renderDocumentGroups(documentGroups: DocumentGroup[]) {
         clear(this.documentGroupListContainer);
+
+        // TODO: need to look at styles. Tags and groups are appearing side-by-side in some cases
+        div('Groups')
+            .in(this.documentGroupListContainer)
+            .textAlign('center')
+
         for (const group of documentGroups) {
             const localGroup = group                // TODO: investigate why this is necessary
             const currentTagLabel = tagLabel(group.name)

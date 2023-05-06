@@ -6,7 +6,7 @@ import {
     DivBuilder,
     InputBuilder,
     input,
-    inlineFlexColumn
+    inlineFlexColumn, div
 } from "../../utility/element";
 import {tagLabel} from "../component/tagLabel";
 import {startDraggingTag, stopDragging} from "../../service/dragDropService";
@@ -66,6 +66,11 @@ export class TagPaletteView implements View {
 
     private renderTags(tags: Tag[]) {
         clear(this.tagListContainer);
+
+        div('Tags')
+            .in(this.tagListContainer)
+            .textAlign('center')
+
         for (const tag of tags) {
             const localTag = tag
             const currentTagLabel = tagLabel(tag.name)
