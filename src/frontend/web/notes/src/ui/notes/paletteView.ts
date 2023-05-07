@@ -36,18 +36,21 @@ export class PaletteView implements View {
             .in(this.container)
             .width('100%')
             .marginVertical('4px')
+            .marginRight('8px')
             .onkeyup((ev: KeyboardEvent) => {
                 this.tagPalette.setSearch(this.searchBox?.element()?.value);
                 this.groupPalette.setSearch(this.searchBox?.element()?.value);
             })
 
         const tagPaletteContainer = inlineFlexColumn()
-            .in(this.container);
+            .in(this.container)
+            .width('100%');
         this.tagPalette = new TagPaletteView(tagPaletteContainer, this.s);
         this.tagPalette.setup();
 
         const groupPaletteContainer = inlineFlexColumn()
-            .in(this.container);
+            .in(this.container)
+            .width('100%');
         this.groupPalette = new GroupPaletteView(groupPaletteContainer, this.s);
         this.groupPalette.setup();
     }

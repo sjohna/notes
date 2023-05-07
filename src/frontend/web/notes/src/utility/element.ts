@@ -295,7 +295,9 @@ export type DivBuilder = ElementBuilder<HTMLDivElement>;
 export type InputBuilder = ElementBuilder<HTMLInputElement>;
 
 export function input(): ElementBuilder<HTMLInputElement> {
-    return new ElementBuilder(document.createElement('input') as HTMLInputElement);
+    const element = document.createElement('input') as HTMLInputElement;
+    element.style.boxSizing = 'border-box'; // hardcode this, because not doing this is stupid
+    return new ElementBuilder(element);
 }
 
 export function textArea(): ElementBuilder<HTMLTextAreaElement> {

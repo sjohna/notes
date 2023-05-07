@@ -39,7 +39,8 @@ export class GroupPaletteView implements View {
         this.documentGroupSubscription?.unsubscribe();
         this.documentGroupListContainer = inlineFlexColumn()
             .in(this.container)
-            .height('100%');
+            .height('100%')
+            .width('100%');
 
         this.documentGroupSubscription = this.documentGroups$.subscribe((documentGroups) => this.documentGroupsUpdated(documentGroups))
     }
@@ -72,6 +73,7 @@ export class GroupPaletteView implements View {
         div('Groups')
             .in(this.documentGroupListContainer)
             .textAlign('center')
+            .width('100%')
 
         for (const group of documentGroups) {
             const localGroup = group                // TODO: investigate why this is necessary
