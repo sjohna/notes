@@ -36,6 +36,29 @@ const services: Services = {
     documentGroupService: documentGroups,
 }
 
+// routing, based on https://dev.to/thedevdrawer/single-page-application-routing-using-hash-or-url-9jh
+const route = (event: any) => {
+    event = event || window.event; // get window.event if event argument not provided
+    event.preventDefault();
+    // window.history.pushState(state, unused, target link);
+    window.history.pushState({}, "", event.target.href);
+    locationHandler();
+};
+
+const locationHandler = async () => {
+    let location = window.location.pathname; // get the url path
+    // if the path length is 0, set it to primary page route
+    if (location.length == 0) {
+        location = "/";
+    }
+
+    document.title = `Path: ${location}`;
+    console.log(`location: ${location}`);
+};
+
+window.onpopstate = locationHandler;
+locationHandler();
+
 const view = new ContainerView(topLevelContainer, services);
 tags.get();
 documentGroups.get();

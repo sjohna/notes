@@ -9,6 +9,9 @@ module.exports = {
         static: './dist',
         devMiddleware: {
             writeToDisk: true,
+        },
+        historyApiFallback: {
+            index: 'index.html'
         }
     },
     module: {

@@ -19,10 +19,6 @@ export class SidebarView implements View {
             .background('lightgray')
             .width('200px')
 
-        div('Tags')
-            .in(subContainer)
-            .textAlign('center')
-
         this.palette = new PaletteView(subContainer, this.s);
 
         this.palette.setup();
