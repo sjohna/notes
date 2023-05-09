@@ -2,10 +2,11 @@ import {View} from "../../utility/view";
 import {AnyBuilder, DivBuilder, div, flexRow, flexColumn} from "../../utility/element";
 import {TagListView} from "../notes/tagListView";
 import {QuickNoteView} from "../notes/quickNoteView";
-import {Tabs} from "../component/tabs";
+import {Tab, Tabs} from "../component/tabs";
 import {SidebarView} from "./sidebar";
 import {Services} from "../../service/services";
 import {DocumentGroupListView} from "../notes/documentGroupListView";
+import {navigate, navigationEvents$} from "../../service/navigationService";
 
 
 export class ContainerView implements View {
@@ -43,10 +44,12 @@ export class ContainerView implements View {
 
         this.tabBar = new Tabs()
             .in(this.mainContainer)
-            .withTab('notes', 'Notes', true)
-            .withTab('tags', 'Tags')
-            .withTab('documentGroups', 'Groups')
-            .selectionChange(() => this.renderMainView())
+            .withTab('notes', 'Notes', '/notes')
+            .withTab('tags', 'Tags', '/tags')
+            .withTab('documentGroups', 'Groups', '/groups')
+            .selectionChange((t: Tab) => {
+                navigate(t.metaData, t.tabName);
+            })
 
         this.mainViewContainer = flexColumn()
             .in(this.mainContainer)
@@ -54,9 +57,17 @@ export class ContainerView implements View {
             .overflow('hidden')
             .paddingBottom('8px');
 
+        navigationEvents$.subscribe((e) => {
+            this.renderMainView();
+        });
+
         this.tabBar.renderTabs();
         this.sideView.setup();
-        this.renderMainView();
+
+        navigationEvents$.subscribe((e) => {
+            this.tabBar.selectTab(e.mainViewTab);
+            this.renderMainView();
+        });
     }
 
     private renderMainView() {
@@ -65,7 +76,7 @@ export class ContainerView implements View {
             this.mainView = new TagListView(this.mainViewContainer, this.s);
         } else if (this.tabBar.selectedTab === 'documentGroups') {
             this.mainView = new DocumentGroupListView(this.mainViewContainer, this.s);
-        } else {
+        } else if (this.tabBar.selectedTab === 'notes') {
             this.mainView = new QuickNoteView(this.mainViewContainer, this.s);
         }
         this.mainView?.setup();
