@@ -105,8 +105,7 @@ export class ElementBuilder<E extends HTMLElement> {
         return this;
     }
 
-    // TODO: figure out the correct type for the event handler
-    public onchange(handler: (ev?:  Event) => void): ElementBuilder<E> {
+    public onchange(handler: (ev?:  Event) => void): ElementBuilder<E> { // this is a generic event
         this.el.onchange = handler;
         return this;
     }

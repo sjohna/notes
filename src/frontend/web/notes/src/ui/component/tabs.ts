@@ -24,14 +24,13 @@ export class Tabs {
         clear(this.tabsContainer);
 
         for (const tab of this.tabs) {
-            const localTab = tab;   // TODO: test without this
             div(tab.displayName)
                 .in(this.tabsContainer)
                 .width('100px')
                 .cursor('pointer')
                 .textAlign('center')
                 .background(this.selectedTab === tab.tabName ? 'gray' : 'white')
-                .onclick(() => {this.selectedTab = tab.tabName; this.renderTabs(); this.tabChanged?.(localTab)})
+                .onclick(() => {this.selectedTab = tab.tabName; this.renderTabs(); this.tabChanged?.(tab)})
         }
     }
 

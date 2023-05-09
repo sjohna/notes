@@ -32,7 +32,7 @@ export class PaletteView implements View {
     private groupPalette: GroupPaletteView;
 
     setup(): void {
-        this.searchBox = input() // TODO: fix right margin on this
+        this.searchBox = input()
             .in(this.container)
             .width('100%')
             .marginVertical('4px')

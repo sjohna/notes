@@ -24,7 +24,6 @@ export class LabeledCheckbox {
         return this;
     }
 
-    // TODO: figure out the correct type for the event handler
     public onchange(handler: (ev?:  Event) => void): LabeledCheckbox {
         this.checkbox.onchange(handler);
         return this;
