@@ -1,9 +1,9 @@
-import {SubViewCollection, View} from "../../utility/view";
+import {SubViewCollection, View} from "../../../utility/view";
 import {Subscription} from "rxjs";
-import {AnyBuilder, clear, DivBuilder, button, div} from "../../utility/element";
-import {LabeledTextInput} from "../component/labeledTextInput";
-import {Tag} from "../../service/tagService";
-import {Services} from "../../service/services";
+import {AnyBuilder, clear, DivBuilder, button, div} from "../../../utility/element";
+import {LabeledTextInput} from "../../component/labeledTextInput";
+import {Tag} from "../../../service/tagService";
+import {Services} from "../../../service/services";
 import {TagView} from "./tagView";
 
 export class TagListView implements View {

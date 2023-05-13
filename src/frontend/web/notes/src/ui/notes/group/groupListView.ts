@@ -4,7 +4,6 @@ import {AnyBuilder, clear, DivBuilder, button, div} from "../../../utility/eleme
 import {LabeledTextInput} from "../../component/labeledTextInput";
 import {Group} from "../../../service/groupService";
 import {Services} from "../../../service/services";
-import {TagView} from "../tagView";
 import {GroupCardView} from "./groupCardView";
 
 export class GroupListView implements View {

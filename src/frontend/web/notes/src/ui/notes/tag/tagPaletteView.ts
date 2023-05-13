@@ -1,4 +1,4 @@
-import {View} from "../../utility/view";
+import {View} from "../../../utility/view";
 import {Observable, Subscription} from "rxjs";
 import {
     AnyBuilder,
@@ -7,12 +7,12 @@ import {
     InputBuilder,
     input,
     inlineFlexColumn, div
-} from "../../utility/element";
-import {tagLabel} from "../component/tagLabel";
-import {startDraggingTag, stopDragging} from "../../service/dragDropService";
+} from "../../../utility/element";
+import {tagLabel} from "../../component/tagLabel";
+import {startDraggingTag, stopDragging} from "../../../service/dragDropService";
 import Fuse from "fuse.js";
-import {Tag} from "../../service/tagService";
-import {Services} from "../../service/services";
+import {Tag} from "../../../service/tagService";
+import {Services} from "../../../service/services";
 
 const tagSearchOptions = {
     keys: ['name']

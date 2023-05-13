@@ -1,6 +1,6 @@
 import {View} from "../../utility/view";
 import {AnyBuilder, DivBuilder, div, flexRow, flexColumn} from "../../utility/element";
-import {TagListView} from "../notes/tagListView";
+import {TagListView} from "../notes/tag/tagListView";
 import {NoteView} from "../notes/note/noteView";
 import {Tab, Tabs} from "../component/tabs";
 import {SidebarView} from "./sidebar";

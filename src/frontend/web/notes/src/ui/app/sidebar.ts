@@ -1,6 +1,6 @@
 import {View} from "../../utility/view";
 import {AnyBuilder, div} from "../../utility/element";
-import {TagPaletteView} from "../notes/tagPaletteView";
+import {TagPaletteView} from "../notes/tag/tagPaletteView";
 import {Services} from "../../service/services";
 import {PaletteView} from "../notes/paletteView";
 
