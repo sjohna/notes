@@ -8,7 +8,7 @@ import {Subscription} from "rxjs";
 import {Tag} from "../../../service/tagService";
 import {Document} from "../../../service/noteService";
 import {Services} from "../../../service/services";
-import {DocumentGroup} from "../../../service/documentGroupService";
+import {Group} from "../../../service/groupService";
 
 export class NoteCardView implements View {
     private card: DivBuilder;
@@ -119,15 +119,15 @@ export class NoteCardView implements View {
 
                 this.s.tagService.addTagToDocument(newTag.id, this.note.id);
             }
-        } else if (dragData?.type === 'documentGroup') {
-            const newDocumentGroup = dragData.data as DocumentGroup;
+        } else if (dragData?.type === 'group') {
+            const newGroup = dragData.data as Group;
 
-            if (!this.note.groups || !this.note.groups.find((group) => newDocumentGroup.id === group.id)) {
+            if (!this.note.groups || !this.note.groups.find((group) => newGroup.id === group.id)) {
                 if (!this.updateSubscription) {
                     this.updateSubscription = this.s.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
                 }
 
-                this.s.documentGroupService.addDocumentToGroup(newDocumentGroup.id, this.note.id);
+                this.s.groupService.addDocumentToGroup(newGroup.id, this.note.id);
             }
         }
     }

@@ -1,5 +1,5 @@
 import {Tag} from "./tagService";
-import {DocumentGroup} from "./documentGroupService";
+import {Group} from "./groupService";
 
 export interface DragData {
     type: string;
@@ -15,10 +15,10 @@ export function startDraggingTag(tag: Tag) {
     };
 }
 
-export function startDraggingDocumentGroup(documentGroup: DocumentGroup) {
+export function startDraggingGroup(group: Group) {
     dragData = {
-        type: 'documentGroup',
-        data: documentGroup,
+        type: 'group',
+        data: group,
     };
 }
 

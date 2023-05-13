@@ -5,7 +5,7 @@ import {NoteView} from "../notes/note/noteView";
 import {Tab, Tabs} from "../component/tabs";
 import {SidebarView} from "./sidebar";
 import {Services} from "../../service/services";
-import {DocumentGroupListView} from "../notes/documentGroupListView";
+import {GroupListView} from "../notes/group/groupListView";
 import {navigate, navigationEvents$} from "../../service/navigationService";
 
 
@@ -46,7 +46,7 @@ export class ContainerView implements View {
             .in(this.mainContainer)
             .withTab('notes', 'Notes', '/notes')
             .withTab('tags', 'Tags', '/tags')
-            .withTab('documentGroups', 'Groups', '/groups')
+            .withTab('groups', 'Groups', '/groups')
             .selectionChange((t: Tab) => {
                 navigate(t.metaData, t.tabName);
             })
@@ -74,8 +74,8 @@ export class ContainerView implements View {
         this.mainView?.teardown();
         if (this.tabBar.selectedTab === 'tags') {
             this.mainView = new TagListView(this.mainViewContainer, this.s);
-        } else if (this.tabBar.selectedTab === 'documentGroups') {
-            this.mainView = new DocumentGroupListView(this.mainViewContainer, this.s);
+        } else if (this.tabBar.selectedTab === 'groups') {
+            this.mainView = new GroupListView(this.mainViewContainer, this.s);
         } else if (this.tabBar.selectedTab === 'notes') {
             this.mainView = new NoteView(this.mainViewContainer, this.s);
         }

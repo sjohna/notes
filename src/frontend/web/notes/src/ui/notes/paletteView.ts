@@ -14,7 +14,7 @@ import Fuse from "fuse.js";
 import {Tag} from "../../service/tagService";
 import {Services} from "../../service/services";
 import {TagPaletteView} from "./tagPaletteView";
-import {GroupPaletteView} from "./groupPaletteView";
+import {GroupPaletteView} from "./group/groupPaletteView";
 
 const tagSearchOptions = {
     keys: ['name']

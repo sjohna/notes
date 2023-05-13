@@ -1,20 +1,20 @@
-import {View} from "../../utility/view";
-import {Services} from "../../service/services";
-import {AnyBuilder, div, flexCol, flexRow} from "../../utility/element";
-import {DocumentGroup} from "../../service/documentGroupService";
-import {tagLabel} from "../component/tagLabel";
+import {View} from "../../../utility/view";
+import {Services} from "../../../service/services";
+import {AnyBuilder, div, flexCol, flexRow} from "../../../utility/element";
+import {Group} from "../../../service/groupService";
+import {tagLabel} from "../../component/tagLabel";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
 
-export class DocumentGroupView implements View {
+export class GroupCardView implements View {
     constructor(
         private container: AnyBuilder,
-        private documentGroup: DocumentGroup,
+        private group: Group,
         private s: Services,
     ) {}
 
     setup(): void {
-        const createdDateTime = ZonedDateTime.parse(this.documentGroup.insertedAt).withZoneSameInstant(ZoneId.of('America/Denver'));
+        const createdDateTime = ZonedDateTime.parse(this.group.insertedAt).withZoneSameInstant(ZoneId.of('America/Denver'));
         const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('yyyy-M-dd h:mm a').withLocale(Locale.US));
 
         flexCol()
@@ -27,9 +27,9 @@ export class DocumentGroupView implements View {
             .withChildren([
                 flexRow()
                     .withChildren([
-                        tagLabel(this.documentGroup.name)
+                        tagLabel(this.group.name)
                             .marginRight('8px'),
-                        div(String(this.documentGroup.documentCount))
+                        div(String(this.group.documentCount))
                             .fontSize('16px')
                             .borderRadius('16px')
                             .background('blue')
@@ -40,7 +40,7 @@ export class DocumentGroupView implements View {
                         div(createdTimeString)
                             .fontSize('12px'),
                     ]),
-                div(this.documentGroup.description),
+                div(this.group.description),
             ])
     }
 

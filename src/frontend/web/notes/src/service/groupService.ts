@@ -4,7 +4,7 @@ import {environment} from "../environment/environment";
 import {DOCUMENT_METADATA_UPDATE_ADD, DOCUMENT_METADATA_UPDATE_REMOVE} from "./tagService";
 
 
-export interface DocumentGroup {
+export interface Group {
     id: number;
     name: string;
     description?: string;
@@ -13,9 +13,9 @@ export interface DocumentGroup {
     documentCount: number;
 }
 
-export class DocumentGroupService {
-    private documentGroups$$ = new BehaviorSubject<DocumentGroup[]>([]);
-    public documentGroups$ = this.documentGroups$$.pipe(shareReplay(1));
+export class GroupService {
+    private groups$$ = new BehaviorSubject<Group[]>([]);
+    public groups$ = this.groups$$.pipe(shareReplay(1));
 
     constructor(
         private notes: NoteService,
@@ -25,11 +25,11 @@ export class DocumentGroupService {
         fetch(`${environment.apiUrl}/document_group`, {
             'method': 'POST'
         })
-            .then(async response => this.documentGroups$$.next(await response.json() as DocumentGroup[]))
+            .then(async response => this.groups$$.next(await response.json() as Group[]))
             .catch(err => console.log(err))
     }
 
-    public createDocumentGroup(name: string, description?: string) {
+    public createGroup(name: string, description?: string) {
         if (!name) {
             return;
         }

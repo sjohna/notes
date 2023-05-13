@@ -6,7 +6,7 @@ import {NoteService} from "./service/noteService";
 import {TotalNotesOnDatesService} from "./service/totalNotesOnDatesService";
 import {TagService} from "./service/tagService";
 import {Services} from "./service/services";
-import {DocumentGroupService} from "./service/documentGroupService";
+import {GroupService} from "./service/groupService";
 import {setInitialStateFromURL} from "./service/navigationService";
 
 document.body.style.height = '100%';
@@ -27,19 +27,19 @@ const totalNotesOnDates = new TotalNotesOnDatesService();
 
 const tags = new TagService(notes);
 
-const documentGroups = new DocumentGroupService(notes);
+const groups = new GroupService(notes);
 
 const services: Services = {
     documentFilterService: documentFilters,
     noteService: notes,
     tagService: tags,
     totalNotesOnDatesService: totalNotesOnDates,
-    documentGroupService: documentGroups,
+    groupService: groups,
 }
 
 setInitialStateFromURL();
 
 const view = new ContainerView(topLevelContainer, services);
 tags.get();
-documentGroups.get();
+groups.get();
 view.setup();

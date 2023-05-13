@@ -37,10 +37,6 @@ export function setInitialStateFromURL() {
         path = '/notes';
     }
 
-    if (mainViewTab === 'groups') {
-        mainViewTab = 'documentGroups';
-    }
-
     const initialState: NavigateEvent = {
         path,
         mainViewTab,
