@@ -25,17 +25,12 @@ export interface DocumentQueryParameters {
     sortDirection?: string;
 }
 
-export interface QuickNoteResponse {
-    documents: Document[];
-    parameters: DocumentQueryParameters;
-}
-
 export interface TagQueryParameter {
     tag: number;
     exclude: boolean;
 }
 
-export class QuickNoteQueryParameters {
+export class NoteQueryParameters {
     startTime?: ZonedDateTime;
     endTime?: ZonedDateTime;
     sortBy?: string;
@@ -57,18 +52,18 @@ export class QuickNoteQueryParameters {
     };
 }
 
-interface GetQuickNotesResponse {
+interface GetNotesResponse {
     documents: Document[];
-    parameters: QuickNoteQueryParameters;   // TODO: types for this are not right
+    parameters: NoteQueryParameters;   // TODO: types for this are not right
 }
 
-export class QuickNoteService {
+export class NoteService {
     private close$$ = new Subject<boolean>();
 
     private notes$$ = new BehaviorSubject<Document[]>([]);
     public notes$: Observable<Document[]> = this.notes$$.pipe(takeUntil(this.close$$), shareReplay(1));
 
-    private parameters$: Observable<QuickNoteQueryParameters>;
+    private parameters$: Observable<NoteQueryParameters>;
 
     private sub: Subscription;
 
@@ -89,7 +84,7 @@ export class QuickNoteService {
             'body': parameters.toBodyString()
         })
             .then(async (response) => {
-                this.notes$$.next((await response.json() as GetQuickNotesResponse).documents);
+                this.notes$$.next((await response.json() as GetNotesResponse).documents);
             } )
             .catch(err => console.log(err)) // TODO: error handling
     }

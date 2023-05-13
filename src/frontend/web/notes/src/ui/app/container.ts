@@ -1,7 +1,7 @@
 import {View} from "../../utility/view";
 import {AnyBuilder, DivBuilder, div, flexRow, flexColumn} from "../../utility/element";
 import {TagListView} from "../notes/tagListView";
-import {QuickNoteView} from "../notes/quickNoteView";
+import {NoteView} from "../notes/note/noteView";
 import {Tab, Tabs} from "../component/tabs";
 import {SidebarView} from "./sidebar";
 import {Services} from "../../service/services";
@@ -77,7 +77,7 @@ export class ContainerView implements View {
         } else if (this.tabBar.selectedTab === 'documentGroups') {
             this.mainView = new DocumentGroupListView(this.mainViewContainer, this.s);
         } else if (this.tabBar.selectedTab === 'notes') {
-            this.mainView = new QuickNoteView(this.mainViewContainer, this.s);
+            this.mainView = new NoteView(this.mainViewContainer, this.s);
         }
         this.mainView?.setup();
     }

@@ -1,5 +1,5 @@
 import {BehaviorSubject, shareReplay} from "rxjs";
-import {Document, QuickNoteService} from "./quickNoteService";
+import {Document, NoteService} from "./noteService";
 import {environment} from "../environment/environment";
 import {DOCUMENT_METADATA_UPDATE_ADD, DOCUMENT_METADATA_UPDATE_REMOVE} from "./tagService";
 
@@ -18,7 +18,7 @@ export class DocumentGroupService {
     public documentGroups$ = this.documentGroups$$.pipe(shareReplay(1));
 
     constructor(
-        private quickNotes: QuickNoteService,
+        private notes: NoteService,
     ) {}
 
     public get() {
@@ -60,7 +60,7 @@ export class DocumentGroupService {
             'body': JSON.stringify(body)
         })
             .then(async (response) => {
-                this.quickNotes.documentUpdated(await response.json() as Document)
+                this.notes.documentUpdated(await response.json() as Document)
             })
             .catch(err => console.log(err))
     }
@@ -81,7 +81,7 @@ export class DocumentGroupService {
             'body': JSON.stringify(body)
         })
             .then(async (response) => {
-                this.quickNotes.documentUpdated(await response.json() as Document)
+                this.notes.documentUpdated(await response.json() as Document)
             })
             .catch(err => console.log(err))
     }

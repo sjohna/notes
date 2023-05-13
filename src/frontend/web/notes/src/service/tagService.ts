@@ -1,7 +1,7 @@
 import {BehaviorSubject, shareReplay} from "rxjs";
 import {environment} from "../environment/environment";
-import {QuickNoteService} from "./quickNoteService";
-import {Document} from "./quickNoteService";
+import {NoteService} from "./noteService";
+import {Document} from "./noteService";
 
 export const DOCUMENT_METADATA_UPDATE_ADD = 1;
 export const DOCUMENT_METADATA_UPDATE_REMOVE = 2;
@@ -20,7 +20,7 @@ export class TagService {
     public tags$ = this.tags$$.pipe(shareReplay(1));
 
     constructor(
-        private quickNotes: QuickNoteService,
+        private notes: NoteService,
     ) {}
 
     public get() {
@@ -62,7 +62,7 @@ export class TagService {
             'body': JSON.stringify(body)
         })
             .then(async (response) => {
-                this.quickNotes.documentUpdated(await response.json() as Document)
+                this.notes.documentUpdated(await response.json() as Document)
             })
             .catch(err => console.log(err))
     }
@@ -83,7 +83,7 @@ export class TagService {
             'body': JSON.stringify(body)
         })
             .then(async (response) => {
-                this.quickNotes.documentUpdated(await response.json() as Document)
+                this.notes.documentUpdated(await response.json() as Document)
             })
             .catch(err => console.log(err))
     }

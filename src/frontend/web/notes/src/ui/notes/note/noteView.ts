@@ -5,15 +5,15 @@ import {
     button,
     div,
     textArea, flexColumn,
-} from "../../utility/element";
-import {View} from "../../utility/view";
-import {QuickNoteColumnView} from "./quickNoteColumnView";
-import {QuickNoteCalendarView} from "./quickNoteCalendarView";
-import {LabeledCheckbox} from "../component/labeledCheckbox";
-import {QuickNotesFilterView} from "./quickNotesFilterView";
-import {Services} from "../../service/services";
+} from "../../../utility/element";
+import {View} from "../../../utility/view";
+import {NoteColumnView} from "./noteColumnView";
+import {NoteCalendarView} from "./noteCalendarView";
+import {LabeledCheckbox} from "../../component/labeledCheckbox";
+import {NoteFilterView} from "./noteFilterView";
+import {Services} from "../../../service/services";
 
-export class QuickNoteView implements View {
+export class NoteView implements View {
     noteContainer: DivBuilder;
     newNoteText: HTMLTextAreaElement;
 
@@ -32,14 +32,14 @@ export class QuickNoteView implements View {
     public setup(): void {
         clear(this.container);
         button('New Note')
-            .onclick(() => {this.s.quickNoteService.createNote(this.newNoteText.value); this.newNoteText.value = '';})
+            .onclick(() => {this.s.noteService.createNote(this.newNoteText.value); this.newNoteText.value = '';})
             .inDiv()
             .in(this.container);
 
         const newNoteTextBuilder = textArea()
             .keydown((event: KeyboardEvent) => {
                 if (event.ctrlKey && event.code == "Enter") {
-                    this.s.quickNoteService.createNote(this.newNoteText.value);
+                    this.s.noteService.createNote(this.newNoteText.value);
                     this.newNoteText.value = '';
                 }
             })
@@ -56,7 +56,7 @@ export class QuickNoteView implements View {
             .in(this.container);
 
         this.filterView?.teardown();
-        this.filterView = new QuickNotesFilterView(this.filterContainer, this.s);
+        this.filterView = new NoteFilterView(this.filterContainer, this.s);
         this.filterView.setup();
 
         this.calendarViewCheckbox = new LabeledCheckbox('Calendar View')
@@ -82,9 +82,9 @@ export class QuickNoteView implements View {
     private renderNotes() {
         this.noteView?.teardown();
         if (this.calendarViewCheckbox.checked) {
-            this.noteView = new QuickNoteCalendarView(this.noteContainer, this.s);
+            this.noteView = new NoteCalendarView(this.noteContainer, this.s);
         } else {
-            this.noteView = new QuickNoteColumnView(this.noteContainer, this.s);
+            this.noteView = new NoteColumnView(this.noteContainer, this.s);
         }
         this.noteView.setup();
     }

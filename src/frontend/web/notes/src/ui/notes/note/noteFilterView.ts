@@ -1,11 +1,11 @@
-import {View} from "../../utility/view";
-import {AnyBuilder, clear, div} from "../../utility/element";
-import {QuickNoteQueryParameters} from "../../service/quickNoteService";
+import {View} from "../../../utility/view";
+import {AnyBuilder, clear, div} from "../../../utility/element";
+import {NoteQueryParameters} from "../../../service/noteService";
 import {Observable, Subscription} from "rxjs";
-import {Services} from "../../service/services";
+import {Services} from "../../../service/services";
 
-export class QuickNotesFilterView implements View {
-    private parameters$: Observable<QuickNoteQueryParameters>;
+export class NoteFilterView implements View {
+    private parameters$: Observable<NoteQueryParameters>;
 
     private sub: Subscription;
 

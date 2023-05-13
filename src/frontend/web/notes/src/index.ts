@@ -2,8 +2,8 @@ import "@js-joda/timezone";
 import {ContainerView} from "./ui/app/container";
 import {div, flexColumn} from "./utility/element";
 import {DocumentFilterService} from "./service/documentFilterService";
-import {QuickNoteService} from "./service/quickNoteService";
-import {TotalQuickNotesOnDatesService} from "./service/totalQuickNotesOnDatesService";
+import {NoteService} from "./service/noteService";
+import {TotalNotesOnDatesService} from "./service/totalNotesOnDatesService";
 import {TagService} from "./service/tagService";
 import {Services} from "./service/services";
 import {DocumentGroupService} from "./service/documentGroupService";
@@ -21,19 +21,19 @@ const documentFilters = new DocumentFilterService();
 documentFilters.filter.sortBy = 'document_time';
 documentFilters.filter.sortDirection = 'descending';
 
-const quickNotes = new QuickNoteService(documentFilters);
+const notes = new NoteService(documentFilters);
 
-const totalQuickNotesOnDates = new TotalQuickNotesOnDatesService();
+const totalNotesOnDates = new TotalNotesOnDatesService();
 
-const tags = new TagService(quickNotes);
+const tags = new TagService(notes);
 
-const documentGroups = new DocumentGroupService(quickNotes);
+const documentGroups = new DocumentGroupService(notes);
 
 const services: Services = {
     documentFilterService: documentFilters,
-    quickNoteService: quickNotes,
+    noteService: notes,
     tagService: tags,
-    totalQuickNotesOnDatesService: totalQuickNotesOnDates,
+    totalNotesOnDatesService: totalNotesOnDates,
     documentGroupService: documentGroups,
 }
 

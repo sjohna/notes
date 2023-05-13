@@ -1,11 +1,11 @@
-import {SubViewCollection, View} from "../../utility/view";
-import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../utility/element";
+import {SubViewCollection, View} from "../../../utility/view";
+import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../../utility/element";
 import {LocalDate, LocalTime, TemporalAdjusters, ZoneId} from "@js-joda/core";
 import {Subscription} from "rxjs";
-import {QuickNoteColumnView} from "./quickNoteColumnView";
-import {Services} from "../../service/services";
+import {NoteColumnView} from "./noteColumnView";
+import {Services} from "../../../service/services";
 
-export class QuickNoteCalendarView implements View {
+export class NoteCalendarView implements View {
     private subscription: Subscription;
 
     private subviews: SubViewCollection;
@@ -26,10 +26,10 @@ export class QuickNoteCalendarView implements View {
     }
 
     private get() {
-        this.s.totalQuickNotesOnDatesService.parameters.startDate = this.currentMonth.with(TemporalAdjusters.firstDayOfMonth());
-        this.s.totalQuickNotesOnDatesService.parameters.endDate = this.currentMonth.with(TemporalAdjusters.lastDayOfMonth());
+        this.s.totalNotesOnDatesService.parameters.startDate = this.currentMonth.with(TemporalAdjusters.firstDayOfMonth());
+        this.s.totalNotesOnDatesService.parameters.endDate = this.currentMonth.with(TemporalAdjusters.lastDayOfMonth());
 
-        this.s.totalQuickNotesOnDatesService.get();
+        this.s.totalNotesOnDatesService.get();
     }
 
     setup(): void {
@@ -42,10 +42,10 @@ export class QuickNoteCalendarView implements View {
         this.notesContainer = div().in(this.container);
 
         this.subviews.setupAndAdd(
-            new QuickNoteColumnView(this.notesContainer, this.s)
+            new NoteColumnView(this.notesContainer, this.s)
         );
 
-        this.subscription = this.s.totalQuickNotesOnDatesService.notesOnDates$
+        this.subscription = this.s.totalNotesOnDatesService.notesOnDates$
             .subscribe(
             (totalNotesOnDates) => {
                 if (!totalNotesOnDates) {

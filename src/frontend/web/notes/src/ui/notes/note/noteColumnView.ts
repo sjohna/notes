@@ -1,16 +1,16 @@
-import {SubViewCollection, View} from "../../utility/view";
-import {AnyBuilder, clear, DivBuilder, div, hr, span} from "../../utility/element";
+import {SubViewCollection, View} from "../../../utility/view";
+import {AnyBuilder, clear, DivBuilder, div, hr, span} from "../../../utility/element";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
-import {QuickNoteCardView} from "./quickNoteCardView";
+import {NoteCardView} from "./noteCardView";
 import {Subscription} from "rxjs";
-import {LabeledCheckbox} from "../component/labeledCheckbox";
-import {Document} from "../../service/quickNoteService";
-import {Services} from "../../service/services";
+import {LabeledCheckbox} from "../../component/labeledCheckbox";
+import {Document} from "../../../service/noteService";
+import {Services} from "../../../service/services";
 
-export class QuickNoteColumnView implements View {
+export class NoteColumnView implements View {
     private subViews = new SubViewCollection();
 
-    quickNotesSubscription?: Subscription;
+    notesSubscription?: Subscription;
 
     private noteContainer?: DivBuilder;
     private reverseOrderCheckbox?: LabeledCheckbox;
@@ -21,7 +21,7 @@ export class QuickNoteColumnView implements View {
     ) { }
 
     setup(): void {
-        this.quickNotesSubscription?.unsubscribe();
+        this.notesSubscription?.unsubscribe();
         clear(this.container);
 
         this.reverseOrderCheckbox = new LabeledCheckbox('Reverse Order')
@@ -34,8 +34,8 @@ export class QuickNoteColumnView implements View {
         this.noteContainer = div()
             .in(this.container);
 
-        this.quickNotesSubscription = this.s.quickNoteService.notes$.subscribe(notes => this.renderNotes(notes));
-        this.s.quickNoteService.get();
+        this.notesSubscription = this.s.noteService.notes$.subscribe(notes => this.renderNotes(notes));
+        this.s.noteService.get();
     }
 
     private renderNotes(notes?: Document[]) {
@@ -57,13 +57,13 @@ export class QuickNoteColumnView implements View {
             }
 
             this.subViews.setupAndAdd(
-                new QuickNoteCardView(this.noteContainer, note, this.s)
+                new NoteCardView(this.noteContainer, note, this.s)
             );
         }
     }
 
     teardown(): void {
-        this.quickNotesSubscription?.unsubscribe();
+        this.notesSubscription?.unsubscribe();
     }
 
     private dateHeader(date: string): DivBuilder {

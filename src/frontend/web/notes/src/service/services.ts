@@ -1,13 +1,13 @@
 import {DocumentFilterService} from "./documentFilterService";
-import {QuickNoteService} from "./quickNoteService";
+import {NoteService} from "./noteService";
 import {TagService} from "./tagService";
-import {TotalQuickNotesOnDatesService} from "./totalQuickNotesOnDatesService";
+import {TotalNotesOnDatesService} from "./totalNotesOnDatesService";
 import {DocumentGroupService} from "./documentGroupService";
 
 export interface Services {
     documentFilterService: DocumentFilterService;
-    quickNoteService: QuickNoteService;
+    noteService: NoteService;
     tagService: TagService;
-    totalQuickNotesOnDatesService: TotalQuickNotesOnDatesService;
+    totalNotesOnDatesService: TotalNotesOnDatesService;
     documentGroupService: DocumentGroupService;
 }

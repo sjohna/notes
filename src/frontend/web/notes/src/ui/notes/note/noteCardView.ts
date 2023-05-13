@@ -1,16 +1,16 @@
-import {View} from "../../utility/view";
+import {View} from "../../../utility/view";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
-import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../utility/element";
-import {tagLabel} from "../component/tagLabel";
-import {getDragData} from "../../service/dragDropService";
+import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../../utility/element";
+import {tagLabel} from "../../component/tagLabel";
+import {getDragData} from "../../../service/dragDropService";
 import {Subscription} from "rxjs";
-import {Tag} from "../../service/tagService";
-import {Document} from "../../service/quickNoteService";
-import {Services} from "../../service/services";
-import {DocumentGroup} from "../../service/documentGroupService";
+import {Tag} from "../../../service/tagService";
+import {Document} from "../../../service/noteService";
+import {Services} from "../../../service/services";
+import {DocumentGroup} from "../../../service/documentGroupService";
 
-export class QuickNoteCardView implements View {
+export class NoteCardView implements View {
     private card: DivBuilder;
     private cardContainer: DivBuilder;
 
@@ -114,7 +114,7 @@ export class QuickNoteCardView implements View {
 
             if (!this.note.tags || !this.note.tags.find((tag) => newTag.id === tag.id)) {
                 if (!this.updateSubscription) {
-                    this.updateSubscription = this.s.quickNoteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+                    this.updateSubscription = this.s.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
                 }
 
                 this.s.tagService.addTagToDocument(newTag.id, this.note.id);
@@ -124,7 +124,7 @@ export class QuickNoteCardView implements View {
 
             if (!this.note.groups || !this.note.groups.find((group) => newDocumentGroup.id === group.id)) {
                 if (!this.updateSubscription) {
-                    this.updateSubscription = this.s.quickNoteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+                    this.updateSubscription = this.s.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
                 }
 
                 this.s.documentGroupService.addDocumentToGroup(newDocumentGroup.id, this.note.id);
@@ -141,7 +141,7 @@ export class QuickNoteCardView implements View {
 
     private removeTag(tagToRemove: Tag) {
         if (!this.updateSubscription) {
-            this.updateSubscription = this.s.quickNoteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+            this.updateSubscription = this.s.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
         }
         this.s.tagService.removeTagFromDocument(tagToRemove.id, this.note.id)
     }
