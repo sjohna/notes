@@ -97,12 +97,10 @@ export class TagPaletteView implements View {
 
     private dragStart(tag: Tag) {
         startDraggingTag(tag)
-        console.log(`Drag start from ${tag.name}`)
     }
 
     private dragEnd(tag: Tag) {
         stopDragging()
-        console.log(`Drag end from ${tag.name}`)
     }
 
     public teardown(): void {

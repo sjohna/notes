@@ -88,12 +88,10 @@ export class GroupPaletteView implements View {
 
     private dragStart(group: DocumentGroup) {
         startDraggingDocumentGroup(group)
-        console.log(`Drag start from ${group.name}`)
     }
 
     private dragEnd(group: DocumentGroup) {
         startDraggingDocumentGroup(group)
-        console.log(`Drag end from ${group.name}`)
     }
 
     public teardown(): void {

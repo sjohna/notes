@@ -19,21 +19,16 @@ export function navigate(path: string, mainViewTab: string) {
         mainViewTab,
     }
 
-    console.log('Navigating to: ' + path)
-    console.log('Main view tab: ' + mainViewTab)
     history.pushState(navEvent, '', path);
 
     navigationEvents$$.next(navEvent);
 }
 
 window.onpopstate =  (event) => {
-    console.log('Popping state');
-    console.log(event.state);
     navigationEvents$$.next(event.state);
 };
 
 export function setInitialStateFromURL() {
-    console.log(window.location.pathname);
     let path = window.location.pathname;
     let mainViewTab = path.split('/')[1];
 

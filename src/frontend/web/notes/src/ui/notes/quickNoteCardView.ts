@@ -96,13 +96,11 @@ export class QuickNoteCardView implements View {
     private dragEnter() {
         this.dragCounter += 1;
         this.setCardBackground();
-        console.log(`Drag enter document ${this.note.id}`);
     }
 
     private dragLeave() {
         this.dragCounter -= 1;
         this.setCardBackground();
-        console.log(`Drag leave document ${this.note.id}`);
     }
 
     private drop() {
@@ -132,8 +130,6 @@ export class QuickNoteCardView implements View {
                 this.s.documentGroupService.addDocumentToGroup(newDocumentGroup.id, this.note.id);
             }
         }
-
-        console.log(`Drop document ${this.note.id}`);
     }
 
     private checkDocumentUpdate(newDocument: Document) {
