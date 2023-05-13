@@ -253,11 +253,11 @@ from document
       and document_tag.archived_at is null
     ) document_tags on true
          join lateral (
-    select jsonb_agg(json_build_object('id', document_group.id, 'name', document_group.name)) as groups
-    from document_group
-             join document_group_document on document_group_document.document_group_id = document_group.id
-    where document_group_document.document_id = document.id
-      and document_group_document.archived_at is null
+    select jsonb_agg(json_build_object('id', "group".id, 'name', "group".name)) as groups
+    from "group"
+             join document_group on document_group.document_group_id = document_group.id
+    where document_group.document_id = document.id
+      and document_group.archived_at is null
     ) document_groups on true
 where document.id = any ($1)
 `

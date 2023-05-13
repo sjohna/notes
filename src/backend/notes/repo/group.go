@@ -45,7 +45,7 @@ func CreateGroup(dao c.DAO, name string, description null.String) (*Group, error
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
-	SQL := `insert into document_group(name, description)
+	SQL := `insert into "group" (name, description)
 values ($1, $2)
 returning *`
 
@@ -64,20 +64,20 @@ func GetGroups(dao c.DAO) ([]*Group, error) {
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
-	SQL := `select document_group.id,
-       document_group.name,
-       document_group.description,
-       document_group.inserted_at,
-       document_group.archived_at,
-       dgd.count as document_count
-from document_group
+	SQL := `select "group".id,
+       "group".name,
+       "group".description,
+       "group".inserted_at,
+       "group".archived_at,
+       dg.count as document_count
+from "group"
          join lateral (
     select count(*) as count
-    from document_group_document dgd
-    where dgd.document_group_id = document_group.id
-      and dgd.archived_at is null
-    ) as dgd on true
-where document_group.archived_at is null`
+    from document_group dg
+    where dg.document_group_id = "group".id
+      and dg.archived_at is null
+    ) as dg on true
+where "group".archived_at is null`
 
 	documentGroups := make([]*Group, 0)
 	err := dao.Select(&documentGroups, SQL)
@@ -97,7 +97,7 @@ func AddDocumentToGroup(dao c.DAO, documentID int64, groupID int64) error {
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
-	SQL := `insert into document_group_document(document_id, document_group_id)
+	SQL := `insert into document_group(document_id, document_group_id)
 values ($1, $2)`
 
 	_, err := dao.Exec(SQL, documentID, groupID)
@@ -117,11 +117,11 @@ func RemoveDocumentFromGroup(dao c.DAO, documentID int64, groupID int64) error {
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
-	SQL := `update document_group_document
+	SQL := `update document_group
 set archived_at = now()
-where document_group_document.document_id = $1
-  and document_group_document.document_group_id = $2
-  and document_group_document.archived_at is null`
+where document_group.document_id = $1
+  and document_group.document_group_id = $2
+  and document_group.archived_at is null`
 
 	_, err := dao.Exec(SQL, documentID, groupID)
 	if err != nil {
