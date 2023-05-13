@@ -9,8 +9,8 @@ import (
 )
 
 func (handler *TagHandler) ConfigureRoutes(base *chi.Mux) {
-	base.Post("/tag", handler.CreateTag)
-	base.Get("/tag", handler.GetTags)
+	base.Post("/tag/create", handler.CreateTag)
+	base.Post("/tag", handler.GetTags)
 }
 
 type TagHandler struct {

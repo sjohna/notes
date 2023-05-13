@@ -25,7 +25,7 @@ export class TagService {
 
     public get() {
         fetch(`${environment.apiUrl}/tag`, {
-            'method': 'GET'
+            'method': 'POST'
         })
             .then(async response => this.tags$$.next(await response.json() as Tag[]))
             .catch(err => console.log(err))
@@ -36,7 +36,7 @@ export class TagService {
             return;
         }
 
-        fetch(`${environment.apiUrl}/tag`, {
+        fetch(`${environment.apiUrl}/tag/create`, {
             'method': 'POST',
             'body': JSON.stringify({name, description})
         })

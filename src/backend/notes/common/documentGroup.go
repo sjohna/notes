@@ -1,6 +1,6 @@
 package common
 
-type DocumentDocumentGroupUpdate struct {
+type DocumentGroupUpdate struct {
 	DocumentGroupID int64                      `json:"groupId"`
 	UpdateType      DocumentMetadataUpdateType `json:"updateType"`
 }

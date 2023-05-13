@@ -120,8 +120,8 @@ func (handler *NoteHandler) UpdateNoteGroups(w http.ResponseWriter, r *http.Requ
 	defer c.LogHandlerReturn(log)
 
 	var body struct {
-		DocumentID   int64                                `json:"documentId"`
-		GroupUpdates []common.DocumentDocumentGroupUpdate `json:"groupUpdates"`
+		DocumentID   int64                        `json:"documentId"`
+		GroupUpdates []common.DocumentGroupUpdate `json:"groupUpdates"`
 	}
 	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
 		// TODO: respond client error instead

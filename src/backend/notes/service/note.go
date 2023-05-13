@@ -111,7 +111,7 @@ func (svc *NoteService) ApplyNoteTagUpdates(logger *logrus.Entry, documentID int
 	return updatedNote, nil
 }
 
-func (svc *NoteService) ApplyNoteGroupUpdates(logger *logrus.Entry, documentID int64, updates []common.DocumentDocumentGroupUpdate) (*repo.Document, error) {
+func (svc *NoteService) ApplyNoteGroupUpdates(logger *logrus.Entry, documentID int64, updates []common.DocumentGroupUpdate) (*repo.Document, error) {
 	log := c.ServiceFunctionLogger(logger, "ApplyNoteGroupUpdates")
 	defer c.LogServiceReturn(log)
 
