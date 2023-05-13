@@ -10,16 +10,16 @@ import (
 )
 
 type Document struct {
-	ID                    int64                        `db:"id" json:"id"`
-	Type                  string                       `db:"type" json:"type"`
-	Content               string                       `db:"content" json:"content"`
-	CreatedAt             time.Time                    `db:"created_at" json:"createdAt"`
-	CreatedAtPrecision    string                       `db:"created_at_precision" json:"createdAtPrecision"`
-	DocumentTime          time.Time                    `db:"document_time" json:"documentTime"`
-	DocumentTimePrecision string                       `db:"document_time_precision" json:"documentTimePrecision"`
-	InsertedAt            time.Time                    `db:"inserted_at" json:"insertedAt"`
-	Tags                  *TagOnDocumentList           `db:"tags" json:"tags,omitempty"`
-	Groups                *DocumentGroupOnDocumentList `db:"groups" json:"groups,omitempty"`
+	ID                    int64                `db:"id" json:"id"`
+	Type                  string               `db:"type" json:"type"`
+	Content               string               `db:"content" json:"content"`
+	CreatedAt             time.Time            `db:"created_at" json:"createdAt"`
+	CreatedAtPrecision    string               `db:"created_at_precision" json:"createdAtPrecision"`
+	DocumentTime          time.Time            `db:"document_time" json:"documentTime"`
+	DocumentTimePrecision string               `db:"document_time_precision" json:"documentTimePrecision"`
+	InsertedAt            time.Time            `db:"inserted_at" json:"insertedAt"`
+	Tags                  *TagOnDocumentList   `db:"tags" json:"tags,omitempty"`
+	Groups                *GroupOnDocumentList `db:"groups" json:"groups,omitempty"`
 }
 
 type DocumentsOnDate struct {
@@ -30,7 +30,7 @@ type DocumentsOnDate struct {
 const InternalAuthorID = 1
 
 func CreateDocument(tx *c.TxDAO, documentType string, content string) (*Document, error) {
-	log := c.RepoFunctionLogger(tx.Logger(), "CreateQuickNote")
+	log := c.RepoFunctionLogger(tx.Logger(), "CreateDocument")
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
@@ -54,28 +54,28 @@ values ($1, $2, $3, 1)`
 		return nil, err
 	}
 
-	createdQuickNote, err := GetQuickNote(tx, createdQuickNoteID)
+	createdDocument, err := GetDocument(tx, createdQuickNoteID)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
 	}
 
-	return createdQuickNote, nil
+	return createdDocument, nil
 }
 
 // language=SQL
-var quickNoteFilterQueryBase string = `
+var noteFilterQueryBase string = `
 select document.id
 from document
 where document.type = 'quick_note'
 `
 
-func GetQuickNote(dao c.DAO, documentID int64) (*Document, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNote")
+func GetDocument(dao c.DAO, documentID int64) (*Document, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetDocument")
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
-	documents, err := GetDocumentsByIDs(dao, []int64{documentID}, common.QuickNoteQueryParameters{})
+	documents, err := GetDocumentsByIDs(dao, []int64{documentID}, common.NoteQueryParameters{})
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
@@ -96,7 +96,7 @@ func GetQuickNote(dao c.DAO, documentID int64) (*Document, error) {
 	return documents[0], nil
 }
 
-func appendQueryParameters(query string, parameters common.QuickNoteQueryParameters) (string, []interface{}, error) {
+func appendQueryParameters(query string, parameters common.NoteQueryParameters) (string, []interface{}, error) {
 	basicQuery := query
 
 	args := make([]interface{}, 0)
@@ -122,7 +122,7 @@ var allowedSortColumns = []string{
 	"inserted_at",
 }
 
-func appendSortParameters(query string, parameters common.QuickNoteQueryParameters) (string, error) {
+func appendSortParameters(query string, parameters common.NoteQueryParameters) (string, error) {
 	newQuery := query
 
 	if parameters.SortBy.Valid {
@@ -160,8 +160,8 @@ func appendSortParameters(query string, parameters common.QuickNoteQueryParamete
 	return newQuery, nil
 }
 
-func GetQuickNotes(dao c.DAO, parameters common.QuickNoteQueryParameters) ([]*Document, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes")
+func GetDocuments(dao c.DAO, parameters common.NoteQueryParameters) ([]*Document, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetDocuments")
 	defer c.LogRepoReturn(log)
 
 	ids, err := GetDocumentIDsMatchingFilter(dao, parameters)
@@ -222,7 +222,7 @@ func GetTotalDocumentsOnDates(dao c.DAO, parameters common.TotalNotesOnDaysQuery
 
 // parameters only for sorting for now
 // TODO: handle sort parameters better
-func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.QuickNoteQueryParameters) ([]*Document, error) {
+func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParameters) ([]*Document, error) {
 	log := c.RepoFunctionLogger(dao.Logger(), "GetDocumentsByIds")
 	defer c.LogRepoReturn(log)
 
@@ -278,7 +278,7 @@ where document.id = any ($1)
 	return documents, nil
 }
 
-func getQueryAndArgs(parameters common.QuickNoteQueryParameters) (string, []interface{}) {
+func getQueryAndArgs(parameters common.NoteQueryParameters) (string, []interface{}) {
 	// language=SQL
 	SQL := `select distinct document.id
 from document
@@ -317,8 +317,8 @@ where document.document_time between coalesce($1, '-infinity'::timestamptz) and 
 	return SQL, args
 }
 
-func GetDocumentIDsMatchingFilter(dao c.DAO, parameters common.QuickNoteQueryParameters) ([]int64, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "GetQuickNotes")
+func GetDocumentIDsMatchingFilter(dao c.DAO, parameters common.NoteQueryParameters) ([]int64, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetDocumentIDsMatchingFilter")
 	defer c.LogRepoReturn(log)
 
 	SQL, args := getQueryAndArgs(parameters)

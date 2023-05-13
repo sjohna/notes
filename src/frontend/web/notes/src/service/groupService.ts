@@ -22,7 +22,7 @@ export class GroupService {
     ) {}
 
     public get() {
-        fetch(`${environment.apiUrl}/document_group`, {
+        fetch(`${environment.apiUrl}/group`, {
             'method': 'POST'
         })
             .then(async response => this.groups$$.next(await response.json() as Group[]))
@@ -34,7 +34,7 @@ export class GroupService {
             return;
         }
 
-        fetch(`${environment.apiUrl}/document_group/create`, {
+        fetch(`${environment.apiUrl}/group/create`, {
             'method': 'POST',
             'body': JSON.stringify({name, description})
         })
@@ -55,7 +55,7 @@ export class GroupService {
             ]
         }
 
-        fetch(`${environment.apiUrl}/quicknote/update_groups`, {
+        fetch(`${environment.apiUrl}/note/update_groups`, {
             'method': 'POST',
             'body': JSON.stringify(body)
         })
@@ -76,7 +76,7 @@ export class GroupService {
             ]
         }
 
-        fetch(`${environment.apiUrl}/quicknote/update_groups`, {
+        fetch(`${environment.apiUrl}/note/update_groups`, {
             'method': 'POST',
             'body': JSON.stringify(body)
         })

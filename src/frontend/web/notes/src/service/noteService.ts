@@ -79,7 +79,7 @@ export class NoteService {
     public async get() {
         const parameters = await lastValueFrom(this.parameters$.pipe(take(1)));
 
-        fetch(`${environment.apiUrl}/quicknote`, {
+        fetch(`${environment.apiUrl}/note`, {
             'method': 'POST',
             'body': parameters.toBodyString()
         })
@@ -94,7 +94,7 @@ export class NoteService {
             return;
         }
 
-        fetch(`${environment.apiUrl}/quicknote/create`, {
+        fetch(`${environment.apiUrl}/note/create`, {
             'method': 'POST',
             'body': JSON.stringify({content})
         })

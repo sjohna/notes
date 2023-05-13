@@ -9,12 +9,12 @@ import (
 	"notes/repo"
 )
 
-type QuickNoteService struct {
+type NoteService struct {
 	Repo *r.Repo
 }
 
-func (svc *QuickNoteService) CreateQuickNote(logger *logrus.Entry, content string) (*repo.Document, error) {
-	log := c.ServiceFunctionLogger(logger, "CreateQuickNote")
+func (svc *NoteService) CreateNote(logger *logrus.Entry, content string) (*repo.Document, error) {
+	log := c.ServiceFunctionLogger(logger, "CreateNote")
 	defer c.LogServiceReturn(log)
 
 	var createdNote *repo.Document
@@ -37,11 +37,11 @@ func (svc *QuickNoteService) CreateQuickNote(logger *logrus.Entry, content strin
 	return createdNote, nil
 }
 
-func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry, parameters common.QuickNoteQueryParameters) ([]*repo.Document, error) {
-	log := c.ServiceFunctionLogger(logger, "GetQuickNotes")
+func (svc *NoteService) GetNotes(logger *logrus.Entry, parameters common.NoteQueryParameters) ([]*repo.Document, error) {
+	log := c.ServiceFunctionLogger(logger, "GetNotes")
 	defer c.LogServiceReturn(log)
 
-	quickNotes, err := repo.GetQuickNotes(svc.Repo.NonTx(log), parameters)
+	quickNotes, err := repo.GetDocuments(svc.Repo.NonTx(log), parameters)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
@@ -50,7 +50,7 @@ func (svc *QuickNoteService) GetQuickNotes(logger *logrus.Entry, parameters comm
 	return quickNotes, nil
 }
 
-func (svc *QuickNoteService) GetTotalNotesOnDays(logger *logrus.Entry, parameters common.TotalNotesOnDaysQueryParameters) ([]*repo.DocumentsOnDate, error) {
+func (svc *NoteService) GetTotalNotesOnDays(logger *logrus.Entry, parameters common.TotalNotesOnDaysQueryParameters) ([]*repo.DocumentsOnDate, error) {
 	log := c.ServiceFunctionLogger(logger, "GetTotalNotesOnDays")
 	defer c.LogServiceReturn(log)
 
@@ -63,8 +63,8 @@ func (svc *QuickNoteService) GetTotalNotesOnDays(logger *logrus.Entry, parameter
 	return quickNotesOnDates, nil
 }
 
-func (svc *QuickNoteService) ApplyDocumentTagUpdates(logger *logrus.Entry, documentID int64, updates []common.DocumentTagUpdate) (*repo.Document, error) {
-	log := c.ServiceFunctionLogger(logger, "ApplyDocumentTagUpdates")
+func (svc *NoteService) ApplyNoteTagUpdates(logger *logrus.Entry, documentID int64, updates []common.DocumentTagUpdate) (*repo.Document, error) {
+	log := c.ServiceFunctionLogger(logger, "ApplyNoteTagUpdates")
 	defer c.LogServiceReturn(log)
 
 	err := svc.Repo.SerializableTx(log, func(tx *r.TxDAO) error {
@@ -102,28 +102,28 @@ func (svc *QuickNoteService) ApplyDocumentTagUpdates(logger *logrus.Entry, docum
 		}
 	}
 
-	document, err := repo.GetQuickNote(svc.Repo.NonTx(log), documentID)
+	updatedNote, err := repo.GetDocument(svc.Repo.NonTx(log), documentID)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
 	}
 
-	return document, nil
+	return updatedNote, nil
 }
 
-func (svc *QuickNoteService) ApplyDocumentDocumentGroupUpdates(logger *logrus.Entry, documentID int64, updates []common.DocumentDocumentGroupUpdate) (*repo.Document, error) {
-	log := c.ServiceFunctionLogger(logger, "ApplyDocumentDocumentGroupUpdates")
+func (svc *NoteService) ApplyNoteGroupUpdates(logger *logrus.Entry, documentID int64, updates []common.DocumentDocumentGroupUpdate) (*repo.Document, error) {
+	log := c.ServiceFunctionLogger(logger, "ApplyNoteGroupUpdates")
 	defer c.LogServiceReturn(log)
 
 	err := svc.Repo.SerializableTx(log, func(tx *r.TxDAO) error {
 		for _, update := range updates {
 			if update.UpdateType == common.DocumentMetadataUpdateAdd {
-				err := repo.AddDocumentDocumentGroup(tx, documentID, update.DocumentGroupID)
+				err := repo.AddDocumentToGroup(tx, documentID, update.DocumentGroupID)
 				if err != nil {
 					return err
 				}
 			} else if update.UpdateType == common.DocumentMetadataUpdateRemove {
-				err := repo.RemoveDocumentDocumentGroup(tx, documentID, update.DocumentGroupID)
+				err := repo.RemoveDocumentFromGroup(tx, documentID, update.DocumentGroupID)
 				if err != nil {
 					return err
 				}
@@ -150,11 +150,11 @@ func (svc *QuickNoteService) ApplyDocumentDocumentGroupUpdates(logger *logrus.En
 		}
 	}
 
-	document, err := repo.GetQuickNote(svc.Repo.NonTx(log), documentID)
+	updatedNote, err := repo.GetDocument(svc.Repo.NonTx(log), documentID)
 	if err != nil {
 		log.WithError(err).Error()
 		return nil, err
 	}
 
-	return document, nil
+	return updatedNote, nil
 }

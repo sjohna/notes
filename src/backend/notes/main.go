@@ -85,14 +85,14 @@ func main() {
 
 	repoInstance := r.Repo{DB: db}
 
-	quickNotesService := service.QuickNoteService{Repo: &repoInstance}
-	quickNotesHandler := handler.QuickNoteHandler{Service: &quickNotesService}
+	quickNotesService := service.NoteService{Repo: &repoInstance}
+	quickNotesHandler := handler.NoteHandler{Service: &quickNotesService}
 
 	tagService := service.TagService{Repo: &repoInstance}
 	tagHandler := handler.TagHandler{Service: &tagService}
 
-	documentGroupService := service.DocumentGroupService{Repo: &repoInstance}
-	documentGroupHandler := handler.DocumentGroupHandler{Service: &documentGroupService}
+	documentGroupService := service.GroupService{Repo: &repoInstance}
+	documentGroupHandler := handler.GroupHandler{Service: &documentGroupService}
 
 	// init chi
 

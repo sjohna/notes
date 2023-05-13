@@ -9,20 +9,20 @@ import (
 	"notes/service"
 )
 
-func (handler *QuickNoteHandler) ConfigureRoutes(base *chi.Mux) {
-	base.Post("/quicknote/create", handler.CreateQuickNote)
-	base.Post("/quicknote", handler.GetQuickNotes)
-	base.Post("/quicknote/total_by_date", handler.GetTotalNotesOnDays)
-	base.Post("/quicknote/update_tags", handler.UpdateDocumentTags)
-	base.Post("/quicknote/update_groups", handler.UpdateDocumentDocumentGroups)
+func (handler *NoteHandler) ConfigureRoutes(base *chi.Mux) {
+	base.Post("/note/create", handler.CreateNote)
+	base.Post("/note", handler.GetNotes)
+	base.Post("/note/total_by_date", handler.GetTotalNotesOnDays)
+	base.Post("/note/update_tags", handler.UpdateNoteTags)
+	base.Post("/note/update_groups", handler.UpdateNoteGroups)
 }
 
-type QuickNoteHandler struct {
-	Service *service.QuickNoteService
+type NoteHandler struct {
+	Service *service.NoteService
 }
 
-func (handler *QuickNoteHandler) CreateQuickNote(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "CreateQuickNote")
+func (handler *NoteHandler) CreateNote(w http.ResponseWriter, r *http.Request) {
+	log := c.HandlerLogger(r, "CreateNote")
 	defer c.LogHandlerReturn(log)
 
 	var params struct {
@@ -35,7 +35,7 @@ func (handler *QuickNoteHandler) CreateQuickNote(w http.ResponseWriter, r *http.
 		return
 	}
 
-	createdNote, err := handler.Service.CreateQuickNote(log, params.Content)
+	createdNote, err := handler.Service.CreateNote(log, params.Content)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return
@@ -44,26 +44,26 @@ func (handler *QuickNoteHandler) CreateQuickNote(w http.ResponseWriter, r *http.
 	c.RespondJSON(log, w, createdNote)
 }
 
-func (handler *QuickNoteHandler) GetQuickNotes(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "GetQuickNotes")
+func (handler *NoteHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
+	log := c.HandlerLogger(r, "GetNotes")
 	defer c.LogHandlerReturn(log)
 
-	var body common.QuickNoteQueryParameters
+	var body common.NoteQueryParameters
 	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
 		// TODO: respond client error instead
 		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
-	quickNotes, err := handler.Service.GetQuickNotes(log, body)
+	quickNotes, err := handler.Service.GetNotes(log, body)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
 	var response struct {
-		Documents  []*repo.Document                `json:"documents"`
-		Parameters common.QuickNoteQueryParameters `json:"parameters"`
+		Documents  []*repo.Document           `json:"documents"`
+		Parameters common.NoteQueryParameters `json:"parameters"`
 	}
 
 	response.Documents = quickNotes
@@ -72,7 +72,7 @@ func (handler *QuickNoteHandler) GetQuickNotes(w http.ResponseWriter, r *http.Re
 	c.RespondJSON(log, w, response)
 }
 
-func (handler *QuickNoteHandler) GetTotalNotesOnDays(w http.ResponseWriter, r *http.Request) {
+func (handler *NoteHandler) GetTotalNotesOnDays(w http.ResponseWriter, r *http.Request) {
 	log := c.HandlerLogger(r, "GetTotalNotesOnDays")
 	defer c.LogHandlerReturn(log)
 
@@ -92,8 +92,8 @@ func (handler *QuickNoteHandler) GetTotalNotesOnDays(w http.ResponseWriter, r *h
 	c.RespondJSON(log, w, totalNotesOnDays)
 }
 
-func (handler *QuickNoteHandler) UpdateDocumentTags(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "UpdateDocumentTags")
+func (handler *NoteHandler) UpdateNoteTags(w http.ResponseWriter, r *http.Request) {
+	log := c.HandlerLogger(r, "UpdateNoteTags")
 	defer c.LogHandlerReturn(log)
 
 	var body struct {
@@ -106,7 +106,7 @@ func (handler *QuickNoteHandler) UpdateDocumentTags(w http.ResponseWriter, r *ht
 		return
 	}
 
-	document, err := handler.Service.ApplyDocumentTagUpdates(log, body.DocumentID, body.TagUpdates)
+	document, err := handler.Service.ApplyNoteTagUpdates(log, body.DocumentID, body.TagUpdates)
 	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
 		c.RespondInternalServerError(log, w, err)
 		return
@@ -115,8 +115,8 @@ func (handler *QuickNoteHandler) UpdateDocumentTags(w http.ResponseWriter, r *ht
 	c.RespondJSON(log, w, document)
 }
 
-func (handler *QuickNoteHandler) UpdateDocumentDocumentGroups(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "UpdateDocumentDocumentGroups")
+func (handler *NoteHandler) UpdateNoteGroups(w http.ResponseWriter, r *http.Request) {
+	log := c.HandlerLogger(r, "UpdateNoteGroups")
 	defer c.LogHandlerReturn(log)
 
 	var body struct {
@@ -129,7 +129,7 @@ func (handler *QuickNoteHandler) UpdateDocumentDocumentGroups(w http.ResponseWri
 		return
 	}
 
-	document, err := handler.Service.ApplyDocumentDocumentGroupUpdates(log, body.DocumentID, body.GroupUpdates)
+	document, err := handler.Service.ApplyNoteGroupUpdates(log, body.DocumentID, body.GroupUpdates)
 	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
 		c.RespondInternalServerError(log, w, err)
 		return

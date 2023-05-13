@@ -57,7 +57,7 @@ export class TagService {
             ]
         }
 
-        fetch(`${environment.apiUrl}/quicknote/update_tags`, {
+        fetch(`${environment.apiUrl}/note/update_tags`, {
             'method': 'POST',
             'body': JSON.stringify(body)
         })
@@ -78,7 +78,7 @@ export class TagService {
             ]
         }
 
-        fetch(`${environment.apiUrl}/quicknote/update_tags`, {
+        fetch(`${environment.apiUrl}/note/update_tags`, {
             'method': 'POST',
             'body': JSON.stringify(body)
         })

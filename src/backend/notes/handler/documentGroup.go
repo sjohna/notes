@@ -8,17 +8,17 @@ import (
 	"notes/service"
 )
 
-type DocumentGroupHandler struct {
-	Service *service.DocumentGroupService
+type GroupHandler struct {
+	Service *service.GroupService
 }
 
-func (handler *DocumentGroupHandler) ConfigureRoutes(base *chi.Mux) {
-	base.Post("/document_group/create", handler.CreateDocumentGroup)
-	base.Post("/document_group", handler.GetDocumentGroups)
+func (handler *GroupHandler) ConfigureRoutes(base *chi.Mux) {
+	base.Post("/group/create", handler.CreateGroup)
+	base.Post("/group", handler.GetGroups)
 }
 
-func (handler *DocumentGroupHandler) CreateDocumentGroup(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "CreateDocumentGroup")
+func (handler *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
+	log := c.HandlerLogger(r, "CreateGroup")
 	defer c.LogHandlerReturn(log)
 
 	var body struct {
@@ -32,26 +32,26 @@ func (handler *DocumentGroupHandler) CreateDocumentGroup(w http.ResponseWriter, 
 		return
 	}
 
-	createdDocumentGroup, err := handler.Service.CreateDocumentGroup(log, body.Name, body.Description)
+	createdGroup, err := handler.Service.CreateGroup(log, body.Name, body.Description)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
-	c.RespondJSON(log, w, createdDocumentGroup)
+	c.RespondJSON(log, w, createdGroup)
 }
 
 // TODO: parameterize query
-func (handler *DocumentGroupHandler) GetDocumentGroups(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "GetDocumentGroups")
+func (handler *GroupHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
+	log := c.HandlerLogger(r, "GetGroups")
 	defer c.LogHandlerReturn(log)
 
-	documentGroups, err := handler.Service.GetDocumentGroups(log)
+	groups, err := handler.Service.GetGroups(log)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return
 	}
 
 	// TODO: respond structure
-	c.RespondJSON(log, w, documentGroups)
+	c.RespondJSON(log, w, groups)
 }

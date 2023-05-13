@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type DocumentGroup struct {
+type Group struct {
 	ID            int64       `db:"id" json:"id"`
 	Name          string      `db:"name" json:"name"`
 	Description   null.String `db:"description" json:"description,omitempty"`
@@ -17,31 +17,31 @@ type DocumentGroup struct {
 	DocumentCount int         `db:"document_count" json:"documentCount"`
 }
 
-type DocumentGroupList []*DocumentGroup
+type GroupList []*Group
 
-func (r *DocumentGroupList) Scan(src interface{}) error {
+func (r *GroupList) Scan(src interface{}) error {
 	if src == nil {
 		return nil
 	}
 	return json.Unmarshal(src.([]byte), r)
 }
 
-type DocumentGroupOnDocument struct {
+type GroupOnDocument struct {
 	ID   int64  `db:"id" json:"id"`
 	Name string `db:"name" json:"name"`
 }
 
-type DocumentGroupOnDocumentList []*DocumentGroupOnDocument
+type GroupOnDocumentList []*GroupOnDocument
 
-func (r *DocumentGroupOnDocumentList) Scan(src interface{}) error {
+func (r *GroupOnDocumentList) Scan(src interface{}) error {
 	if src == nil {
 		return nil
 	}
 	return json.Unmarshal(src.([]byte), r)
 }
 
-func CreateDocumentGroup(dao c.DAO, name string, description null.String) (*DocumentGroup, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "CreateDocumentGroup")
+func CreateGroup(dao c.DAO, name string, description null.String) (*Group, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "CreateGroup")
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
@@ -49,7 +49,7 @@ func CreateDocumentGroup(dao c.DAO, name string, description null.String) (*Docu
 values ($1, $2)
 returning *`
 
-	var createdDocumentGroup DocumentGroup
+	var createdDocumentGroup Group
 	err := dao.Get(&createdDocumentGroup, SQL, name, description)
 	if err != nil {
 		log.WithError(err).Error()
@@ -59,8 +59,8 @@ returning *`
 	return &createdDocumentGroup, nil
 }
 
-func GetDocumentGroups(dao c.DAO) ([]*DocumentGroup, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "GetDocumentGroups")
+func GetGroups(dao c.DAO) ([]*Group, error) {
+	log := c.RepoFunctionLogger(dao.Logger(), "GetGroups")
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
@@ -79,7 +79,7 @@ from document_group
     ) as dgd on true
 where document_group.archived_at is null`
 
-	documentGroups := make([]*DocumentGroup, 0)
+	documentGroups := make([]*Group, 0)
 	err := dao.Select(&documentGroups, SQL)
 	if err != nil {
 		log.WithError(err).Error()
@@ -89,18 +89,18 @@ where document_group.archived_at is null`
 	return documentGroups, nil
 }
 
-func AddDocumentDocumentGroup(dao c.DAO, documentID int64, documentGroupID int64) error {
+func AddDocumentToGroup(dao c.DAO, documentID int64, groupID int64) error {
 	log := c.RepoFunctionLogger(dao.Logger().WithFields(logrus.Fields{
-		"documentID":      documentID,
-		"documentGroupID": documentGroupID,
-	}), "AddDocumentDocumentGroup")
+		"documentID": documentID,
+		"groupID":    groupID,
+	}), "AddDocumentToGroup")
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
 	SQL := `insert into document_group_document(document_id, document_group_id)
 values ($1, $2)`
 
-	_, err := dao.Exec(SQL, documentID, documentGroupID)
+	_, err := dao.Exec(SQL, documentID, groupID)
 	if err != nil {
 		log.WithError(err).Error()
 		return err
@@ -109,11 +109,11 @@ values ($1, $2)`
 	return nil
 }
 
-func RemoveDocumentDocumentGroup(dao c.DAO, documentID int64, documentGroupID int64) error {
+func RemoveDocumentFromGroup(dao c.DAO, documentID int64, groupID int64) error {
 	log := c.RepoFunctionLogger(dao.Logger().WithFields(logrus.Fields{
-		"documentID":      documentID,
-		"documentGroupID": documentGroupID,
-	}), "RemoveDocumentDocumentGroup")
+		"documentID": documentID,
+		"groupID":    groupID,
+	}), "RemoveDocumentFromGroup")
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
@@ -123,7 +123,7 @@ where document_group_document.document_id = $1
   and document_group_document.document_group_id = $2
   and document_group_document.archived_at is null`
 
-	_, err := dao.Exec(SQL, documentID, documentGroupID)
+	_, err := dao.Exec(SQL, documentID, groupID)
 	if err != nil {
 		log.WithError(err).Error()
 		return err

@@ -7,7 +7,7 @@ type TagQueryParameter struct {
 	Exclude bool  `json:"exclude"`
 }
 
-type QuickNoteQueryParameters struct {
+type NoteQueryParameters struct {
 	StartTime     null.Time           `json:"startTime,omitempty"`
 	EndTime       null.Time           `json:"endTime,omitempty"`
 	Tags          []TagQueryParameter `json:"tags,omitempty"`
