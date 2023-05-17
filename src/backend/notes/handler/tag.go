@@ -8,7 +8,7 @@ import (
 	"notes/service"
 )
 
-func (handler *TagHandler) ConfigureRoutes(base *chi.Mux) {
+func (handler *TagHandler) ConfigureRoutes(base chi.Router) {
 	base.Post("/tag/create", handler.CreateTag)
 	base.Post("/tag", handler.GetTags)
 }

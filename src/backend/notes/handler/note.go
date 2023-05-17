@@ -9,7 +9,7 @@ import (
 	"notes/service"
 )
 
-func (handler *NoteHandler) ConfigureRoutes(base *chi.Mux) {
+func (handler *NoteHandler) ConfigureRoutes(base chi.Router) {
 	base.Post("/note/create", handler.CreateNote)
 	base.Post("/note", handler.GetNotes)
 	base.Post("/note/total_by_date", handler.GetTotalNotesOnDays)

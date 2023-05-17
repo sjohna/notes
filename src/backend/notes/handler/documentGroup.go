@@ -12,7 +12,7 @@ type GroupHandler struct {
 	Service *service.GroupService
 }
 
-func (handler *GroupHandler) ConfigureRoutes(base *chi.Mux) {
+func (handler *GroupHandler) ConfigureRoutes(base chi.Router) {
 	base.Post("/group/create", handler.CreateGroup)
 	base.Post("/group", handler.GetGroups)
 }

@@ -94,6 +94,8 @@ func main() {
 	documentGroupService := service.GroupService{Repo: &repoInstance}
 	documentGroupHandler := handler.GroupHandler{Service: &documentGroupService}
 
+	authService := service.AuthService{Repo: &repoInstance}
+
 	// init chi
 
 	r := chi.NewRouter()
@@ -108,10 +110,15 @@ func main() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
+	authMiddleware := handler.AuthMiddleware{AuthService: &authService}
+
 	r.Use(handler.LogRequestContext)
-	quickNotesHandler.ConfigureRoutes(r)
-	tagHandler.ConfigureRoutes(r)
-	documentGroupHandler.ConfigureRoutes(r)
+	r.Group(func(r chi.Router) {
+		r.Use(authMiddleware.Authenticate)
+		quickNotesHandler.ConfigureRoutes(r)
+		tagHandler.ConfigureRoutes(r)
+		documentGroupHandler.ConfigureRoutes(r)
+	})
 
 	portString := fmt.Sprintf(":%d", config.APIPort)
 
