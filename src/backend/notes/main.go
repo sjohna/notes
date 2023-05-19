@@ -95,6 +95,9 @@ func main() {
 	documentGroupHandler := handler.GroupHandler{Service: &documentGroupService}
 
 	authService := service.AuthService{Repo: &repoInstance}
+	authHandler := handler.AuthHandler{Service: &authService}
+
+	authService.CreateUser(logrus.WithField("createUser", true), "test", "Password!")
 
 	// init chi
 
@@ -113,6 +116,9 @@ func main() {
 	authMiddleware := handler.AuthMiddleware{AuthService: &authService}
 
 	r.Use(handler.LogRequestContext)
+
+	authHandler.ConfigureRoutes(r)
+
 	r.Group(func(r chi.Router) {
 		r.Use(authMiddleware.Authenticate)
 		quickNotesHandler.ConfigureRoutes(r)

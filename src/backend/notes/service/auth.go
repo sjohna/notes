@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"github.com/sirupsen/logrus"
 	r "github.com/sjohna/go-server-common/repo"
@@ -40,7 +41,7 @@ func (svc *AuthService) CreateUser(logger *logrus.Entry, userName string, passwo
 	return nil
 }
 
-func (svc *AuthService) LogUserIn(logger *logrus.Entry, userName string, password string) (*repo.UserSession, error) {
+func (svc *AuthService) LogUserIn(logger *logrus.Entry, userName string, password string) (string, error) {
 	log := c.ServiceFunctionLogger(logger.WithField("userName", userName), "LogUserIn")
 	defer c.LogServiceReturn(log)
 
@@ -49,28 +50,30 @@ func (svc *AuthService) LogUserIn(logger *logrus.Entry, userName string, passwor
 	user, err := repo.GetUserAuthInfoByUserName(dao, userName)
 	if err != nil {
 		log.WithError(err).Error()
-		return nil, err
+		return "", err
 	}
 
 	providedPasswordHash := argon2.IDKey([]byte(password), user.Salt, 3, 64*1024, 4, 32)
 
 	if len(providedPasswordHash) > 0 && len(user.PasswordHash) > 0 && bytes.Equal(providedPasswordHash, user.PasswordHash) {
-		authToken := make([]byte, 16)
-		_, err := rand.Read(authToken)
+		authTokenBytes := make([]byte, 16)
+		_, err := rand.Read(authTokenBytes)
 		if err != nil {
 			log.WithError(err).Error()
-			return nil, err
+			return "", err
 		}
 
-		session, err := repo.CreateSession(dao, user.ID, authToken)
+		authTokenString := hex.EncodeToString(authTokenBytes)
+
+		session, err := repo.CreateSession(dao, user.ID, authTokenString)
 		if err != nil {
 			log.WithError(err).Error()
-			return nil, err
+			return "", err
 		}
 
-		return session, nil
+		return session.Token, nil
 	} else {
-		return nil, errors.New("Invalid username or password")
+		return "", errors.New("Invalid username or password")
 	}
 }
 

@@ -18,7 +18,7 @@ type UserAuthInfo struct {
 type UserSession struct {
 	ID        int64     `db:"id"`
 	UserID    int64     `db:"user_id"`
-	Token     []byte    `db:"token"`
+	Token     string    `db:"token"`
 	CreatedAt time.Time `db:"created_at"`
 	ExpiresAt null.Time `db:"expires_at"`
 	ClosedAt  null.Time `db:"closed_at"`
@@ -105,7 +105,7 @@ where user_name = $1`
 }
 
 // TODO: token expiration
-func CreateSession(dao c.DAO, userID int64, token []byte) (*UserSession, error) {
+func CreateSession(dao c.DAO, userID int64, token string) (*UserSession, error) {
 	log := c.RepoFunctionLogger(dao.Logger().WithField("userID", userID), "CreateSession")
 	defer c.LogRepoReturn(log)
 
