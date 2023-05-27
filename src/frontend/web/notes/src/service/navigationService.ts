@@ -31,15 +31,25 @@ window.onpopstate =  (event) => {
     navigationEvents$$.next(event.state);
 };
 
+let stateAfterLogin: NavigateEvent = null;
+
+export {stateAfterLogin};
+
 export function setInitialStateFromURL() {
 
-    // let path = window.location.pathname;
-    // let mainViewTab = path.split('/')[1];
-    //
-    // if (mainViewTab !== 'notes' && mainViewTab !== 'tags' && mainViewTab !== 'groups') {
-    //     mainViewTab = 'notes';
-    //     path = '/notes';
-    // }
+    let path = window.location.pathname;
+    let mainViewTab = path.split('/')[1];
+
+    if (mainViewTab !== 'notes' && mainViewTab !== 'tags' && mainViewTab !== 'groups') {
+        mainViewTab = 'notes';
+        path = '/notes';
+    }
+
+    stateAfterLogin = {
+        loggedIn: true,
+        path,
+        mainViewTab,
+    }
 
     const initialState: NavigateEvent = {
         loggedIn: false,

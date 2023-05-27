@@ -1,5 +1,5 @@
 import {environment} from "../environment/environment";
-import {navigate} from "./navigationService";
+import {navigate, stateAfterLogin} from "./navigationService";
 import {TagService} from "./tagService";
 import {GroupService} from "./groupService";
 
@@ -32,7 +32,11 @@ export class AuthService {
                 this.tags.get();
                 this.groups.get();
 
-                navigate('/notes', 'notes');
+                if (stateAfterLogin) {
+                    navigate(stateAfterLogin.path, stateAfterLogin.mainViewTab)
+                } else {
+                    navigate('/notes', 'notes');
+                }
             })
             .catch(err => console.log(err))
     }
