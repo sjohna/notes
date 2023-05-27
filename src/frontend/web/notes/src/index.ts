@@ -1,15 +1,14 @@
 import "@js-joda/timezone";
-import {LoggedInContainerView} from "./ui/app/loggedInContainer";
-import {div, flexColumn} from "./utility/element";
+import {flexColumn} from "./utility/element";
 import {DocumentFilterService} from "./service/documentFilterService";
 import {NoteService} from "./service/noteService";
 import {TotalNotesOnDatesService} from "./service/totalNotesOnDatesService";
 import {TagService} from "./service/tagService";
 import {Services} from "./service/services";
 import {GroupService} from "./service/groupService";
-import {setInitialStateFromURL} from "./service/navigationService";
 import {ContainerView} from "./ui/app/container";
 import {AuthService} from "./service/authService";
+import {NavigationService} from "./service/navigationService";
 
 document.body.style.height = '100%';
 document.body.style.overflowY = 'hidden';
@@ -23,15 +22,21 @@ const documentFilters = new DocumentFilterService();
 documentFilters.filter.sortBy = 'document_time';
 documentFilters.filter.sortDirection = 'descending';
 
-const notes = new NoteService(documentFilters);
+const auth = new AuthService();
 
-const totalNotesOnDates = new TotalNotesOnDatesService();
+const notes = new NoteService(documentFilters, auth);
 
-const tags = new TagService(notes);
+const totalNotesOnDates = new TotalNotesOnDatesService(auth);
 
-const groups = new GroupService(notes);
+const tags = new TagService(notes, auth);
 
-const auth = new AuthService(tags, groups);
+const groups = new GroupService(notes, auth);
+
+const nav = new NavigationService(auth);
+
+window.onpopstate =  (event) => {
+    nav.historyPopped(event.state);
+};
 
 const services: Services = {
     documentFilterService: documentFilters,
@@ -40,9 +45,17 @@ const services: Services = {
     totalNotesOnDatesService: totalNotesOnDates,
     groupService: groups,
     authService: auth,
+    navService: nav,
 }
 
-setInitialStateFromURL();
+nav.setInitialStateFromURL();
+
+auth.loggedInChanged$.subscribe((loggedIn) => {
+    if (loggedIn) {
+        tags.get();
+        groups.get();
+    }
+});
 
 const view = new ContainerView(topLevelContainer, services);
 view.setup();

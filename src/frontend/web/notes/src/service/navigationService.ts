@@ -1,4 +1,5 @@
 import {BehaviorSubject, Subject} from "rxjs";
+import {AuthService} from "./authService";
 
 export interface NavigateEvent {
     loggedIn: boolean;
@@ -12,52 +13,73 @@ const notLoggedInState: NavigateEvent = {
     mainViewTab: 'login',
 }
 
-const navigationEvents$$ = new BehaviorSubject<NavigateEvent>(notLoggedInState);
-export const navigationEvents$ = navigationEvents$$.asObservable();
-
-export function navigate(path: string, mainViewTab: string) {
-    const navEvent = {
-        loggedIn: true,
-        path,
-        mainViewTab,
-    }
-
-    history.pushState(navEvent, '', path);
-
-    navigationEvents$$.next(navEvent);
+const defaultLoggedInState: NavigateEvent = {
+    loggedIn: true,
+    path: '/notes',
+    mainViewTab: 'notes',
 }
 
-window.onpopstate =  (event) => {
-    navigationEvents$$.next(event.state);
-};
+export class NavigationService {
+    private navigationEvents$$ = new BehaviorSubject<NavigateEvent>(notLoggedInState);
+    public navigationEvents$ = this.navigationEvents$$.asObservable();
 
-let stateAfterLogin: NavigateEvent = null;
+    private stateAfterLogin: NavigateEvent = null;
 
-export {stateAfterLogin};
+    constructor(private authService: AuthService) {
+        this.authService.forceLogout$.subscribe(() => {
+            const currentState = this.navigationEvents$$.value;
 
-export function setInitialStateFromURL() {
+            if (currentState.loggedIn) {
+                this.stateAfterLogin = currentState;
+            } else {
+                this.stateAfterLogin = defaultLoggedInState;
+            }
 
-    let path = window.location.pathname;
-    let mainViewTab = path.split('/')[1];
+            history.replaceState(notLoggedInState, '', '/login');
+            this.navigationEvents$$.next(notLoggedInState);
+        });
 
-    if (mainViewTab !== 'notes' && mainViewTab !== 'tags' && mainViewTab !== 'groups') {
-        mainViewTab = 'notes';
-        path = '/notes';
+        this.authService.loggedInChanged$.subscribe((loggedIn) => {
+            if (loggedIn) {
+                this.navigate(this.stateAfterLogin.path, this.stateAfterLogin.mainViewTab, true);
+            }
+        });
     }
 
-    stateAfterLogin = {
-        loggedIn: true,
-        path,
-        mainViewTab,
+    public navigate(path: string, mainViewTab: string, loggedIn: boolean = true) {
+        const navEvent = {
+            loggedIn: true,
+            path,
+            mainViewTab,
+        }
+
+        history.pushState(navEvent, '', path);
+
+        this.navigationEvents$$.next(navEvent);
     }
 
-    history.replaceState(notLoggedInState, '', '/login');
+    public historyPopped(event: NavigateEvent) {
+        this.navigationEvents$$.next(event);
+    }
 
-    navigationEvents$$.next(notLoggedInState);
-}
+    public setInitialStateFromURL() {
+        let path = window.location.pathname;
+        let mainViewTab = path.split('/')[1];
 
-export function redirectToLogin() {
-    stateAfterLogin = navigationEvents$$.value;
+        if (mainViewTab !== 'notes' && mainViewTab !== 'tags' && mainViewTab !== 'groups') {
+            mainViewTab = 'notes';
+            path = '/notes';
+        }
 
-    navigationEvents$$.next(notLoggedInState);
+        this.stateAfterLogin = {
+            loggedIn: true,
+            path,
+            mainViewTab,
+        }
+
+        console.log(this.stateAfterLogin)
+
+        history.replaceState(notLoggedInState, '', '/login');
+        this.navigationEvents$$.next(notLoggedInState);
+    }
 }

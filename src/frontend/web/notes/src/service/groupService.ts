@@ -2,9 +2,7 @@ import {BehaviorSubject, shareReplay} from "rxjs";
 import {Document, NoteService} from "./noteService";
 import {environment} from "../environment/environment";
 import {DOCUMENT_METADATA_UPDATE_ADD, DOCUMENT_METADATA_UPDATE_REMOVE} from "./tagService";
-import {token} from "./authService";
-import {authedPost} from "../utility/fetch";
-
+import {AuthService, token} from "./authService";
 
 export interface Group {
     id: number;
@@ -21,15 +19,11 @@ export class GroupService {
 
     constructor(
         private notes: NoteService,
+        private authService: AuthService,
     ) {}
 
     public get() {
-        fetch(`${environment.apiUrl}/group`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-        })
+        this.authService.post(`${environment.apiUrl}/group`)
             .then(async response => this.groups$$.next(await response.json() as Group[]))
             .catch(err => console.log(err))
     }
@@ -39,7 +33,7 @@ export class GroupService {
             return;
         }
 
-        authedPost(`${environment.apiUrl}/group/create`, {name, description})
+        this.authService.post(`${environment.apiUrl}/group/create`, {name, description})
             .then(() => {
                 this.get();
             } )
@@ -57,7 +51,7 @@ export class GroupService {
             ]
         }
 
-        authedPost(`${environment.apiUrl}/note/update_groups`, body)
+        this.authService.post(`${environment.apiUrl}/note/update_groups`, body)
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)
             })
@@ -75,7 +69,7 @@ export class GroupService {
             ]
         }
 
-        authedPost(`${environment.apiUrl}/note/update_groups`, body)
+        this.authService.post(`${environment.apiUrl}/note/update_groups`, body)
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)
             })

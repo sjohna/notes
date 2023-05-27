@@ -6,9 +6,8 @@ import {Tab, Tabs} from "../component/tabs";
 import {SidebarView} from "./sidebar";
 import {Services} from "../../service/services";
 import {GroupListView} from "../notes/group/groupListView";
-import {navigate, navigationEvents$} from "../../service/navigationService";
+import {NavigateEvent} from "../../service/navigationService";
 import {Subscription} from "rxjs";
-
 
 export class LoggedInContainerView implements View {
     constructor(
@@ -51,7 +50,7 @@ export class LoggedInContainerView implements View {
             .withTab('tags', 'Tags', '/tags')
             .withTab('groups', 'Groups', '/groups')
             .selectionChange((t: Tab) => {
-                navigate(t.metaData, t.tabName);
+                this.s.navService.navigate(t.metaData, t.tabName);
             })
 
         this.mainViewContainer = flexColumn()
@@ -60,14 +59,16 @@ export class LoggedInContainerView implements View {
             .overflow('hidden')
             .paddingBottom('8px');
 
-        navigationEvents$.subscribe((e) => {
-            this.renderMainView();
+        this.s.navService.navigationEvents$.subscribe((e: NavigateEvent) => {
+            if (e.loggedIn) {
+                this.renderMainView();
+            }
         });
 
         this.tabBar.renderTabs();
         this.sideView.setup();
 
-        this.navigationSubscription = navigationEvents$.subscribe((e) => {
+        this.navigationSubscription = this.s.navService.navigationEvents$.subscribe((e) => {
             if (e.loggedIn) {
                 this.tabBar.selectTab(e.mainViewTab);
                 this.renderMainView();

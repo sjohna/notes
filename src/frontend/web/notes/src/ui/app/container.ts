@@ -1,7 +1,6 @@
 import {View} from "../../utility/view";
 import {AnyBuilder, clear} from "../../utility/element";
 import {Services} from "../../service/services";
-import {navigationEvents$} from "../../service/navigationService";
 import {Subscription} from "rxjs";
 import {LoggedInContainerView} from "./loggedInContainer";
 import {LoginView} from "../notes/auth/loginView";
@@ -20,7 +19,7 @@ export class ContainerView implements View {
     private navigationSubscription?: Subscription;
 
     public setup(): void {
-        this.navigationSubscription = navigationEvents$.subscribe((e) => {
+        this.navigationSubscription = this.s.navService.navigationEvents$.subscribe((e) => {
             if (e.loggedIn != this.loggedIn) {
                 this.loggedIn = e.loggedIn;
                 this.render();

@@ -1,7 +1,7 @@
 import {BehaviorSubject, Observable, shareReplay, Subject, takeUntil} from "rxjs";
 import {LocalDate} from "@js-joda/core";
 import {environment} from "../environment/environment";
-import {authedPost} from "../utility/fetch";
+import {AuthService} from "./authService";
 
 export interface DocumentsOnDate {
     date: string;
@@ -21,8 +21,10 @@ export class TotalNotesOnDatesService {
 
     public parameters: TotalNotesOnDaysQueryParameters = {};
 
+    constructor(private authService: AuthService) {}
+
     public get() {
-        authedPost(`${environment.apiUrl}/quicknote/total_by_date`, this.parameters)
+        this.authService.post(`${environment.apiUrl}/quicknote/total_by_date`, this.parameters)
             .then(async (response) => {
                 this.notesOnDates$$.next(await response.json() as DocumentsOnDate[]);
             } )

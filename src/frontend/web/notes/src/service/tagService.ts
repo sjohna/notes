@@ -2,8 +2,7 @@ import {BehaviorSubject, shareReplay} from "rxjs";
 import {environment} from "../environment/environment";
 import {NoteService} from "./noteService";
 import {Document} from "./noteService";
-import {token} from "./authService";
-import {authedPost} from "../utility/fetch";
+import {AuthService, token} from "./authService";
 
 export const DOCUMENT_METADATA_UPDATE_ADD = 1;
 export const DOCUMENT_METADATA_UPDATE_REMOVE = 2;
@@ -23,10 +22,11 @@ export class TagService {
 
     constructor(
         private notes: NoteService,
+        private authService: AuthService,
     ) {}
 
     public get() {
-        authedPost(`${environment.apiUrl}/tag`)
+        this.authService.post(`${environment.apiUrl}/tag`)
             .then(async response => this.tags$$.next(await response.json() as Tag[]))
             .catch(err => console.log(err))
     }
@@ -36,7 +36,7 @@ export class TagService {
             return;
         }
 
-        authedPost(`${environment.apiUrl}/tag/create`, {name, description})
+        this.authService.post(`${environment.apiUrl}/tag/create`, {name, description})
             .then(() => {
                 this.get();
             } )
@@ -54,7 +54,7 @@ export class TagService {
             ]
         }
 
-        authedPost(`${environment.apiUrl}/note/update_tags`, body)
+        this.authService.post(`${environment.apiUrl}/note/update_tags`, body)
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)
             })
@@ -72,7 +72,7 @@ export class TagService {
             ]
         }
 
-        authedPost(`${environment.apiUrl}/note/update_tags`, body)
+        this.authService.post(`${environment.apiUrl}/note/update_tags`, body)
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)
             })

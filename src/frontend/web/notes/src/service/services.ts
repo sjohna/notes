@@ -4,6 +4,7 @@ import {TagService} from "./tagService";
 import {TotalNotesOnDatesService} from "./totalNotesOnDatesService";
 import {GroupService} from "./groupService";
 import {AuthService} from "./authService";
+import {NavigationService} from "./navigationService";
 
 export interface Services {
     documentFilterService: DocumentFilterService;
@@ -12,4 +13,5 @@ export interface Services {
     totalNotesOnDatesService: TotalNotesOnDatesService;
     groupService: GroupService;
     authService: AuthService;
+    navService: NavigationService;
 }

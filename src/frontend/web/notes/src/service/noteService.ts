@@ -4,8 +4,7 @@ import {environment} from "../environment/environment";
 import {DocumentFilterService} from "./documentFilterService";
 import {Tag} from "./tagService";
 import {Group} from "./groupService";
-import {token} from "./authService";
-import {authedPost} from "../utility/fetch";
+import {AuthService, token} from "./authService";
 
 export interface Document {
     content: string;
@@ -72,16 +71,17 @@ export class NoteService {
     public documentUpdated$$ = new Subject<Document>();
 
     constructor(
-        private filterService: DocumentFilterService
+        private filterService: DocumentFilterService,
+        private authService: AuthService,
     ) {
         this.parameters$ = this.filterService.filter$;
-        this.sub = this.parameters$.subscribe(() => this.get());
+        this.sub = this.authService.changesWhileLoggedIn(this.parameters$).subscribe(() => this.get());
     }
 
     public async get() {
         const parameters = await lastValueFrom(this.parameters$.pipe(take(1)));
 
-        authedPost(`${environment.apiUrl}/note`, parameters.toBody())
+        this.authService.post(`${environment.apiUrl}/note`, parameters.toBody())
             .then(async (response) => {
                 this.notes$$.next((await response.json() as GetNotesResponse).documents);
             } )
@@ -93,7 +93,7 @@ export class NoteService {
             return;
         }
 
-        authedPost(`${environment.apiUrl}/note/create`, {content})
+        this.authService.post(`${environment.apiUrl}/note/create`, {content})
             .then(() => {
                 this.get();
             } )
