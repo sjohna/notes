@@ -2,7 +2,7 @@ import {BehaviorSubject, shareReplay} from "rxjs";
 import {Document, NoteService} from "./noteService";
 import {environment} from "../environment/environment";
 import {DOCUMENT_METADATA_UPDATE_ADD, DOCUMENT_METADATA_UPDATE_REMOVE} from "./tagService";
-import {AuthService, token} from "./authService";
+import {AuthService} from "./authService";
 
 export interface Group {
     id: number;

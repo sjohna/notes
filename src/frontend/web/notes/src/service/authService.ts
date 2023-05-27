@@ -3,10 +3,6 @@ import {TagService} from "./tagService";
 import {GroupService} from "./groupService";
 import {BehaviorSubject, combineLatest, distinctUntilChanged, filter, map, Observable, Subject} from "rxjs";
 
-let token: string = null;
-
-export { token }
-
 export class AuthService {
     private loggedIn$$ = new BehaviorSubject<boolean>(false);
     public loggedInChanged$: Observable<boolean> = this.loggedIn$$.pipe(distinctUntilChanged());
@@ -14,7 +10,17 @@ export class AuthService {
     private forceLogout$$ = new Subject();
     public forceLogout$ = this.forceLogout$$.asObservable();
 
-    constructor() {}
+    private token: string = null;
+
+    constructor() {
+        const token = localStorage.getItem('authToken');
+
+        if (token) {
+            this.token = token;
+
+            this.loggedIn$$.next(true);
+        }
+    }
 
     public login(userName: string, password: string) {
         const body = {
@@ -31,7 +37,7 @@ export class AuthService {
 
                 localStorage.setItem('authToken', data.token);
 
-                token = data.token;
+                this.token = data.token;
 
                 this.loggedIn$$.next(true);
             })
@@ -44,7 +50,7 @@ export class AuthService {
             body: JSON.stringify(body),
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${this.token}`
             },
         });
 
@@ -62,6 +68,10 @@ export class AuthService {
 
         // TODO: handle errors here
         throw new Error(`Error posting to ${url}: ${response.status} ${response.statusText}`);
+    }
+
+    public isLoggedIn(): boolean {
+        return this.loggedIn$$.value;
     }
 
     public changesWhileLoggedIn<T>(obs: Observable<T>): Observable<T> {

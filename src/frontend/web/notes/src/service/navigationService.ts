@@ -71,15 +71,23 @@ export class NavigationService {
             path = '/notes';
         }
 
-        this.stateAfterLogin = {
+        const initialState = {
             loggedIn: true,
             path,
             mainViewTab,
         }
 
-        console.log(this.stateAfterLogin)
+        if (this.authService.isLoggedIn()) {
+            history.replaceState(initialState, '', path)
 
-        history.replaceState(notLoggedInState, '', '/login');
-        this.navigationEvents$$.next(notLoggedInState);
+            this.navigationEvents$$.next(initialState);
+        } else {
+            this.stateAfterLogin = initialState;
+
+            console.log(this.stateAfterLogin)
+
+            history.replaceState(notLoggedInState, '', '/login');
+            this.navigationEvents$$.next(notLoggedInState);
+        }
     }
 }

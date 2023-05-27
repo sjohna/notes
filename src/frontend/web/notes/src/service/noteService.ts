@@ -4,7 +4,7 @@ import {environment} from "../environment/environment";
 import {DocumentFilterService} from "./documentFilterService";
 import {Tag} from "./tagService";
 import {Group} from "./groupService";
-import {AuthService, token} from "./authService";
+import {AuthService} from "./authService";
 
 export interface Document {
     content: string;

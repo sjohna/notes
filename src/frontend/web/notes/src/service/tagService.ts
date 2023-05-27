@@ -2,7 +2,7 @@ import {BehaviorSubject, shareReplay} from "rxjs";
 import {environment} from "../environment/environment";
 import {NoteService} from "./noteService";
 import {Document} from "./noteService";
-import {AuthService, token} from "./authService";
+import {AuthService} from "./authService";
 
 export const DOCUMENT_METADATA_UPDATE_ADD = 1;
 export const DOCUMENT_METADATA_UPDATE_REMOVE = 2;
