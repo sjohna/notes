@@ -2,6 +2,7 @@ import {BehaviorSubject, shareReplay} from "rxjs";
 import {environment} from "../environment/environment";
 import {NoteService} from "./noteService";
 import {Document} from "./noteService";
+import {token} from "./authService";
 
 export const DOCUMENT_METADATA_UPDATE_ADD = 1;
 export const DOCUMENT_METADATA_UPDATE_REMOVE = 2;
@@ -25,7 +26,10 @@ export class TagService {
 
     public get() {
         fetch(`${environment.apiUrl}/tag`, {
-            'method': 'POST'
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
         })
             .then(async response => this.tags$$.next(await response.json() as Tag[]))
             .catch(err => console.log(err))
@@ -37,8 +41,11 @@ export class TagService {
         }
 
         fetch(`${environment.apiUrl}/tag/create`, {
-            'method': 'POST',
-            'body': JSON.stringify({name, description})
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({name, description})
         })
             .then(() => {
                 this.get();
@@ -58,8 +65,11 @@ export class TagService {
         }
 
         fetch(`${environment.apiUrl}/note/update_tags`, {
-            'method': 'POST',
-            'body': JSON.stringify(body)
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(body)
         })
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)
@@ -79,8 +89,11 @@ export class TagService {
         }
 
         fetch(`${environment.apiUrl}/note/update_tags`, {
-            'method': 'POST',
-            'body': JSON.stringify(body)
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(body)
         })
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)

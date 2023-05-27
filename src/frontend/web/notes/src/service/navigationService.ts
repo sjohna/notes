@@ -1,13 +1,15 @@
 import {BehaviorSubject, Subject} from "rxjs";
 
 export interface NavigateEvent {
+    loggedIn: boolean;
     path: string;
     mainViewTab: string;
 }
 
 const defaultNavEvent: NavigateEvent = {
+    loggedIn: false,
     path: '/',
-    mainViewTab: 'notes',
+    mainViewTab: 'login',
 }
 
 const navigationEvents$$ = new BehaviorSubject<NavigateEvent>(defaultNavEvent);
@@ -15,6 +17,7 @@ export const navigationEvents$ = navigationEvents$$.asObservable();
 
 export function navigate(path: string, mainViewTab: string) {
     const navEvent = {
+        loggedIn: true,
         path,
         mainViewTab,
     }
@@ -29,20 +32,22 @@ window.onpopstate =  (event) => {
 };
 
 export function setInitialStateFromURL() {
-    let path = window.location.pathname;
-    let mainViewTab = path.split('/')[1];
 
-    if (mainViewTab !== 'notes' && mainViewTab !== 'tags' && mainViewTab !== 'groups') {
-        mainViewTab = 'notes';
-        path = '/notes';
-    }
+    // let path = window.location.pathname;
+    // let mainViewTab = path.split('/')[1];
+    //
+    // if (mainViewTab !== 'notes' && mainViewTab !== 'tags' && mainViewTab !== 'groups') {
+    //     mainViewTab = 'notes';
+    //     path = '/notes';
+    // }
 
     const initialState: NavigateEvent = {
-        path,
-        mainViewTab,
+        loggedIn: false,
+        path: '/login',
+        mainViewTab: null,
     }
 
-    history.replaceState(initialState, '', path);
+    history.replaceState(initialState, '', '/login');
 
     navigationEvents$$.next(initialState);
 }

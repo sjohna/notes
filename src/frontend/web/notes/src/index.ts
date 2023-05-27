@@ -1,5 +1,5 @@
 import "@js-joda/timezone";
-import {ContainerView} from "./ui/app/container";
+import {LoggedInContainerView} from "./ui/app/loggedInContainer";
 import {div, flexColumn} from "./utility/element";
 import {DocumentFilterService} from "./service/documentFilterService";
 import {NoteService} from "./service/noteService";
@@ -8,6 +8,8 @@ import {TagService} from "./service/tagService";
 import {Services} from "./service/services";
 import {GroupService} from "./service/groupService";
 import {setInitialStateFromURL} from "./service/navigationService";
+import {ContainerView} from "./ui/app/container";
+import {AuthService} from "./service/authService";
 
 document.body.style.height = '100%';
 document.body.style.overflowY = 'hidden';
@@ -29,17 +31,18 @@ const tags = new TagService(notes);
 
 const groups = new GroupService(notes);
 
+const auth = new AuthService(tags, groups);
+
 const services: Services = {
     documentFilterService: documentFilters,
     noteService: notes,
     tagService: tags,
     totalNotesOnDatesService: totalNotesOnDates,
     groupService: groups,
+    authService: auth,
 }
 
 setInitialStateFromURL();
 
 const view = new ContainerView(topLevelContainer, services);
-tags.get();
-groups.get();
 view.setup();

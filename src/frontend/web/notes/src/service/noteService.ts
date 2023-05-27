@@ -4,6 +4,7 @@ import {environment} from "../environment/environment";
 import {DocumentFilterService} from "./documentFilterService";
 import {Tag} from "./tagService";
 import {Group} from "./groupService";
+import {token} from "./authService";
 
 export interface Document {
     content: string;
@@ -80,8 +81,11 @@ export class NoteService {
         const parameters = await lastValueFrom(this.parameters$.pipe(take(1)));
 
         fetch(`${environment.apiUrl}/note`, {
-            'method': 'POST',
-            'body': parameters.toBodyString()
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            body: parameters.toBodyString()
         })
             .then(async (response) => {
                 this.notes$$.next((await response.json() as GetNotesResponse).documents);
@@ -95,8 +99,11 @@ export class NoteService {
         }
 
         fetch(`${environment.apiUrl}/note/create`, {
-            'method': 'POST',
-            'body': JSON.stringify({content})
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({content})
         })
             .then(() => {
                 this.get();
