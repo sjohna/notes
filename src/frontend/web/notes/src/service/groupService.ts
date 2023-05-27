@@ -3,6 +3,7 @@ import {Document, NoteService} from "./noteService";
 import {environment} from "../environment/environment";
 import {DOCUMENT_METADATA_UPDATE_ADD, DOCUMENT_METADATA_UPDATE_REMOVE} from "./tagService";
 import {token} from "./authService";
+import {authedPost} from "../utility/fetch";
 
 
 export interface Group {
@@ -38,13 +39,7 @@ export class GroupService {
             return;
         }
 
-        fetch(`${environment.apiUrl}/group/create`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({name, description})
-        })
+        authedPost(`${environment.apiUrl}/group/create`, {name, description})
             .then(() => {
                 this.get();
             } )
@@ -62,13 +57,7 @@ export class GroupService {
             ]
         }
 
-        fetch(`${environment.apiUrl}/note/update_groups`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(body)
-        })
+        authedPost(`${environment.apiUrl}/note/update_groups`, body)
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)
             })
@@ -86,13 +75,7 @@ export class GroupService {
             ]
         }
 
-        fetch(`${environment.apiUrl}/note/update_groups`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(body)
-        })
+        authedPost(`${environment.apiUrl}/note/update_groups`, body)
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)
             })

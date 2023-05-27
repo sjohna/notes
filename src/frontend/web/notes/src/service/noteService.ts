@@ -5,6 +5,7 @@ import {DocumentFilterService} from "./documentFilterService";
 import {Tag} from "./tagService";
 import {Group} from "./groupService";
 import {token} from "./authService";
+import {authedPost} from "../utility/fetch";
 
 export interface Document {
     content: string;
@@ -42,14 +43,14 @@ export class NoteQueryParameters {
         this.tags = [];
     }
 
-    toBodyString() {
-        return JSON.stringify({
+    toBody() {
+        return {
             startTime: this.startTime?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
             endTime: this.endTime?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
             sortBy: this.sortBy,
             sortDirection: this.sortDirection,
             tags: this.tags,
-        });
+        };
     };
 }
 
@@ -80,13 +81,7 @@ export class NoteService {
     public async get() {
         const parameters = await lastValueFrom(this.parameters$.pipe(take(1)));
 
-        fetch(`${environment.apiUrl}/note`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            body: parameters.toBodyString()
-        })
+        authedPost(`${environment.apiUrl}/note`, parameters.toBody())
             .then(async (response) => {
                 this.notes$$.next((await response.json() as GetNotesResponse).documents);
             } )
@@ -98,13 +93,7 @@ export class NoteService {
             return;
         }
 
-        fetch(`${environment.apiUrl}/note/create`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({content})
-        })
+        authedPost(`${environment.apiUrl}/note/create`, {content})
             .then(() => {
                 this.get();
             } )

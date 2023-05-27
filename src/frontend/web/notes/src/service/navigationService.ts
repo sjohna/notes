@@ -6,13 +6,13 @@ export interface NavigateEvent {
     mainViewTab: string;
 }
 
-const defaultNavEvent: NavigateEvent = {
+const notLoggedInState: NavigateEvent = {
     loggedIn: false,
     path: '/',
     mainViewTab: 'login',
 }
 
-const navigationEvents$$ = new BehaviorSubject<NavigateEvent>(defaultNavEvent);
+const navigationEvents$$ = new BehaviorSubject<NavigateEvent>(notLoggedInState);
 export const navigationEvents$ = navigationEvents$$.asObservable();
 
 export function navigate(path: string, mainViewTab: string) {
@@ -51,13 +51,13 @@ export function setInitialStateFromURL() {
         mainViewTab,
     }
 
-    const initialState: NavigateEvent = {
-        loggedIn: false,
-        path: '/login',
-        mainViewTab: null,
-    }
+    history.replaceState(notLoggedInState, '', '/login');
 
-    history.replaceState(initialState, '', '/login');
+    navigationEvents$$.next(notLoggedInState);
+}
 
-    navigationEvents$$.next(initialState);
+export function redirectToLogin() {
+    stateAfterLogin = navigationEvents$$.value;
+
+    navigationEvents$$.next(notLoggedInState);
 }

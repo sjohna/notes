@@ -3,6 +3,7 @@ import {environment} from "../environment/environment";
 import {NoteService} from "./noteService";
 import {Document} from "./noteService";
 import {token} from "./authService";
+import {authedPost} from "../utility/fetch";
 
 export const DOCUMENT_METADATA_UPDATE_ADD = 1;
 export const DOCUMENT_METADATA_UPDATE_REMOVE = 2;
@@ -25,12 +26,7 @@ export class TagService {
     ) {}
 
     public get() {
-        fetch(`${environment.apiUrl}/tag`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-        })
+        authedPost(`${environment.apiUrl}/tag`)
             .then(async response => this.tags$$.next(await response.json() as Tag[]))
             .catch(err => console.log(err))
     }
@@ -40,13 +36,7 @@ export class TagService {
             return;
         }
 
-        fetch(`${environment.apiUrl}/tag/create`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({name, description})
-        })
+        authedPost(`${environment.apiUrl}/tag/create`, {name, description})
             .then(() => {
                 this.get();
             } )
@@ -64,13 +54,7 @@ export class TagService {
             ]
         }
 
-        fetch(`${environment.apiUrl}/note/update_tags`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(body)
-        })
+        authedPost(`${environment.apiUrl}/note/update_tags`, body)
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)
             })
@@ -88,13 +72,7 @@ export class TagService {
             ]
         }
 
-        fetch(`${environment.apiUrl}/note/update_tags`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(body)
-        })
+        authedPost(`${environment.apiUrl}/note/update_tags`, body)
             .then(async (response) => {
                 this.notes.documentUpdated(await response.json() as Document)
             })

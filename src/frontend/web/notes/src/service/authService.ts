@@ -25,7 +25,7 @@ export class AuthService {
             .then(async (response) => {
                 const data = await response.json();
 
-                //localStorage.setItem('token', data.token);
+                localStorage.setItem('authToken', data.token);
 
                 token = data.token;
 
