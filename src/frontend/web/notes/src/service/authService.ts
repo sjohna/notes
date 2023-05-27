@@ -54,8 +54,10 @@ export class AuthService {
 
         if (response.status === 401) {
             console.log('Unauthorized, flagging as logged out')
-            this.loggedIn$$.next(false);
-            this.forceLogout$$.next(null);
+            if (this.loggedIn$$.value) {
+                this.loggedIn$$.next(false);
+                this.forceLogout$$.next(null);
+            }
         }
 
         // TODO: handle errors here
