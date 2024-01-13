@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/sirupsen/logrus"
+	"context"
 	r "github.com/sjohna/go-server-common/repo"
 	c "github.com/sjohna/go-server-common/service"
 	"gopkg.in/guregu/null.v4"
@@ -12,27 +12,28 @@ type TagService struct {
 	Repo *r.Repo
 }
 
-func (svc *TagService) CreateTag(logger *logrus.Entry, name string, description null.String) (*repo.Tag, error) {
-	log := c.ServiceFunctionLogger(logger, "CreateTag")
+func (svc *TagService) CreateTag(context context.Context, name string, description null.String) (*repo.Tag, error) {
+	serviceContext, log := c.ServiceFunctionContext(context, "CreateTag")
 	defer c.LogServiceReturn(log)
 
-	createdTag, err := repo.CreateTag(svc.Repo.NonTx(log), name, description)
+	createdTag, err := repo.CreateTag(svc.Repo.NonTx(serviceContext), name, description)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error creating tag")
 		return nil, err
 	}
 
-	log.WithField("tagID", createdTag.ID).Infof("Created tag ID %d", createdTag.ID)
+	log.WithField("tagID", createdTag.ID).Infof("Created tag")
+
 	return createdTag, nil
 }
 
-func (svc *TagService) GetTags(logger *logrus.Entry) ([]*repo.Tag, error) {
-	log := c.ServiceFunctionLogger(logger, "GetTags")
+func (svc *TagService) GetTags(context context.Context) ([]*repo.Tag, error) {
+	serviceContext, log := c.ServiceFunctionContext(context, "GetTags")
 	defer c.LogServiceReturn(log)
 
-	tags, err := repo.GetTags(svc.Repo.NonTx(log))
+	tags, err := repo.GetTags(svc.Repo.NonTx(serviceContext))
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error getting tags")
 		return nil, err
 	}
 

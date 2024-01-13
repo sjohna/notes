@@ -18,7 +18,7 @@ func (handler *GroupHandler) ConfigureRoutes(base chi.Router) {
 }
 
 func (handler *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "CreateGroup")
+	handlerContext, log := c.HandlerContext(r, "CreateGroup")
 	defer c.LogHandlerReturn(log)
 
 	var body struct {
@@ -32,21 +32,30 @@ func (handler *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	createdGroup, err := handler.Service.CreateGroup(log, body.Name, body.Description)
+	log = log.WithFields(map[string]interface{}{
+		"name":        body.Name,
+		"description": body.Description,
+	})
+
+	log.Info("Creating group")
+
+	createdGroup, err := handler.Service.CreateGroup(handlerContext, body.Name, body.Description)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return
 	}
+
+	log.WithField("groupID", createdGroup.ID).Info("Created group")
 
 	c.RespondJSON(log, w, createdGroup)
 }
 
 // TODO: parameterize query
 func (handler *GroupHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "GetGroups")
+	handlerContext, log := c.HandlerContext(r, "GetGroups")
 	defer c.LogHandlerReturn(log)
 
-	groups, err := handler.Service.GetGroups(log)
+	groups, err := handler.Service.GetGroups(handlerContext)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return

@@ -2,7 +2,6 @@ package repo
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	c "github.com/sjohna/go-server-common/repo"
 	"gopkg.in/guregu/null.v4"
 	"time"
@@ -42,8 +41,15 @@ func (r *TagOnDocumentList) Scan(src interface{}) error {
 }
 
 func CreateTag(dao c.DAO, name string, description null.String) (*Tag, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "CreateTag")
+	_, log := c.RepoFunctionContext(dao.Context(), "CreateTag")
 	defer c.LogRepoReturn(log)
+
+	log = log.WithFields(map[string]interface{}{
+		"name":        name,
+		"description": description,
+	})
+
+	log.Info("Creating tag")
 
 	// language=SQL
 	SQL := `insert into tag(name, description)
@@ -53,15 +59,17 @@ returning *`
 	var createdTag Tag
 	err := dao.Get(&createdTag, SQL, name, description)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error creating tag")
 		return nil, err
 	}
+
+	log.WithField("tagID", createdTag.ID).Info("Created tag")
 
 	return &createdTag, nil
 }
 
 func GetTags(dao c.DAO) ([]*Tag, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "GetTags")
+	_, log := c.RepoFunctionContext(dao.Context(), "GetTags")
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
@@ -84,7 +92,7 @@ where tag.archived_at is null
 	tags := make([]*Tag, 0)
 	err := dao.Select(&tags, SQL)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error running query to get tags")
 		return nil, err
 	}
 
@@ -93,38 +101,41 @@ where tag.archived_at is null
 
 // TODO: this will error out if tag already set. Maybe optional argument to handle that case?
 func AddDocumentTag(dao c.DAO, documentID int64, tagID int64) error {
-	log := c.RepoFunctionLogger(dao.Logger().WithFields(logrus.Fields{
+	_, log := c.RepoFunctionContext(dao.Context(), "AddDocumentTag")
+	defer c.LogRepoReturn(log)
+
+	log = log.WithFields(map[string]interface{}{
 		"documentID": documentID,
 		"tagID":      tagID,
-	}), "AddDocumentTag")
-	defer c.LogRepoReturn(log)
+	})
+
+	log.Info("Adding tag to document")
 
 	// language=SQL
 	SQL := `insert into document_tag (document_id, tag_id)
 values ($1, $2)`
 
-	result, err := dao.Exec(SQL, documentID, tagID)
+	_, err := dao.Exec(SQL, documentID, tagID)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error running query to add tag to document")
 		return err
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		log.WithError(err).Error()
-		return err
-	}
+	log.Info("Added tag to document")
 
-	log.WithField("rowsAffected", rowsAffected).Info()
 	return nil
 }
 
 func RemoveDocumentTag(dao c.DAO, documentID int64, tagID int64) error {
-	log := c.RepoFunctionLogger(dao.Logger().WithFields(logrus.Fields{
+	_, log := c.RepoFunctionContext(dao.Context(), "RemoveDocumentTag")
+	defer c.LogRepoReturn(log)
+
+	log = log.WithFields(map[string]interface{}{
 		"documentID": documentID,
 		"tagID":      tagID,
-	}), "RemoveDocumentTag")
-	defer c.LogRepoReturn(log)
+	})
+
+	log.Info("Removing tag from document")
 
 	// language=SQL
 	SQL := `update document_tag
@@ -135,16 +146,22 @@ where document_tag.document_id = $1
 
 	result, err := dao.Exec(SQL, documentID, tagID)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error running query to remove tag from document")
 		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error getting rows affected from query to remove tag from document")
 		return err
 	}
 
-	log.WithField("rowsAffected", rowsAffected).Info()
+	if rowsAffected == 0 {
+		log.Warn("No rows affected when removing tag from document")
+		return nil
+	}
+
+	log.Info("Removed tag from document")
+
 	return nil
 }

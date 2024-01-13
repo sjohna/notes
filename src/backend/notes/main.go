@@ -3,83 +3,63 @@ package main
 import (
 	"flag"
 	"fmt"
-	r "github.com/sjohna/go-server-common/repo"
-	"io"
-	"net/http"
-	"notes/utilities"
-	"os"
-	"path"
-
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/natefinch/lumberjack.v2"
+	"github.com/sjohna/go-server-common/log"
+	r "github.com/sjohna/go-server-common/repo"
+	"net/http"
 	"notes/handler"
 	"notes/repo"
 	"notes/service"
+	"notes/utilities"
 
 	_ "github.com/lib/pq"
 )
 
 // TODO: look at logging at all levels (handler, service, repo): am I logging everything relevant?
 // TODO: review and update log levels
-// TODO: log different levels to different files (probably a change in server common)
 
-func configureBasicLogging() {
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-}
-
-func configureFileLogging(config *utilities.ApplicationConfig) {
-	formatter := logrus.JSONFormatter{
-		TimestampFormat: "2006-01-02T15:04:05.999999999Z07:00",
-	}
-	logrus.SetFormatter(&formatter)
-
-	logfilePath := path.Join(config.LogDirectory, "notes.log")
-
-	fileLogger := &lumberjack.Logger{
-		Filename:   logfilePath,
-		MaxSize:    100,
-		MaxBackups: 10,
-		MaxAge:     36500,
-		Compress:   false,
-	}
-
-	writer := io.MultiWriter(fileLogger, os.Stdout)
-
-	logrus.SetOutput(writer)
-}
+// TODO: logging updates:
+// - change DAO creation logs to debug
+// - make "Creating/Updating X" logs debug, but keep "Created/Updated X" info
+// - "Request complete" logs to debug/trace
+// - "Context length x" when creating notes: probably a typo
+// - Respond success logs to debug
+// - Session validation/authentication per request to debug
+// - Log number of things returned for note/group/tag lists
+// - Handler called to trace
+// - Probably more after I review the logs in more detail, especially if I induce some warning/error/fatal logs
 
 func main() {
-	configureBasicLogging()
-	log := logrus.WithField("startup", true)
-	log.Info("Startup - basic logging configured")
+	// TODO: basic logging, like before?
+	fmt.Println("Starting notes API server")
 
 	var env string
 	flag.StringVar(&env, "env", "local", "Specify environment to use (default: local)")
 	flag.Parse()
 
-	log.Infof("Environment: %s", env)
+	fmt.Printf("Environment: %s\n", env)
 
 	envFile := fmt.Sprintf("%s.env", env)
 
-	log.Infof("Loading configuration from environment file %s", envFile)
+	fmt.Printf("Loading configuration from environment file %s\n", envFile)
 
 	config, err := utilities.GetConfigFromEnvFile(envFile)
 
 	if err != nil {
-		log.WithError(err).Error("Failed to read application configuration")
+		fmt.Println("Failed to read application configuration")
+		fmt.Printf("%v\n", err)
 		return
 	}
 
-	configureFileLogging(config)
+	logger, configLogger := log.GetApplicationLoggers(config.LogDirectory, "notes")
 
-	log.Info("Startup - file logging configured")
-	log.Infof("Configuration loaded from %s", envFile)
+	configLogger.Info("Notes server starting - file logging configured")
+	configLogger.Infof("Configuration loaded from %s", envFile)
 
-	db, err := repo.Connect(log, config)
+	db, err := repo.Connect(configLogger, config)
 	if err != nil {
-		log.WithError(err).Error()
+		configLogger.WithError(err).Fatal("Failed to connect to database")
 		return
 	}
 
@@ -97,14 +77,12 @@ func main() {
 	authService := service.AuthService{Repo: &repoInstance}
 	authHandler := handler.AuthHandler{Service: &authService}
 
-	authService.CreateUser(logrus.WithField("createUser", true), "test", "Password!")
-
 	// init chi
 
-	r := chi.NewRouter()
+	router := chi.NewRouter()
 
 	// cors
-	r.Use(cors.Handler(cors.Options{
+	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
@@ -113,14 +91,18 @@ func main() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
-	authMiddleware := handler.AuthMiddleware{AuthService: &authService}
+	middleware := handler.Middleware{
+		AuthService:  &authService,
+		Logger:       logger,
+		ConfigLogger: configLogger,
+	}
 
-	r.Use(handler.LogRequestContext)
+	router.Use(middleware.LogRequestContext)
 
-	authHandler.ConfigureRoutes(r)
+	authHandler.ConfigureRoutes(router)
 
-	r.Group(func(r chi.Router) {
-		r.Use(authMiddleware.Authenticate)
+	router.Group(func(r chi.Router) {
+		r.Use(middleware.Authenticate)
 		quickNotesHandler.ConfigureRoutes(r)
 		tagHandler.ConfigureRoutes(r)
 		documentGroupHandler.ConfigureRoutes(r)
@@ -128,13 +110,14 @@ func main() {
 
 	portString := fmt.Sprintf(":%d", config.APIPort)
 
-	log.Infof("Listening on port %d", config.APIPort)
+	configLogger.Infof("Listening on port %d", config.APIPort)
 
-	err = http.ListenAndServe(portString, r)
+	err = http.ListenAndServe(portString, router)
 
 	if err != nil {
-		log.WithError(err).Error("Error returned from http.ListenAndServe")
+		configLogger.WithError(err).Fatal("Error returned from http.ListenAndServe")
+		return
 	}
 
-	log.Info("Done")
+	configLogger.Info("Done")
 }

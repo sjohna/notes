@@ -18,7 +18,7 @@ type TagHandler struct {
 }
 
 func (handler *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "CreateTag")
+	handlerContext, log := c.HandlerContext(r, "CreateTag")
 	defer c.LogHandlerReturn(log)
 
 	var body struct {
@@ -32,7 +32,13 @@ func (handler *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdTag, err := handler.Service.CreateTag(log, body.Name, body.Description)
+	log = log.WithFields(map[string]interface{}{
+		"name":        body.Name,
+		"description": body.Description,
+	})
+	log.Info("Creating tag")
+
+	createdTag, err := handler.Service.CreateTag(handlerContext, body.Name, body.Description)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return
@@ -42,10 +48,10 @@ func (handler *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *TagHandler) GetTags(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "GetTags")
+	handlerContext, log := c.HandlerContext(r, "GetTags")
 	defer c.LogHandlerReturn(log)
 
-	tags, err := handler.Service.GetTags(log)
+	tags, err := handler.Service.GetTags(handlerContext)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return

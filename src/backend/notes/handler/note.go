@@ -22,7 +22,7 @@ type NoteHandler struct {
 }
 
 func (handler *NoteHandler) CreateNote(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "CreateNote")
+	handlerContext, log := c.HandlerContext(r, "CreateNote")
 	defer c.LogHandlerReturn(log)
 
 	var params struct {
@@ -35,7 +35,9 @@ func (handler *NoteHandler) CreateNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdNote, err := handler.Service.CreateNote(log, params.Content)
+	log.WithField("contentLength", len(params.Content)).Info("Creating note")
+
+	createdNote, err := handler.Service.CreateNote(handlerContext, params.Content)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return
@@ -45,7 +47,7 @@ func (handler *NoteHandler) CreateNote(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *NoteHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "GetNotes")
+	handlerContext, log := c.HandlerContext(r, "GetNotes")
 	defer c.LogHandlerReturn(log)
 
 	var body common.NoteQueryParameters
@@ -55,7 +57,7 @@ func (handler *NoteHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	quickNotes, err := handler.Service.GetNotes(log, body)
+	quickNotes, err := handler.Service.GetNotes(handlerContext, body)
 	if err != nil {
 		c.RespondInternalServerError(log, w, err)
 		return
@@ -73,7 +75,7 @@ func (handler *NoteHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *NoteHandler) GetTotalNotesOnDays(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "GetTotalNotesOnDays")
+	handlerContext, log := c.HandlerContext(r, "GetTotalNotesOnDays")
 	defer c.LogHandlerReturn(log)
 
 	var body common.TotalNotesOnDaysQueryParameters
@@ -83,7 +85,7 @@ func (handler *NoteHandler) GetTotalNotesOnDays(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	totalNotesOnDays, err := handler.Service.GetTotalNotesOnDays(log, body)
+	totalNotesOnDays, err := handler.Service.GetTotalNotesOnDays(handlerContext, body)
 	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
 		c.RespondInternalServerError(log, w, err)
 		return
@@ -93,7 +95,7 @@ func (handler *NoteHandler) GetTotalNotesOnDays(w http.ResponseWriter, r *http.R
 }
 
 func (handler *NoteHandler) UpdateNoteTags(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "UpdateNoteTags")
+	handlerContext, log := c.HandlerContext(r, "UpdateNoteTags")
 	defer c.LogHandlerReturn(log)
 
 	var body struct {
@@ -106,7 +108,10 @@ func (handler *NoteHandler) UpdateNoteTags(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	document, err := handler.Service.ApplyNoteTagUpdates(log, body.DocumentID, body.TagUpdates)
+	log = log.WithField("documentId", body.DocumentID)
+	log.Info("Updating note tags")
+
+	document, err := handler.Service.ApplyNoteTagUpdates(handlerContext, body.DocumentID, body.TagUpdates)
 	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
 		c.RespondInternalServerError(log, w, err)
 		return
@@ -116,7 +121,7 @@ func (handler *NoteHandler) UpdateNoteTags(w http.ResponseWriter, r *http.Reques
 }
 
 func (handler *NoteHandler) UpdateNoteGroups(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "UpdateNoteGroups")
+	handlerContext, log := c.HandlerContext(r, "UpdateNoteGroups")
 	defer c.LogHandlerReturn(log)
 
 	var body struct {
@@ -129,7 +134,10 @@ func (handler *NoteHandler) UpdateNoteGroups(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	document, err := handler.Service.ApplyNoteGroupUpdates(log, body.DocumentID, body.GroupUpdates)
+	log = log.WithField("documentId", body.DocumentID)
+	log.Info("Updating note groups")
+
+	document, err := handler.Service.ApplyNoteGroupUpdates(handlerContext, body.DocumentID, body.GroupUpdates)
 	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
 		c.RespondInternalServerError(log, w, err)
 		return

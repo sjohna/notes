@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/sirupsen/logrus"
+	"context"
 	r "github.com/sjohna/go-server-common/repo"
 	c "github.com/sjohna/go-server-common/service"
 	"gopkg.in/guregu/null.v4"
@@ -12,27 +12,34 @@ type GroupService struct {
 	Repo *r.Repo
 }
 
-func (svc *GroupService) CreateGroup(logger *logrus.Entry, name string, description null.String) (*repo.Group, error) {
-	log := c.ServiceFunctionLogger(logger, "CreateGroup")
+func (svc *GroupService) CreateGroup(context context.Context, name string, description null.String) (*repo.Group, error) {
+	serviceContext, log := c.ServiceFunctionContext(context, "CreateGroup")
 	defer c.LogServiceReturn(log)
 
-	createdGroup, err := repo.CreateGroup(svc.Repo.NonTx(log), name, description)
+	log = log.WithFields(map[string]interface{}{
+		"name":        name,
+		"description": description,
+	})
+
+	log.Info("Creating group")
+
+	createdGroup, err := repo.CreateGroup(svc.Repo.NonTx(serviceContext), name, description)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error creating group")
 		return nil, err
 	}
 
-	log.WithField("groupID", createdGroup.ID).Infof("Created group ID %d", createdGroup.ID)
+	log.WithField("groupID", createdGroup.ID).Info("Created group")
 	return createdGroup, nil
 }
 
-func (svc *GroupService) GetGroups(logger *logrus.Entry) ([]*repo.Group, error) {
-	log := c.ServiceFunctionLogger(logger, "GetGroups")
+func (svc *GroupService) GetGroups(context context.Context) ([]*repo.Group, error) {
+	serviceContext, log := c.ServiceFunctionContext(context, "GetGroups")
 	defer c.LogServiceReturn(log)
 
-	documentGroups, err := repo.GetGroups(svc.Repo.NonTx(log))
+	documentGroups, err := repo.GetGroups(svc.Repo.NonTx(serviceContext))
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error getting groups")
 		return nil, err
 	}
 

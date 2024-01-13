@@ -41,8 +41,15 @@ func (r *GroupOnDocumentList) Scan(src interface{}) error {
 }
 
 func CreateGroup(dao c.DAO, name string, description null.String) (*Group, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "CreateGroup")
+	_, log := c.RepoFunctionContext(dao.Context(), "CreateGroup")
 	defer c.LogRepoReturn(log)
+
+	log = log.WithFields(logrus.Fields{
+		"name":        name,
+		"description": description,
+	})
+
+	log.Info("Creating group")
 
 	// language=SQL
 	SQL := `insert into "group" (name, description)
@@ -52,15 +59,17 @@ returning *`
 	var createdDocumentGroup Group
 	err := dao.Get(&createdDocumentGroup, SQL, name, description)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error running query to create group")
 		return nil, err
 	}
+
+	log.WithField("groupID", createdDocumentGroup.ID).Info("Created group")
 
 	return &createdDocumentGroup, nil
 }
 
 func GetGroups(dao c.DAO) ([]*Group, error) {
-	log := c.RepoFunctionLogger(dao.Logger(), "GetGroups")
+	_, log := c.RepoFunctionContext(dao.Context(), "GetGroups")
 	defer c.LogRepoReturn(log)
 
 	// language=SQL
@@ -82,19 +91,25 @@ where "group".archived_at is null`
 	documentGroups := make([]*Group, 0)
 	err := dao.Select(&documentGroups, SQL)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error running query to get groups")
 		return nil, err
 	}
+
+	// TODO: debug logging for number returned, for this and all similar functions
 
 	return documentGroups, nil
 }
 
 func AddDocumentToGroup(dao c.DAO, documentID int64, groupID int64) error {
-	log := c.RepoFunctionLogger(dao.Logger().WithFields(logrus.Fields{
+	_, log := c.RepoFunctionContext(dao.Context(), "AddDocumentToGroup")
+	defer c.LogRepoReturn(log)
+
+	log = log.WithFields(map[string]interface{}{
 		"documentID": documentID,
 		"groupID":    groupID,
-	}), "AddDocumentToGroup")
-	defer c.LogRepoReturn(log)
+	})
+
+	log.Info("Adding document to group")
 
 	// language=SQL
 	SQL := `insert into document_group(document_id, document_group_id)
@@ -102,19 +117,25 @@ values ($1, $2)`
 
 	_, err := dao.Exec(SQL, documentID, groupID)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error running query to add document to group")
 		return err
 	}
+
+	log.Info("Added document to group")
 
 	return nil
 }
 
 func RemoveDocumentFromGroup(dao c.DAO, documentID int64, groupID int64) error {
-	log := c.RepoFunctionLogger(dao.Logger().WithFields(logrus.Fields{
+	_, log := c.RepoFunctionContext(dao.Context(), "RemoveDocumentFromGroup")
+	defer c.LogRepoReturn(log)
+
+	log = log.WithFields(map[string]interface{}{
 		"documentID": documentID,
 		"groupID":    groupID,
-	}), "RemoveDocumentFromGroup")
-	defer c.LogRepoReturn(log)
+	})
+
+	log.Info("Removing document from group")
 
 	// language=SQL
 	SQL := `update document_group
@@ -125,9 +146,11 @@ where document_group.document_id = $1
 
 	_, err := dao.Exec(SQL, documentID, groupID)
 	if err != nil {
-		log.WithError(err).Error()
+		log.WithError(err).Error("Error running query to remove document from group")
 		return err
 	}
+
+	log.Info("Removed document from group")
 
 	return nil
 }

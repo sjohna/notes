@@ -2,12 +2,12 @@ package handler
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
+	"github.com/sjohna/go-server-common/log"
 	"net/http"
 	"notes/service"
 	"strings"
 	"sync/atomic"
-
-	"github.com/sirupsen/logrus"
 )
 
 var requestIdCounter int64 = 0
@@ -16,43 +16,46 @@ func getNextRequestId() int64 {
 	return atomic.AddInt64(&requestIdCounter, 1)
 }
 
-func LogRequestContext(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log := logrus.WithFields(logrus.Fields{
-			"requestId": getNextRequestId(),
-		})
+type Middleware struct {
+	AuthService  *service.AuthService
+	Logger       log.Logger
+	ConfigLogger log.Logger
+}
 
-		log.WithFields(logrus.Fields{
+func (middleware *Middleware) LogRequestContext(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := middleware.Logger.WithField("requestId", getNextRequestId())
+
+		logger.WithFields(logrus.Fields{
 			"route":         r.URL.Path,
 			"method":        r.Method,
 			"contentLength": r.ContentLength,
 		}).Info("New request")
 
-		ctx := context.WithValue(r.Context(), "logger", log)
+		ctx := context.WithValue(r.Context(), "logger", logger)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
-		log.Info("Request complete")
+		logger.Info("Request complete")
 	})
 }
 
-type AuthMiddleware struct {
-	AuthService *service.AuthService
-}
-
-func (middleware *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
+func (middleware *Middleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log := r.Context().Value("logger").(*logrus.Entry)
+		ctx := r.Context()
+		logger := ctx.Value("logger").(log.Logger)
 		// TODO: auth middleware logger helpers?
+
+		middlewareLogger := logger.WithField("middleware-function", "Authenticate")
 
 		providedHeaders, ok := r.Header["Authorization"]
 		if !ok {
-			log.Info("No authorization header provided")
+			middlewareLogger.Info("No authorization header provided")
 			http.Error(w, "No authorization header provided", 401)
 			return
 		}
 
 		if len(providedHeaders) != 1 {
-			log.Info("Invalid authorization header")
+			middlewareLogger.Info("Invalid authorization header")
 			http.Error(w, "Invalid authorization header", 401)
 			return
 		}
@@ -61,36 +64,38 @@ func (middleware *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 
 		splitHeader := strings.Split(authHeader, "Bearer ")
 		if len(splitHeader) != 2 {
-			log.Info("Invalid authorization header")
+			middlewareLogger.Info("Invalid authorization header")
 			http.Error(w, "Invalid authorization header", 401)
 			return
 		}
 
 		if len(splitHeader[0]) != 0 {
-			log.Info("Invalid authorization header")
+			middlewareLogger.Info("Invalid authorization header")
 			http.Error(w, "Invalid authorization header", 401)
 			return
 		}
 
 		token := splitHeader[1]
-		session, err := middleware.AuthService.ValidateSessionToken(log, token)
+		session, err := middleware.AuthService.ValidateSessionToken(ctx, token)
 
 		if err != nil {
-			log.WithError(err).Info("Error validating session token")
+			middlewareLogger.WithError(err).Info("Error validating session token")
 			http.Error(w, "Error validating session token", 500)
 			return
 		}
 
 		if session == nil {
-			log.Info("Invalid token")
+			middlewareLogger.Info("Invalid token")
 			http.Error(w, "Invalid token", 401)
 			return
 		}
 
-		sessionLog := log.WithField("sessionID", session.ID).WithField("userID", session.UserID)
+		sessionLog := middlewareLogger.WithField("sessionID", session.ID).WithField("userID", session.UserID)
 
 		sessionLog.Info("Authenticated")
-		ctx := context.WithValue(r.Context(), "logger", sessionLog)
+		ctx = context.WithValue(r.Context(), "logger", logger)
+
+		// TODO: add user info to context?
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

@@ -16,7 +16,7 @@ type AuthHandler struct {
 }
 
 func (handler *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	log := c.HandlerLogger(r, "Login")
+	handlerContext, log := c.HandlerContext(r, "Login")
 	defer c.LogHandlerReturn(log)
 
 	var body struct {
@@ -30,12 +30,17 @@ func (handler *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := handler.Service.LogUserIn(log, body.Username, body.Password)
+	log = log.WithField("userName", body.Username)
+	log.Info("Attempting user login")
+
+	token, err := handler.Service.LogUserIn(handlerContext, body.Username, body.Password)
 	if err != nil {
 		// TODO: differentiate error here: it could be auth-related
 		c.RespondInternalServerError(log, w, err)
 		return
 	}
+
+	log.Info("User logged in")
 
 	type response struct {
 		Token string `json:"token"`
