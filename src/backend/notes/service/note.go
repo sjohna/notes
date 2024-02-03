@@ -17,7 +17,7 @@ func (svc *NoteService) CreateNote(context context.Context, content string) (*re
 	serviceContext, log := c.ServiceFunctionContext(context, "CreateNote")
 	defer c.LogServiceReturn(log)
 
-	log.Infof("Creating note (length %d)", len(content))
+	log.Debugf("Creating note (length %d)", len(content))
 
 	var createdNote *repo.Document
 	err := svc.Repo.SerializableTx(serviceContext, func(tx *r.TxDAO) error {

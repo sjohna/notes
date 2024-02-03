@@ -36,7 +36,7 @@ func (handler *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
 		"name":        body.Name,
 		"description": body.Description,
 	})
-	log.Info("Creating tag")
+	log.Debug("Creating tag")
 
 	createdTag, err := handler.Service.CreateTag(handlerContext, body.Name, body.Description)
 	if err != nil {

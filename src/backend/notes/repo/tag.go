@@ -49,7 +49,7 @@ func CreateTag(dao c.DAO, name string, description null.String) (*Tag, error) {
 		"description": description,
 	})
 
-	log.Info("Creating tag")
+	log.Debug("Creating tag")
 
 	// language=SQL
 	SQL := `insert into tag(name, description)

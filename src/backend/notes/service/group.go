@@ -21,7 +21,7 @@ func (svc *GroupService) CreateGroup(context context.Context, name string, descr
 		"description": description,
 	})
 
-	log.Info("Creating group")
+	log.Debug("Creating group")
 
 	createdGroup, err := repo.CreateGroup(svc.Repo.NonTx(serviceContext), name, description)
 	if err != nil {

@@ -37,7 +37,7 @@ func (handler *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request)
 		"description": body.Description,
 	})
 
-	log.Info("Creating group")
+	log.Debug("Creating group")
 
 	createdGroup, err := handler.Service.CreateGroup(handlerContext, body.Name, body.Description)
 	if err != nil {

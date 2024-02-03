@@ -49,7 +49,7 @@ func CreateGroup(dao c.DAO, name string, description null.String) (*Group, error
 		"description": description,
 	})
 
-	log.Info("Creating group")
+	log.Debug("Creating group")
 
 	// language=SQL
 	SQL := `insert into "group" (name, description)

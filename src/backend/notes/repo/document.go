@@ -38,7 +38,7 @@ func CreateDocument(tx *c.TxDAO, documentType string, content string) (*Document
 		"documentType": documentType,
 		"authorID":     InternalAuthorID,
 	})
-	log.Infof("Creating document, context length %d", len(content))
+	log.Debugf("Creating document, content length %d", len(content))
 
 	// language=SQL
 	DocumentSQL := `insert into document (type, author_id)

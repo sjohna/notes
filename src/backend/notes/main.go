@@ -21,9 +21,9 @@ import (
 
 // TODO: logging updates:
 // - (done) change DAO creation logs to debug
-// - make "Creating/Updating X" logs debug, but keep "Created/Updated X" info
+// - (done) make "Creating/Updating X" logs debug, but keep "Created/Updated X" info
 // - "Request complete" logs to debug/trace
-// - "Context length x" when creating notes: probably a typo
+// - (done) "Context length x" when creating notes: probably a typo
 // - (done) Respond success logs to debug
 // - (done) Session validation/authentication per request to debug
 // - Log number of things returned for note/group/tag lists

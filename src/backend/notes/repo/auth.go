@@ -74,7 +74,7 @@ func CreateUser(dao c.DAO, userName string, salt []byte, passwordHash []byte) (*
 	defer c.LogRepoReturn(log)
 
 	log = log.WithField("userName", userName)
-	log.Info("Creating user")
+	log.Debug("Creating user")
 
 	// language=SQL
 	SQL := `insert into "user" (user_name, salt, password_hash)
@@ -123,7 +123,7 @@ func CreateSession(dao c.DAO, userID int64, token string) (*UserSession, error) 
 	defer c.LogRepoReturn(log)
 
 	log = log.WithField("userID", userID)
-	log.Info("Creating session")
+	log.Debug("Creating session")
 
 	// language=SQL
 	SQL := `insert into session (user_id, token)

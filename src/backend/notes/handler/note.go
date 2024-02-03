@@ -35,7 +35,7 @@ func (handler *NoteHandler) CreateNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.WithField("contentLength", len(params.Content)).Info("Creating note")
+	log.WithField("contentLength", len(params.Content)).Debug("Creating note")
 
 	createdNote, err := handler.Service.CreateNote(handlerContext, params.Content)
 	if err != nil {

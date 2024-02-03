@@ -22,7 +22,7 @@ func (svc *AuthService) CreateUser(context context.Context, userName string, pas
 
 	log = log.WithField("userName", userName)
 
-	log.Info("Creating user")
+	log.Debug("Creating user")
 
 	dao := svc.Repo.NonTx(serviceContext)
 
