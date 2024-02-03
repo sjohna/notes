@@ -61,6 +61,8 @@ func (handler *GroupHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.WithField("count", len(groups)).Debug("Got groups")
+
 	// TODO: respond structure
 	c.RespondJSON(log, w, groups)
 }

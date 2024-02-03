@@ -71,6 +71,8 @@ func (handler *NoteHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
 	response.Documents = quickNotes
 	response.Parameters = body
 
+	log.WithField("count", len(quickNotes)).Debug("Got notes")
+
 	c.RespondJSON(log, w, response)
 }
 

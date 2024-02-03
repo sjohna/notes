@@ -57,5 +57,7 @@ func (handler *TagHandler) GetTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.WithField("count", len(tags)).Debug("Got tags")
+
 	c.RespondJSON(log, w, tags)
 }
