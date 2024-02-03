@@ -30,12 +30,12 @@ func (middleware *Middleware) LogRequestContext(next http.Handler) http.Handler 
 			"route":         r.URL.Path,
 			"method":        r.Method,
 			"contentLength": r.ContentLength,
-		}).Info("New request")
+		}).Debug("New request")
 
 		ctx := context.WithValue(r.Context(), "logger", logger)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
-		logger.Info("Request complete")
+		logger.Debug("Request complete")
 	})
 }
 
