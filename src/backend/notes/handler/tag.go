@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	c "github.com/sjohna/go-server-common/handler"
 	"gopkg.in/guregu/null.v4"
 	"net/http"
