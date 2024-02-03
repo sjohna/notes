@@ -20,14 +20,14 @@ import (
 // TODO: review and update log levels
 
 // TODO: logging updates:
-// - change DAO creation logs to debug
+// - (done) change DAO creation logs to debug
 // - make "Creating/Updating X" logs debug, but keep "Created/Updated X" info
 // - "Request complete" logs to debug/trace
 // - "Context length x" when creating notes: probably a typo
-// - Respond success logs to debug
-// - Session validation/authentication per request to debug
+// - (done) Respond success logs to debug
+// - (done) Session validation/authentication per request to debug
 // - Log number of things returned for note/group/tag lists
-// - Handler called to trace
+// - (done) Handler called to trace
 // - Probably more after I review the logs in more detail, especially if I induce some warning/error/fatal logs
 
 func main() {

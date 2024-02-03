@@ -106,7 +106,7 @@ func (svc *AuthService) ValidateSessionToken(context context.Context, providedTo
 	}
 
 	if session == nil {
-		log.Info("Provided session token not valid")
+		log.Debug("Provided session token not valid")
 		return nil, nil
 	}
 

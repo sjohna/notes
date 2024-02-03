@@ -49,13 +49,13 @@ func (middleware *Middleware) Authenticate(next http.Handler) http.Handler {
 
 		providedHeaders, ok := r.Header["Authorization"]
 		if !ok {
-			middlewareLogger.Info("No authorization header provided")
+			middlewareLogger.Warn("No authorization header provided")
 			http.Error(w, "No authorization header provided", 401)
 			return
 		}
 
 		if len(providedHeaders) != 1 {
-			middlewareLogger.Info("Invalid authorization header")
+			middlewareLogger.Warn("Invalid authorization header")
 			http.Error(w, "Invalid authorization header", 401)
 			return
 		}
@@ -64,13 +64,13 @@ func (middleware *Middleware) Authenticate(next http.Handler) http.Handler {
 
 		splitHeader := strings.Split(authHeader, "Bearer ")
 		if len(splitHeader) != 2 {
-			middlewareLogger.Info("Invalid authorization header")
+			middlewareLogger.Warn("Invalid authorization header")
 			http.Error(w, "Invalid authorization header", 401)
 			return
 		}
 
 		if len(splitHeader[0]) != 0 {
-			middlewareLogger.Info("Invalid authorization header")
+			middlewareLogger.Warn("Invalid authorization header")
 			http.Error(w, "Invalid authorization header", 401)
 			return
 		}
@@ -85,14 +85,14 @@ func (middleware *Middleware) Authenticate(next http.Handler) http.Handler {
 		}
 
 		if session == nil {
-			middlewareLogger.Info("Invalid token")
-			http.Error(w, "Invalid token", 401)
+			middlewareLogger.Info("Invalid auth token")
+			http.Error(w, "Invalid auth token", 401)
 			return
 		}
 
 		sessionLog := middlewareLogger.WithField("sessionID", session.ID).WithField("userID", session.UserID)
 
-		sessionLog.Info("Authenticated")
+		sessionLog.Debug("Authenticated")
 		ctx = context.WithValue(r.Context(), "logger", logger)
 
 		// TODO: add user info to context?
