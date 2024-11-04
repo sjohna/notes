@@ -1,5 +1,3 @@
-import {View} from "../../utility/view";
-import {AnyBuilder, DivBuilder, div, flexRow, flexColumn} from "../../utility/element";
 import {TagListView} from "../notes/tag/tagListView";
 import {NoteView} from "../notes/note/noteView";
 import {Tab, Tabs} from "../component/tabs";
@@ -8,27 +6,29 @@ import {Services} from "../../service/services";
 import {GroupListView} from "../notes/group/groupListView";
 import {NavigateEvent} from "../../service/navigationService";
 import {Subscription} from "rxjs";
+import {Component, ComponentBase, div, Div, flexColumn, flexRow} from "../../utility/component";
 
-export class LoggedInContainerView implements View {
-    constructor(
-        private container: AnyBuilder,
-        private s: Services,
-    ) {}
+export class LoggedInContainerView extends ComponentBase {
+    private container: Div = div();
 
     private tabBar: Tabs;
 
-    private topLevelContainer?: DivBuilder;
-    private sideContainer?: DivBuilder;
-    private mainContainer?: DivBuilder;
-    private mainViewContainer?: DivBuilder;
+    private topLevelContainer?: Div;
+    private sideContainer?: Div;
+    private mainContainer?: Div;
+    private mainViewContainer?: Div;
 
-    private sideView: View;
+    private sideView: Component;
 
-    private mainView: View;
+    private mainView: Component;
 
     private navigationSubscription?: Subscription;
 
-    setup(): void {
+    constructor(
+        private s: Services,
+    ) {
+        super();
+
         this.topLevelContainer = flexRow()
             .in(this.container)
             .height('100%');
@@ -38,7 +38,7 @@ export class LoggedInContainerView implements View {
             .height('100%')
             .marginRight('8px')
 
-        this.sideView = new SidebarView(this.sideContainer, this.s);
+        new SidebarView(this.s).in(this.sideContainer);
 
         this.mainContainer = flexColumn()
             .in(this.topLevelContainer)
@@ -66,7 +66,6 @@ export class LoggedInContainerView implements View {
         });
 
         this.tabBar.renderTabs();
-        this.sideView.setup();
 
         this.navigationSubscription = this.s.navService.navigationEvents$.subscribe((e) => {
             if (e.loggedIn) {
@@ -76,16 +75,19 @@ export class LoggedInContainerView implements View {
         });
     }
 
+    root(): HTMLElement {
+        return this.container.root();
+    }
+
     private renderMainView() {
-        this.mainView?.teardown();
+        this.mainViewContainer.clear();
         if (this.tabBar.selectedTab === 'tags') {
-            this.mainView = new TagListView(this.mainViewContainer, this.s);
+            this.mainView = new TagListView(this.s).in(this.mainViewContainer);
         } else if (this.tabBar.selectedTab === 'groups') {
-            this.mainView = new GroupListView(this.mainViewContainer, this.s);
+            this.mainView = new GroupListView(this.s).in(this.mainViewContainer);
         } else if (this.tabBar.selectedTab === 'notes') {
-            this.mainView = new NoteView(this.mainViewContainer, this.s);
+            this.mainView = new NoteView(this.s).in(this.mainViewContainer);
         }
-        this.mainView?.setup();
     }
 
     teardown(): void {

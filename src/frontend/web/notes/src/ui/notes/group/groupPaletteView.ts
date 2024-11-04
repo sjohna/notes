@@ -1,49 +1,39 @@
-import {View} from "../../../utility/view";
 import {Observable, Subscription} from "rxjs";
-import {
-    AnyBuilder,
-    clear,
-    DivBuilder,
-    InputBuilder,
-    input,
-    inlineFlexColumn, div
-} from "../../../utility/element";
 import {tagLabel} from "../../component/tagLabel";
-import {startDraggingGroup, startDraggingTag, stopDragging} from "../../../service/dragDropService";
+import {startDraggingGroup} from "../../../service/dragDropService";
 import Fuse from "fuse.js";
-import {Tag} from "../../../service/tagService";
 import {Services} from "../../../service/services";
 import {Group} from "../../../service/groupService";
+import {ComponentBase, div, Div, ElementComponent, inlineFlexColumn} from "../../../utility/component";
 
 const tagSearchOptions = {
     keys: ['name']
 }
 
-export class GroupPaletteView implements View {
+export class GroupPaletteView extends ElementComponent<HTMLDivElement> {
     constructor(
-        private container: AnyBuilder,
         private s: Services,
     ) {
+        super(document.createElement('div'));
+
         this.groups$ = this.s.groupService.groups$;
-    }
 
-    private groups$: Observable<Group[]>;
-    private groupListContainer: DivBuilder;
-    private groupSubscription?: Subscription;
-    private groupFuse: Fuse<Group>;
-    private unfilteredGroups: Group[];
-
-    private search?: string;
-
-    public setup(): void {
         this.groupSubscription?.unsubscribe();
         this.groupListContainer = inlineFlexColumn()
-            .in(this.container)
+            .in(this)   // TODO: I hate this too...
             .height('100%')
             .width('100%');
 
         this.groupSubscription = this.groups$.subscribe((groups) => this.groupsUpdated(groups))
     }
+
+    private groups$: Observable<Group[]>;
+    private groupListContainer: Div;
+    private groupSubscription?: Subscription;
+    private groupFuse: Fuse<Group>;
+    private unfilteredGroups: Group[];
+
+    private search?: string;
 
     public setSearch(search: string) {
         this.search = search;
@@ -67,7 +57,7 @@ export class GroupPaletteView implements View {
     }
 
     private renderGroups(groups: Group[]) {
-        clear(this.groupListContainer);
+        this.groupListContainer.clear();
 
         div('Groups')
             .in(this.groupListContainer)
@@ -95,6 +85,8 @@ export class GroupPaletteView implements View {
     }
 
     public teardown(): void {
+        super.teardown();
+
         this.groupSubscription?.unsubscribe();
     }
 }

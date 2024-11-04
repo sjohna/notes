@@ -1,27 +1,18 @@
-import {SubViewCollection, View} from "../../../utility/view";
 import {Subscription} from "rxjs";
-import {AnyBuilder, clear, DivBuilder, button, div} from "../../../utility/element";
 import {LabeledTextInput} from "../../component/labeledTextInput";
 import {Group} from "../../../service/groupService";
 import {Services} from "../../../service/services";
 import {GroupCardView} from "./groupCardView";
+import {button, ComponentBase, Div, div} from "../../../utility/component";
 
-export class GroupListView implements View {
+export class GroupListView extends ComponentBase {
+    private container: Div = div();
+
     constructor(
-        private container: AnyBuilder,
         private s: Services,
-    ) {}
+    ) {
+        super();
 
-    private groupListContainer: DivBuilder;
-
-    private groupSubscription?: Subscription;
-
-    private groupName: LabeledTextInput;
-    private groupDescription: LabeledTextInput;
-
-    private groupViews: SubViewCollection;
-
-    setup(): void {
         this.groupSubscription?.unsubscribe();
 
         this.render();
@@ -29,8 +20,19 @@ export class GroupListView implements View {
         this.s.groupService.get();
     }
 
+    public root(): HTMLElement {
+        return this.container.root();
+    }
+
+    private groupListContainer: Div;
+
+    private groupSubscription?: Subscription;
+
+    private groupName: LabeledTextInput;
+    private groupDescription: LabeledTextInput;
+
     private render() {
-        clear(this.container);
+        this.container.clear();
 
         this.groupName = new LabeledTextInput('Name:')
         this.groupDescription = new LabeledTextInput('Description:')
@@ -53,18 +55,15 @@ export class GroupListView implements View {
     }
 
     private renderGroups(groups: Group[]) {
-        clear(this.groupListContainer);
-        this.groupViews?.teardown();
-        this.groupViews = new SubViewCollection();
+        this.groupListContainer.clear();
 
         for (const group of groups) {
-            const groupContainer = div().in(this.groupListContainer);
-            this.groupViews.setupAndAdd(new GroupCardView(groupContainer, group, this.s));
+            new GroupCardView(group, this.s).in(this.groupListContainer)
         }
     }
 
     teardown(): void {
         this.groupSubscription?.unsubscribe();
-        this.groupViews.teardown();
+        this.groupListContainer.teardown();
     }
 }

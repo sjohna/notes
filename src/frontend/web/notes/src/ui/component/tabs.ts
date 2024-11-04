@@ -1,4 +1,4 @@
-import {clear, div, DivBuilder, ElementBuilder, flexRow} from "../../utility/element";
+import {div, Div, ElementComponent, flexRow} from "../../utility/component";
 
 export interface Tab {
     tabName: string;
@@ -6,8 +6,9 @@ export interface Tab {
     metaData?: any;
 }
 
+// TODO: make this a component?
 export class Tabs {
-    private readonly tabsContainer: DivBuilder;
+    private readonly tabsContainer: Div;
 
     public selectedTab?: string;
 
@@ -21,7 +22,7 @@ export class Tabs {
     }
 
     public renderTabs() {
-        clear(this.tabsContainer);
+        this.tabsContainer.clear();
 
         for (const tab of this.tabs) {
             div(tab.displayName)
@@ -60,7 +61,7 @@ export class Tabs {
         }
     }
 
-    public in<P extends HTMLElement>(parent: ElementBuilder<P>): Tabs {
+    public in<P extends HTMLElement>(parent: ElementComponent<P>): Tabs {
         parent.withChild(this.tabsContainer);
         return this;
     }

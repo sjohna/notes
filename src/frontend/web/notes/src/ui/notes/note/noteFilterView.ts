@@ -1,26 +1,26 @@
-import {View} from "../../../utility/view";
-import {AnyBuilder, clear, div} from "../../../utility/element";
 import {NoteQueryParameters} from "../../../service/noteService";
 import {Observable, Subscription} from "rxjs";
 import {Services} from "../../../service/services";
+import {ComponentBase, Div, div} from "../../../utility/component";
 
-export class NoteFilterView implements View {
+export class NoteFilterView extends ComponentBase {
     private parameters$: Observable<NoteQueryParameters>;
 
     private sub: Subscription;
 
+    private container: Div = div();
+
     constructor(
-        private container: AnyBuilder,
         private s: Services,
     ) {
-        this.parameters$ = this.s.documentFilterService.filter$;
-    }
+        super();
 
-    public setup(): void {
+        this.parameters$ = this.s.documentFilterService.filter$;
+
         this.sub?.unsubscribe();
 
         this.sub = this.parameters$.subscribe((filters) => {
-            clear(this.container);
+            this.container.clear();
 
             if (filters.endTime || filters.startTime) {
                 if (!filters.endTime) {
@@ -46,7 +46,13 @@ export class NoteFilterView implements View {
         })
     }
 
+    public root(): HTMLElement {
+        return this.container.root()
+    }
+
     public teardown(): void {
+        super.teardown();
+
         this.sub?.unsubscribe();
     }
 

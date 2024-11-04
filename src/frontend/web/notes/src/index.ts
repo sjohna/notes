@@ -1,5 +1,4 @@
 import "@js-joda/timezone";
-import {flexColumn} from "./utility/element";
 import {DocumentFilterService} from "./service/documentFilterService";
 import {NoteService} from "./service/noteService";
 import {TotalNotesOnDatesService} from "./service/totalNotesOnDatesService";
@@ -9,6 +8,7 @@ import {GroupService} from "./service/groupService";
 import {ContainerView} from "./ui/app/container";
 import {AuthService} from "./service/authService";
 import {NavigationService} from "./service/navigationService";
+import {flexColumn} from "./utility/component";
 
 document.body.style.height = '100%';
 document.body.style.overflowY = 'hidden';
@@ -57,5 +57,4 @@ auth.loggedInChanged$.subscribe((loggedIn) => {
     }
 });
 
-const view = new ContainerView(topLevelContainer, services);
-view.setup();
+new ContainerView(services).in(topLevelContainer);

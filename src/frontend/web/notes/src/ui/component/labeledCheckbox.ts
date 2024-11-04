@@ -1,9 +1,9 @@
-import {checkbox, div, DivBuilder, ElementBuilder, flexRow, InputBuilder} from "../../utility/element";
+import {checkbox, Div, div, ElementComponent, flexRow, Input} from "../../utility/component";
 
 export class LabeledCheckbox {
-    public checkboxContainer: DivBuilder;
-    public checkbox: InputBuilder;
-    public labelDiv: DivBuilder;
+    public checkboxContainer: Div;
+    public checkbox: Input;
+    public labelDiv: Div;
     
     constructor(label: string = null) {
         this.checkbox = checkbox();
@@ -30,14 +30,14 @@ export class LabeledCheckbox {
     }
 
     public get checked(): boolean {
-        return this.checkbox.element().checked;
+        return this.checkbox.root().checked;
     }
 
     public set checked(value: boolean) {
-        this.checkbox.element().checked = value;
+        this.checkbox.root().checked = value;
     }
 
-    public in<P extends HTMLElement>(parent: ElementBuilder<P>): LabeledCheckbox {
+    public in<P extends HTMLElement>(parent: ElementComponent<P>): LabeledCheckbox {
         parent.withChild(this.checkboxContainer);
         return this;
     }

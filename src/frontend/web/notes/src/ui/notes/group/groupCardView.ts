@@ -1,23 +1,23 @@
-import {View} from "../../../utility/view";
 import {Services} from "../../../service/services";
-import {AnyBuilder, div, flexCol, flexRow} from "../../../utility/element";
 import {Group} from "../../../service/groupService";
 import {tagLabel} from "../../component/tagLabel";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
+import {ComponentBase, Div, div, flexColumn, flexRow} from "../../../utility/component";
 
-export class GroupCardView implements View {
+export class GroupCardView extends ComponentBase {
+    private container: Div = div();
+
     constructor(
-        private container: AnyBuilder,
         private group: Group,
         private s: Services,
-    ) {}
+    ) {
+        super();
 
-    setup(): void {
         const createdDateTime = ZonedDateTime.parse(this.group.insertedAt).withZoneSameInstant(ZoneId.of('America/Denver'));
         const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('yyyy-M-dd h:mm a').withLocale(Locale.US));
 
-        flexCol()
+        flexColumn()
             .in(this.container)
             .background('lightgray')
             .margin('8px')
@@ -44,7 +44,7 @@ export class GroupCardView implements View {
             ])
     }
 
-    teardown(): void {
+    root(): HTMLElement {
+        return this.container.root();
     }
-
 }

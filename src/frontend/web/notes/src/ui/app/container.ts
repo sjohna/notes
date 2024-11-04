@@ -1,24 +1,18 @@
-import {View} from "../../utility/view";
-import {AnyBuilder, clear} from "../../utility/element";
 import {Services} from "../../service/services";
 import {Subscription} from "rxjs";
 import {LoggedInContainerView} from "./loggedInContainer";
 import {LoginView} from "../notes/auth/loginView";
+import {Component, ComponentBase, Div, div} from "../../utility/component";
 
 
-export class ContainerView implements View {
+export class ContainerView extends ComponentBase {
+    private container: Div = div();
+
     constructor(
-        private container: AnyBuilder,
         private s: Services,
-    ) {}
+    ) {
+        super();
 
-    private loggedIn?: boolean = null;
-
-    private view: View;
-
-    private navigationSubscription?: Subscription;
-
-    public setup(): void {
         this.navigationSubscription = this.s.navService.navigationEvents$.subscribe((e) => {
             if (e.loggedIn != this.loggedIn) {
                 this.loggedIn = e.loggedIn;
@@ -27,15 +21,23 @@ export class ContainerView implements View {
         });
     }
 
+    public root(): HTMLElement {
+        return this.container.root();
+    }
+
+    private loggedIn?: boolean = null;
+
+    private view: Component;
+
+    private navigationSubscription?: Subscription;
+
     private render() {
-        this.view?.teardown();
-        clear(this.container);
+        this.container.clear();
         if (this.loggedIn) {
-            this.view = new LoggedInContainerView(this.container, this.s);
+            new LoggedInContainerView(this.s).in(this.container);
         } else {
-            this.view = new LoginView(this.container, this.s);
+            new LoginView(this.s).in(this.container);
         }
-        this.view.setup();
     }
 
     public teardown(): void {

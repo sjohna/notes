@@ -1,23 +1,23 @@
-import {View} from "../../../utility/view";
 import {Services} from "../../../service/services";
-import {AnyBuilder, div, flexCol, flexRow} from "../../../utility/element";
 import {Tag} from "../../../service/tagService";
 import {tagLabel} from "../../component/tagLabel";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
+import {ComponentBase, Div, div, flexColumn, flexRow} from "../../../utility/component";
 
-export class TagView implements View {
+export class TagView extends ComponentBase {
+    private container: Div = div();
+
     constructor(
-        private container: AnyBuilder,
         private tag: Tag,
         private s: Services,
-    ) {}
+    ) {
+        super();
 
-    setup(): void {
         const createdDateTime = ZonedDateTime.parse(this.tag.insertedAt).withZoneSameInstant(ZoneId.of('America/Denver'));
         const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('yyyy-M-dd h:mm a').withLocale(Locale.US));
 
-        flexCol()
+        flexColumn()
             .in(this.container)
             .background('lightgray')
             .margin('8px')
@@ -39,12 +39,12 @@ export class TagView implements View {
                             .marginRight('8px'),
                         div(createdTimeString)
                             .fontSize('12px'),
-                ]),
+                    ]),
                 div(this.tag.description),
             ])
     }
 
-    teardown(): void {
+    root(): HTMLElement {
+        return this.container.root();
     }
-
 }

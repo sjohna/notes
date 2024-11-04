@@ -23,7 +23,8 @@ export class NavigationService {
     private navigationEvents$$ = new BehaviorSubject<NavigateEvent>(notLoggedInState);
     public navigationEvents$ = this.navigationEvents$$.asObservable();
 
-    private stateAfterLogin: NavigateEvent = null;
+    // TODO: why did this break all of the sudden?
+    private stateAfterLogin: NavigateEvent = defaultLoggedInState;
 
     constructor(private authService: AuthService) {
         this.authService.forceLogout$.subscribe(() => {

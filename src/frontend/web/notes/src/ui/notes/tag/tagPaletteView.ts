@@ -1,43 +1,36 @@
-import {View} from "../../../utility/view";
 import {Observable, Subscription} from "rxjs";
-import {
-    AnyBuilder,
-    clear,
-    DivBuilder,
-    InputBuilder,
-    input,
-    inlineFlexColumn, div
-} from "../../../utility/element";
 import {tagLabel} from "../../component/tagLabel";
 import {startDraggingTag, stopDragging} from "../../../service/dragDropService";
 import Fuse from "fuse.js";
 import {Tag} from "../../../service/tagService";
 import {Services} from "../../../service/services";
+import {ComponentBase, div, Div, ElementComponent, inlineFlexColumn} from "../../../utility/component";
 
 const tagSearchOptions = {
     keys: ['name']
 }
 
-export class TagPaletteView implements View {
-    constructor(
-        private container: AnyBuilder,
-        private s: Services,
-    ) {
-        this.tags$ = this.s.tagService.tags$;
-    }
-
+export class TagPaletteView extends ElementComponent<HTMLDivElement> {
     private tags$: Observable<Tag[]>;
-    private tagListContainer: DivBuilder;
+    private tagListContainer: Div;
     private tagSubscription?: Subscription;
     private tagFuse: Fuse<Tag>;
     private unfilteredTags: Tag[];
 
     private search?: string;
 
-    public setup(): void {
+    constructor(
+        private s: Services,
+    ) {
+        super(document.createElement('div'));
+        this.display('inline-flex')
+            .flexDirection('column');
+
+        this.tags$ = this.s.tagService.tags$;
+
         this.tagSubscription?.unsubscribe();
         this.tagListContainer = inlineFlexColumn()
-            .in(this.container)
+            .in(this)   // TODO: I hate this...
             .height('100%');
 
         this.tagSubscription = this.tags$.subscribe((tags) => this.tagsUpdated(tags))
@@ -65,7 +58,7 @@ export class TagPaletteView implements View {
     }
 
     private renderTags(tags: Tag[]) {
-        clear(this.tagListContainer);
+        this.tagListContainer.clear();
 
         div('Tags')
             .in(this.tagListContainer)
@@ -104,6 +97,9 @@ export class TagPaletteView implements View {
     }
 
     public teardown(): void {
+        super.teardown();
+
+        // TODO: maybe a better way to handle stuff like this
         this.tagSubscription?.unsubscribe();
     }
 }

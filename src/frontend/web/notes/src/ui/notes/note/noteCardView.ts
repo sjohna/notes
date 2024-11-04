@@ -1,7 +1,5 @@
-import {View} from "../../../utility/view";
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
-import {AnyBuilder, clear, div, DivBuilder, flexRow} from "../../../utility/element";
 import {tagLabel} from "../../component/tagLabel";
 import {getDragData} from "../../../service/dragDropService";
 import {Subscription} from "rxjs";
@@ -9,30 +7,32 @@ import {Tag} from "../../../service/tagService";
 import {Document} from "../../../service/noteService";
 import {Services} from "../../../service/services";
 import {Group} from "../../../service/groupService";
+import {ComponentBase, div, Div, flexRow} from "../../../utility/component";
 
-export class NoteCardView implements View {
-    private card: DivBuilder;
-    private cardContainer: DivBuilder;
+export class NoteCardView extends ComponentBase {
+    private card: Div;
+    private cardContainer: Div;
 
     private dragCounter = 0;
 
     private updateSubscription: Subscription;
 
     constructor(
-        private container: AnyBuilder,
         private note: Document,
         private s: Services,
-    ) {}
+    ) {
+        super();
 
-    setup(): void {
         this.cardContainer = div()
-            .in(this.container);
-
         this.renderCard();
     }
 
+    public root(): HTMLElement {
+        return this.cardContainer.root();
+    }
+
     private renderCard() {
-        clear(this.cardContainer);
+        this.cardContainer.clear();
         const createdDateTime = ZonedDateTime.parse(this.note.documentTime).withZoneSameInstant(ZoneId.of('America/Denver'));
         const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('h:mm a').withLocale(Locale.US));
 
@@ -79,9 +79,10 @@ export class NoteCardView implements View {
                 timeAndTags,
                 div(this.note.content)
             ])
+            // TODO: drop helper
             .ondragenter(() => this.dragEnter())
             .ondragleave(() => this.dragLeave())
-            .ondrop(() => this.drop())
+            .ondrop(() => this.dropEvent())
             .ondragover((ev) => ev.preventDefault());
     }
 
@@ -103,7 +104,7 @@ export class NoteCardView implements View {
         this.setCardBackground();
     }
 
-    private drop() {
+    private dropEvent() {
         this.dragCounter = 0;
         this.setCardBackground();
 
@@ -147,6 +148,9 @@ export class NoteCardView implements View {
     }
 
     public teardown(): void {
+        super.teardown();
+
+        // TODO: better way to handle subscriptions?
         this.updateSubscription?.unsubscribe();
     }
 }

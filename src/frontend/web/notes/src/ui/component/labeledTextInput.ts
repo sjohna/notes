@@ -1,9 +1,11 @@
-import {div, DivBuilder, ElementBuilder, flexRow, input, InputBuilder} from "../../utility/element";
+import {div, Div, ElementComponent, flexRow, input, Input} from "../../utility/component";
 
+
+// TODO: bring over value component
 export class LabeledTextInput {
-    public container: DivBuilder;
-    public inputEl: InputBuilder;
-    public labelDiv: DivBuilder;
+    public container: Div;
+    public inputEl: Input;
+    public labelDiv: Div;
 
     constructor(label: string = null) {
         this.labelDiv = div().width('100px');
@@ -26,14 +28,14 @@ export class LabeledTextInput {
     }
 
     public get value(): string {
-        return this.inputEl.element().value;
+        return this.inputEl.root().value;
     }
 
     public set value(value: string) {
-        this.inputEl.element().value = value;
+        this.inputEl.root().value = value;
     }
 
-    public in<P extends HTMLElement>(parent: ElementBuilder<P>): LabeledTextInput {
+    public in<P extends HTMLElement>(parent: ElementComponent<P>): LabeledTextInput {
         parent.withChild(this.container);
         return this;
     }

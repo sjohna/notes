@@ -1,36 +1,22 @@
-import {
-    AnyBuilder,
-    clear,
-    DivBuilder,
-    button,
-    div,
-    textArea, flexColumn,
-} from "../../../utility/element";
-import {View} from "../../../utility/view";
 import {NoteColumnView} from "./noteColumnView";
-import {NoteCalendarView} from "./noteCalendarView";
-import {LabeledCheckbox} from "../../component/labeledCheckbox";
 import {NoteFilterView} from "./noteFilterView";
 import {Services} from "../../../service/services";
+import {button, Component, ComponentBase, Div, div, flexColumn, textArea} from "../../../utility/component";
 
-export class NoteView implements View {
-    noteContainer: DivBuilder;
+export class NoteView extends ComponentBase {
+    noteContainer: Div;
     newNoteText: HTMLTextAreaElement;
 
-    private noteView: View;
+    private filterContainer: Div;
 
-    private filterContainer: DivBuilder;
-    private filterView: View;
-
-    private calendarViewCheckbox: LabeledCheckbox;
+    private container: Div = div();
 
     constructor(
-        private container: AnyBuilder,
         private s: Services,
-    ) { }
+    ) {
+        super();
 
-    public setup(): void {
-        clear(this.container);
+        this.container.clear();
         button('New Note')
             .onclick(() => {this.s.noteService.createNote(this.newNoteText.value); this.newNoteText.value = '';})
             .inDiv()
@@ -46,7 +32,7 @@ export class NoteView implements View {
             .margin("8px")
             .width("380px");
 
-        this.newNoteText = newNoteTextBuilder.element();
+        this.newNoteText = newNoteTextBuilder.root();
 
         newNoteTextBuilder
             .inDiv()
@@ -55,15 +41,7 @@ export class NoteView implements View {
         this.filterContainer = div()
             .in(this.container);
 
-        this.filterView?.teardown();
-        this.filterView = new NoteFilterView(this.filterContainer, this.s);
-        this.filterView.setup();
-
-        this.calendarViewCheckbox = new LabeledCheckbox('Calendar View')
-            .in(this.container)
-            .onchange((ev: Event) => {
-                this.renderNotes();
-            });
+        new NoteFilterView(this.s).in(this.filterContainer);
 
         this.noteContainer = flexColumn()
             .in(this.container)
@@ -72,20 +50,16 @@ export class NoteView implements View {
             .paddingRight('20px')
             .paddingBottom('8px');
 
-        this.renderNotes();
+        new NoteColumnView(this.s).in(this.noteContainer);
+    }
+
+    public root(): HTMLElement {
+        return this.container.root();
     }
 
     public teardown(): void {
-        this.noteView?.teardown();
-    }
+        super.teardown();
 
-    private renderNotes() {
-        this.noteView?.teardown();
-        if (this.calendarViewCheckbox.checked) {
-            this.noteView = new NoteCalendarView(this.noteContainer, this.s);
-        } else {
-            this.noteView = new NoteColumnView(this.noteContainer, this.s);
-        }
-        this.noteView.setup();
+        this.noteContainer.teardown();
     }
 }

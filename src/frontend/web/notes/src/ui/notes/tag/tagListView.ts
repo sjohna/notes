@@ -1,27 +1,25 @@
-import {SubViewCollection, View} from "../../../utility/view";
 import {Subscription} from "rxjs";
-import {AnyBuilder, clear, DivBuilder, button, div} from "../../../utility/element";
 import {LabeledTextInput} from "../../component/labeledTextInput";
 import {Tag} from "../../../service/tagService";
 import {Services} from "../../../service/services";
 import {TagView} from "./tagView";
+import {button, ComponentBase, div, Div} from "../../../utility/component";
 
-export class TagListView implements View {
-    constructor(
-        private container: AnyBuilder,
-        private s: Services,
-    ) {}
+export class TagListView extends ComponentBase {
+    private container: Div = div();
 
-    private tagListContainer: DivBuilder;
+    private tagListContainer: Div;
 
     private tagSubscription?: Subscription;
 
     private tagName: LabeledTextInput;
     private tagDescription: LabeledTextInput;
 
-    private tagViews: SubViewCollection;
+    constructor(
+        private s: Services,
+    ) {
+        super();
 
-    setup(): void {
         this.tagSubscription?.unsubscribe();
 
         this.render();
@@ -29,8 +27,12 @@ export class TagListView implements View {
         this.s.tagService.get();
     }
 
+    public root(): HTMLElement {
+        return this.container.root();
+    }
+
     private render() {
-        clear(this.container);
+        this.container.clear();
 
         this.tagName = new LabeledTextInput('Name:')
         this.tagDescription = new LabeledTextInput('Description:')
@@ -53,18 +55,21 @@ export class TagListView implements View {
     }
 
     private renderTags(tags: Tag[]) {
-        clear(this.tagListContainer);
-        this.tagViews?.teardown();
-        this.tagViews = new SubViewCollection();
+        this.tagListContainer.clear();
 
         for (const tag of tags) {
-            const tagContainer = div().in(this.tagListContainer);
-            this.tagViews.setupAndAdd(new TagView(tagContainer, tag, this.s));
+            this.tagListContainer.withChild(new TagView(tag, this.s));
         }
     }
 
     teardown(): void {
+        super.teardown();
+
+        // TODO: make sure this actually works and removes all teh subscriptions I want it to
+        this.tagListContainer.teardown();
+
+        // TODO: refactor components so that there's a root (ElementComponent) and a rootElement (HTMLElement), and have teardown on the component teardown the root
+
         this.tagSubscription?.unsubscribe();
-        this.tagViews.teardown();
     }
 }
