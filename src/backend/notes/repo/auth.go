@@ -108,7 +108,9 @@ where user_name = $1`
 	var userAuthInfo UserAuthInfo
 	err := dao.Get(&userAuthInfo, SQL, userName)
 	if err != nil {
-		// TODO: handle no rows
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
 
 		log.WithError(err).Error("Error running query to get user auth info by user name")
 		return nil, err

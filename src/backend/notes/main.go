@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/go-chi/chi/v5"
@@ -111,6 +112,25 @@ func main() {
 	portString := fmt.Sprintf(":%d", config.APIPort)
 
 	configLogger.Infof("Listening on port %d", config.APIPort)
+
+	// create default user if it doesn't exist
+	ctx := context.WithValue(context.Background(), "logger", logger)
+
+	exists, err := authService.UserExists(ctx, "admin")
+	if err != nil {
+		logger.WithError(err).Error("Error checking if admin user exists")
+		return
+	}
+
+	if !exists {
+		err := authService.CreateUser(ctx, "admin", "password1")
+		if err != nil {
+			logger.WithError(err).Error("Error creating admin user")
+			return
+		}
+
+		logger.Info("admin user created")
+	}
 
 	err = http.ListenAndServe(portString, router)
 

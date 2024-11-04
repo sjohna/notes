@@ -114,3 +114,18 @@ func (svc *AuthService) ValidateSessionToken(context context.Context, providedTo
 
 	return session, nil
 }
+
+func (svc *AuthService) UserExists(context context.Context, userName string) (bool, error) {
+	serviceContext, log := c.ServiceFunctionContext(context, "UserExists")
+	defer c.LogServiceReturn(log)
+
+	dao := svc.Repo.NonTx(serviceContext)
+
+	authInfo, err := repo.GetUserAuthInfoByUserName(dao, userName)
+	if err != nil {
+		log.WithError(err).Error("")
+		return false, err
+	}
+
+	return authInfo != nil, nil
+}
