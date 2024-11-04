@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx webpack",
-    "start": "npx webpack serve"
+    "dev": "npx webpack serve"
   },
   "author": "John A. Stevens",
   "license": "GPL-3.0-or-later",
