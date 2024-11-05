@@ -1,17 +1,15 @@
-import {Services} from "../../service/services";
+import {services} from "../../service/services";
 import {LoggedInContainerView} from "./loggedInContainer";
-import {LoginView} from "../notes/auth/loginView";
+import {login} from "../notes/auth/loginView";
 import {CompositeComponentBase, div} from "../../utility/component";
 import {unsubscribe} from "../../utility/subscription";
 
 
 export class ContainerView extends CompositeComponentBase {
-    constructor(
-        private s: Services,
-    ) {
+    constructor() {
         super(div());
 
-        this.onTeardown(unsubscribe(this.s.navService.navigationEvents$.subscribe((e) => {
+        this.onTeardown(unsubscribe(services.navService.navigationEvents$.subscribe((e) => {
             if (e.loggedIn != this.loggedIn) {
                 this.loggedIn = e.loggedIn;
                 this.render();
@@ -24,9 +22,9 @@ export class ContainerView extends CompositeComponentBase {
     private render() {
         this.root.clear();
         if (this.loggedIn) {
-            new LoggedInContainerView(this.s).in(this.root);
+            new LoggedInContainerView().in(this.root);
         } else {
-            new LoginView(this.s).in(this.root);
+            login().in(this.root);
         }
     }
 }

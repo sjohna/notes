@@ -1,9 +1,9 @@
 import {Observable, Subscription} from "rxjs";
-import {tagLabel} from "../../component/tagLabel";
+import {tagLabel} from "./tagLabel";
 import {startDraggingTag, stopDragging} from "../../../service/dragDropService";
 import Fuse from "fuse.js";
 import {Tag} from "../../../service/tagService";
-import {Services} from "../../../service/services";
+import {services} from "../../../service/services";
 import {
     CompositeComponentBase,
     div,
@@ -24,9 +24,7 @@ export class TagPaletteView extends CompositeComponentBase {
 
     private search?: string;
 
-    constructor(
-        private s: Services,
-    ) {
+    constructor() {
         super(div());
         this.display('inline-flex')
             .flexDirection('column');
@@ -35,7 +33,7 @@ export class TagPaletteView extends CompositeComponentBase {
             .in(this.root)
             .height('100%');
 
-        this.onTeardown(unsubscribe(this.s.tagService.tags$.subscribe((tags) => this.tagsUpdated(tags))))
+        this.onTeardown(unsubscribe(services.tagService.tags$.subscribe((tags) => this.tagsUpdated(tags))))
     }
 
     public setSearch(search: string) {
@@ -76,13 +74,13 @@ export class TagPaletteView extends CompositeComponentBase {
                 .ondragstart(() => this.dragStart(tag))
                 .ondragend(() => this.dragEnd(tag))
                 .onclick(() => {
-                    if (this.s.documentFilterService.filter.tags.find((t) => t.tag === localTag.id)) {
-                        this.s.documentFilterService.filter.tags = this.s.documentFilterService.filter.tags.filter((t) => t.tag !== localTag.id);
-                        this.s.documentFilterService.update();
+                    if (services.documentFilterService.filter.tags.find((t) => t.tag === localTag.id)) {
+                        services.documentFilterService.filter.tags = services.documentFilterService.filter.tags.filter((t) => t.tag !== localTag.id);
+                        services.documentFilterService.update();
                         currentTagLabel.background('white');
                     } else {
-                        this.s.documentFilterService.filter.tags.push({tag: localTag.id, exclude: false})
-                        this.s.documentFilterService.update();
+                        services.documentFilterService.filter.tags.push({tag: localTag.id, exclude: false})
+                        services.documentFilterService.update();
                         currentTagLabel.background('cyan');
                     }
                 })

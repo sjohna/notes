@@ -1,20 +1,17 @@
-import {Subscription} from "rxjs";
 import {Group} from "../../../service/groupService";
-import {Services} from "../../../service/services";
 import {groupCardView} from "./groupCardView";
 import {button, CompositeComponentBase, Div, div, ValueComponent} from "../../../utility/component";
 import {unsubscribe} from "../../../utility/subscription";
 import {labelledTextBox} from "../../component/labeledTextInput";
+import {services} from "../../../service/services";
 
 export class GroupListView extends CompositeComponentBase {
-    constructor(
-        private s: Services,
-    ) {
+    constructor() {
         super(div());
 
         this.render();
-        this.onTeardown(unsubscribe(this.s.groupService.groups$.subscribe((groups) => this.renderGroups(groups))));
-        this.s.groupService.get();
+        this.onTeardown(unsubscribe(services.groupService.groups$.subscribe((groups) => this.renderGroups(groups))));
+        services.groupService.get();
     }
 
     private groupListContainer: Div;
@@ -42,7 +39,7 @@ export class GroupListView extends CompositeComponentBase {
     }
 
     private createGroup() {
-        this.s.groupService.createGroup(this.groupName.getValue(), this.groupDescription.getValue() ?? undefined);
+        services.groupService.createGroup(this.groupName.getValue(), this.groupDescription.getValue() ?? undefined);
     }
 
     private renderGroups(groups: Group[]) {

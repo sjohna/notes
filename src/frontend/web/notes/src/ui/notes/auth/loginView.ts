@@ -1,18 +1,14 @@
-import {Services} from "../../../service/services";
-import {button, CompositeComponentBase, div} from "../../../utility/component";
+import {services} from "../../../service/services";
+import {button, div, RootedComponent} from "../../../utility/component";
 import {labelledPasswordInput, labelledTextBox} from "../../component/labeledTextInput";
 
-export class LoginView extends CompositeComponentBase {
-    constructor(
-        private s: Services,
-    ) {
-        super(div());
+export function login(): RootedComponent<any> {
+    const username = labelledTextBox('User Name');
+    const password = labelledPasswordInput('Password');
 
-        const username = labelledTextBox('User Name').in(this.root);
-        const password = labelledPasswordInput('Password').in(this.root);
-
-        button('Login')
-            .in(this.root)
-            .onclick(() => this.s.authService.login(username.getValue(), password.getValue()))
-    }
+    return div().withChildren([
+        username,
+        password,
+        button('Login').onclick(() => services.authService.login(username.getValue(), password.getValue()))
+    ])
 }

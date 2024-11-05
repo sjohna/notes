@@ -1,9 +1,9 @@
 import {Tag} from "../../../service/tagService";
-import {Services} from "../../../service/services";
 import {tagView} from "./tagView";
 import {button, CompositeComponentBase, div, Div, ValueComponent} from "../../../utility/component";
 import {unsubscribe} from "../../../utility/subscription";
 import {labelledTextBox} from "../../component/labeledTextInput";
+import {services} from "../../../service/services";
 
 export class TagListView extends CompositeComponentBase {
     private tagListContainer: Div;
@@ -11,14 +11,12 @@ export class TagListView extends CompositeComponentBase {
     private tagName: ValueComponent<string>;
     private tagDescription: ValueComponent<string>;
 
-    constructor(
-        private s: Services,
-    ) {
+    constructor() {
         super(div());
 
         this.render();
-        this.onTeardown(unsubscribe(this.s.tagService.tags$.subscribe((tags) => this.renderTags(tags))));
-        this.s.tagService.get();
+        this.onTeardown(unsubscribe(services.tagService.tags$.subscribe((tags) => this.renderTags(tags))));
+        services.tagService.get();
     }
 
     private render() {
@@ -41,7 +39,7 @@ export class TagListView extends CompositeComponentBase {
     }
 
     private createTag() {
-        this.s.tagService.createTag(this.tagName.getValue(), this.tagDescription.getValue() ?? undefined);
+        services.tagService.createTag(this.tagName.getValue(), this.tagDescription.getValue() ?? undefined);
     }
 
     private renderTags(tags: Tag[]) {

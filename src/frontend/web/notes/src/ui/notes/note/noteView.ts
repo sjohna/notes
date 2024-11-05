@@ -1,6 +1,6 @@
 import {NoteColumnView} from "./noteColumnView";
 import {NoteFilterView} from "./noteFilterView";
-import {Services} from "../../../service/services";
+import {services} from "../../../service/services";
 import {
     button,
     CompositeComponentBase,
@@ -16,20 +16,18 @@ export class NoteView extends CompositeComponentBase {
 
     private filterContainer: Div;
 
-    constructor(
-        private s: Services,
-    ) {
+    constructor() {
         super(div());
 
         button('New Note')
-            .onclick(() => {this.s.noteService.createNote(this.newNoteText.value); this.newNoteText.value = '';})
+            .onclick(() => {services.noteService.createNote(this.newNoteText.value); this.newNoteText.value = '';})
             .inDiv()
             .in(this.root);
 
         const newNoteTextBuilder = textArea()
             .keydown((event: KeyboardEvent) => {
                 if (event.ctrlKey && event.code == "Enter") {
-                    this.s.noteService.createNote(this.newNoteText.value);
+                    services.noteService.createNote(this.newNoteText.value);
                     this.newNoteText.value = '';
                 }
             })
@@ -45,7 +43,7 @@ export class NoteView extends CompositeComponentBase {
         this.filterContainer = div()
             .in(this.root);
 
-        new NoteFilterView(this.s).in(this.filterContainer);
+        new NoteFilterView().in(this.filterContainer);
 
         this.noteContainer = flexColumn()
             .in(this.root)
@@ -54,7 +52,7 @@ export class NoteView extends CompositeComponentBase {
             .paddingRight('20px')
             .paddingBottom('8px');
 
-        new NoteColumnView(this.s).in(this.noteContainer);
+        new NoteColumnView().in(this.noteContainer);
     }
 
     public teardown(): void {

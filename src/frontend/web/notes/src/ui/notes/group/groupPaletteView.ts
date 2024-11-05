@@ -1,35 +1,32 @@
 import {Observable, Subscription} from "rxjs";
-import {tagLabel} from "../../component/tagLabel";
+import {tagLabel} from "../tag/tagLabel";
 import {startDraggingGroup} from "../../../service/dragDropService";
 import Fuse from "fuse.js";
-import {Services} from "../../../service/services";
+import {services} from "../../../service/services";
 import {Group} from "../../../service/groupService";
 import {div, Div, ElementComponent, inlineFlexColumn} from "../../../utility/component";
+import {unsubscribe} from "../../../utility/subscription";
 
 const tagSearchOptions = {
     keys: ['name']
 }
 
 export class GroupPaletteView extends ElementComponent<HTMLDivElement> {
-    constructor(
-        private s: Services,
-    ) {
+    constructor() {
         super(document.createElement('div'));
 
-        this.groups$ = this.s.groupService.groups$;
+        this.groups$ = services.groupService.groups$;
 
-        this.groupSubscription?.unsubscribe();
         this.groupListContainer = inlineFlexColumn()
             .in(this)   // TODO: I hate this too...
             .height('100%')
             .width('100%');
 
-        this.groupSubscription = this.groups$.subscribe((groups) => this.groupsUpdated(groups))
+        this.onTeardown(unsubscribe(this.groups$.subscribe((groups) => this.groupsUpdated(groups))));
     }
 
     private groups$: Observable<Group[]>;
     private groupListContainer: Div;
-    private groupSubscription?: Subscription;
     private groupFuse: Fuse<Group>;
     private unfilteredGroups: Group[];
 
@@ -82,11 +79,5 @@ export class GroupPaletteView extends ElementComponent<HTMLDivElement> {
 
     private dragEnd(group: Group) {
         startDraggingGroup(group)
-    }
-
-    public teardown(): void {
-        super.teardown();
-
-        this.groupSubscription?.unsubscribe();
     }
 }

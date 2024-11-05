@@ -1,4 +1,4 @@
-import {div, Div} from "../../utility/component";
+import {div, Div} from "../../../utility/component";
 
 export function tagLabel(tagName: string): Div {
     return div(tagName)

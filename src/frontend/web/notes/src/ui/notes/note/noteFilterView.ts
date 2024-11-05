@@ -1,18 +1,16 @@
 import {NoteQueryParameters} from "../../../service/noteService";
-import {Observable, Subscription} from "rxjs";
-import {Services} from "../../../service/services";
-import {CompositeComponentBase, Div, div} from "../../../utility/component";
+import {Observable} from "rxjs";
+import {services, Services} from "../../../service/services";
+import {CompositeComponentBase, div} from "../../../utility/component";
 import {unsubscribe} from "../../../utility/subscription";
 
 export class NoteFilterView extends CompositeComponentBase {
     private parameters$: Observable<NoteQueryParameters>;
 
-    constructor(
-        private s: Services,
-    ) {
+    constructor() {
         super(div());
 
-        this.parameters$ = this.s.documentFilterService.filter$;
+        this.parameters$ = services.documentFilterService.filter$;
 
         this.onTeardown(unsubscribe(this.parameters$.subscribe((filters) => {
             this.root.clear();

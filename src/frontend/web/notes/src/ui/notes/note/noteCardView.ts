@@ -1,11 +1,11 @@
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {Locale} from "@js-joda/locale_en-us";
-import {tagLabel} from "../../component/tagLabel";
+import {tagLabel} from "../tag/tagLabel";
 import {getDragData} from "../../../service/dragDropService";
 import {Subscription} from "rxjs";
 import {Tag} from "../../../service/tagService";
 import {Document} from "../../../service/noteService";
-import {Services} from "../../../service/services";
+import {services} from "../../../service/services";
 import {Group} from "../../../service/groupService";
 import {CompositeComponentBase, div, Div, flexRow} from "../../../utility/component";
 
@@ -17,8 +17,7 @@ export class NoteCardView extends CompositeComponentBase {
     private updateSubscription: Subscription;
 
     constructor(
-        private note: Document,
-        private s: Services,
+        private note: Document
     ) {
         super(div());
 
@@ -109,20 +108,20 @@ export class NoteCardView extends CompositeComponentBase {
 
             if (!this.note.tags || !this.note.tags.find((tag) => newTag.id === tag.id)) {
                 if (!this.updateSubscription) {
-                    this.updateSubscription = this.s.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+                    this.updateSubscription = services.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
                 }
 
-                this.s.tagService.addTagToDocument(newTag.id, this.note.id);
+                services.tagService.addTagToDocument(newTag.id, this.note.id);
             }
         } else if (dragData?.type === 'group') {
             const newGroup = dragData.data as Group;
 
             if (!this.note.groups || !this.note.groups.find((group) => newGroup.id === group.id)) {
                 if (!this.updateSubscription) {
-                    this.updateSubscription = this.s.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+                    this.updateSubscription = services.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
                 }
 
-                this.s.groupService.addDocumentToGroup(newGroup.id, this.note.id);
+                services.groupService.addDocumentToGroup(newGroup.id, this.note.id);
             }
         }
     }
@@ -136,9 +135,9 @@ export class NoteCardView extends CompositeComponentBase {
 
     private removeTag(tagToRemove: Tag) {
         if (!this.updateSubscription) {
-            this.updateSubscription = this.s.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
+            this.updateSubscription = services.noteService.documentUpdated$$.asObservable().subscribe((updatedDocument) => this.checkDocumentUpdate(updatedDocument));
         }
-        this.s.tagService.removeTagFromDocument(tagToRemove.id, this.note.id)
+        services.tagService.removeTagFromDocument(tagToRemove.id, this.note.id)
     }
 
     public teardown(): void {
