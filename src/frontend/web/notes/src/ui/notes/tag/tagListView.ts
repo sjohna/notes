@@ -1,75 +1,54 @@
-import {Subscription} from "rxjs";
-import {LabeledTextInput} from "../../component/labeledTextInput";
 import {Tag} from "../../../service/tagService";
 import {Services} from "../../../service/services";
-import {TagView} from "./tagView";
-import {button, ComponentBase, div, Div} from "../../../utility/component";
+import {tagView} from "./tagView";
+import {button, CompositeComponentBase, div, Div, ValueComponent} from "../../../utility/component";
+import {unsubscribe} from "../../../utility/subscription";
+import {labelledTextBox} from "../../component/labeledTextInput";
 
-export class TagListView extends ComponentBase {
-    private container: Div = div();
-
+export class TagListView extends CompositeComponentBase {
     private tagListContainer: Div;
 
-    private tagSubscription?: Subscription;
-
-    private tagName: LabeledTextInput;
-    private tagDescription: LabeledTextInput;
+    private tagName: ValueComponent<string>;
+    private tagDescription: ValueComponent<string>;
 
     constructor(
         private s: Services,
     ) {
-        super();
-
-        this.tagSubscription?.unsubscribe();
+        super(div());
 
         this.render();
-        this.tagSubscription = this.s.tagService.tags$.subscribe((tags) => this.renderTags(tags))
+        this.onTeardown(unsubscribe(this.s.tagService.tags$.subscribe((tags) => this.renderTags(tags))));
         this.s.tagService.get();
     }
 
-    public root(): HTMLElement {
-        return this.container.root();
-    }
-
     private render() {
-        this.container.clear();
+        this.root.clear();
 
-        this.tagName = new LabeledTextInput('Name:')
-        this.tagDescription = new LabeledTextInput('Description:')
+        this.tagName = labelledTextBox('Name:')
+        this.tagDescription = labelledTextBox('Description:')
 
         div()
-            .in(this.container)
+            .in(this.root)
             .withChildren([
-                this.tagName.container,
-                this.tagDescription.container,
+                this.tagName,
+                this.tagDescription,
                 button('Create Tag')
                     .onclick(() => this.createTag())
             ]);
 
         this.tagListContainer = div()
-            .in(this.container);
+            .in(this.root);
     }
 
     private createTag() {
-        this.s.tagService.createTag(this.tagName.value, this.tagDescription.value ?? undefined);
+        this.s.tagService.createTag(this.tagName.getValue(), this.tagDescription.getValue() ?? undefined);
     }
 
     private renderTags(tags: Tag[]) {
         this.tagListContainer.clear();
 
         for (const tag of tags) {
-            this.tagListContainer.withChild(new TagView(tag, this.s));
+            this.tagListContainer.withChild(tagView(tag));
         }
-    }
-
-    teardown(): void {
-        super.teardown();
-
-        // TODO: make sure this actually works and removes all teh subscriptions I want it to
-        this.tagListContainer.teardown();
-
-        // TODO: refactor components so that there's a root (ElementComponent) and a rootElement (HTMLElement), and have teardown on the component teardown the root
-
-        this.tagSubscription?.unsubscribe();
     }
 }

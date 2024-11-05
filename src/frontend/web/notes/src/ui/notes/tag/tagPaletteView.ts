@@ -4,16 +4,21 @@ import {startDraggingTag, stopDragging} from "../../../service/dragDropService";
 import Fuse from "fuse.js";
 import {Tag} from "../../../service/tagService";
 import {Services} from "../../../service/services";
-import {ComponentBase, div, Div, ElementComponent, inlineFlexColumn} from "../../../utility/component";
+import {
+    CompositeComponentBase,
+    div,
+    Div,
+    inlineFlexColumn,
+} from "../../../utility/component";
+import {unsubscribe} from "../../../utility/subscription";
 
 const tagSearchOptions = {
     keys: ['name']
 }
 
-export class TagPaletteView extends ElementComponent<HTMLDivElement> {
-    private tags$: Observable<Tag[]>;
+export class TagPaletteView extends CompositeComponentBase {
     private tagListContainer: Div;
-    private tagSubscription?: Subscription;
+
     private tagFuse: Fuse<Tag>;
     private unfilteredTags: Tag[];
 
@@ -22,18 +27,15 @@ export class TagPaletteView extends ElementComponent<HTMLDivElement> {
     constructor(
         private s: Services,
     ) {
-        super(document.createElement('div'));
+        super(div());
         this.display('inline-flex')
             .flexDirection('column');
 
-        this.tags$ = this.s.tagService.tags$;
-
-        this.tagSubscription?.unsubscribe();
         this.tagListContainer = inlineFlexColumn()
-            .in(this)   // TODO: I hate this...
+            .in(this.root)
             .height('100%');
 
-        this.tagSubscription = this.tags$.subscribe((tags) => this.tagsUpdated(tags))
+        this.onTeardown(unsubscribe(this.s.tagService.tags$.subscribe((tags) => this.tagsUpdated(tags))))
     }
 
     public setSearch(search: string) {
@@ -94,12 +96,5 @@ export class TagPaletteView extends ElementComponent<HTMLDivElement> {
 
     private dragEnd(tag: Tag) {
         stopDragging()
-    }
-
-    public teardown(): void {
-        super.teardown();
-
-        // TODO: maybe a better way to handle stuff like this
-        this.tagSubscription?.unsubscribe();
     }
 }

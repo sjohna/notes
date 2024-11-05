@@ -1,69 +1,55 @@
 import {Subscription} from "rxjs";
-import {LabeledTextInput} from "../../component/labeledTextInput";
 import {Group} from "../../../service/groupService";
 import {Services} from "../../../service/services";
-import {GroupCardView} from "./groupCardView";
-import {button, ComponentBase, Div, div} from "../../../utility/component";
+import {groupCardView} from "./groupCardView";
+import {button, CompositeComponentBase, Div, div, ValueComponent} from "../../../utility/component";
+import {unsubscribe} from "../../../utility/subscription";
+import {labelledTextBox} from "../../component/labeledTextInput";
 
-export class GroupListView extends ComponentBase {
-    private container: Div = div();
-
+export class GroupListView extends CompositeComponentBase {
     constructor(
         private s: Services,
     ) {
-        super();
-
-        this.groupSubscription?.unsubscribe();
+        super(div());
 
         this.render();
-        this.groupSubscription = this.s.groupService.groups$.subscribe((groups) => this.renderGroups(groups))
+        this.onTeardown(unsubscribe(this.s.groupService.groups$.subscribe((groups) => this.renderGroups(groups))));
         this.s.groupService.get();
-    }
-
-    public root(): HTMLElement {
-        return this.container.root();
     }
 
     private groupListContainer: Div;
 
-    private groupSubscription?: Subscription;
-
-    private groupName: LabeledTextInput;
-    private groupDescription: LabeledTextInput;
+    private groupName: ValueComponent<string>;
+    private groupDescription: ValueComponent<string>;
 
     private render() {
-        this.container.clear();
+        this.root.clear();
 
-        this.groupName = new LabeledTextInput('Name:')
-        this.groupDescription = new LabeledTextInput('Description:')
+        this.groupName = labelledTextBox('Name:')
+        this.groupDescription = labelledTextBox('Description:')
 
         div()
-            .in(this.container)
+            .in(this.root)
             .withChildren([
-                this.groupName.container,
-                this.groupDescription.container,
+                this.groupName,
+                this.groupDescription,
                 button('Create Group')
                     .onclick(() => this.createGroup())
             ]);
 
         this.groupListContainer = div()
-            .in(this.container);
+            .in(this.root);
     }
 
     private createGroup() {
-        this.s.groupService.createGroup(this.groupName.value, this.groupDescription.value ?? undefined);
+        this.s.groupService.createGroup(this.groupName.getValue(), this.groupDescription.getValue() ?? undefined);
     }
 
     private renderGroups(groups: Group[]) {
         this.groupListContainer.clear();
 
         for (const group of groups) {
-            new GroupCardView(group, this.s).in(this.groupListContainer)
+            groupCardView(group).in(this.groupListContainer)
         }
-    }
-
-    teardown(): void {
-        this.groupSubscription?.unsubscribe();
-        this.groupListContainer.teardown();
     }
 }

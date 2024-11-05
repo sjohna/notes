@@ -1,42 +1,51 @@
-import {div, Div, ElementComponent, flexRow, input, Input} from "../../utility/component";
+import {
+    Component,
+    CompositeComponentBase,
+    div,
+    flexRow, RootedContainerComponentBase,
+    textInput,
+    ValueComponent
+} from "../../utility/component";
 
+export function labelledTextBox(label: string, defaultValue?: string): ValueComponent<string> {
+    const textBox = textInput().value(defaultValue);
+    const root = flexRow().width('400px').withChildren([
+        div(label).width('100px'),
+        textBox
+    ])
 
-// TODO: bring over value component
-export class LabeledTextInput {
-    public container: Div;
-    public inputEl: Input;
-    public labelDiv: Div;
+    return component(root, textBox);
+}
 
-    constructor(label: string = null) {
-        this.labelDiv = div().width('100px');
-        if (label !== undefined && label !== null) {
-            this.labelDiv.innerText(label);
+export function labelledPasswordInput(label: string): ValueComponent<string> {
+    const textBox = textInput().type('password');
+    const root = flexRow().width('400px').withChildren([
+        div(label).width('100px'),
+        textBox,
+    ])
+
+    return component(root, textBox);
+}
+
+function component<T>(root: RootedContainerComponentBase<any>, input: ValueComponent<T>): ValueComponent<T> {
+    return new class extends CompositeComponentBase implements ValueComponent<T> {
+        getValue(): T {
+            return input.getValue();
         }
-        this.inputEl = input().width('100%');
 
-        this.container = flexRow()
-            .width('400px')
-            .withChildren([
-                this.labelDiv,
-                this.inputEl,
-            ]);
-    }
+        value(s: T): this {
+            input.value(s);
+            return this;
+        }
 
-    public label(s: string): LabeledTextInput {
-        this.labelDiv.innerText(s);
-        return this;
-    }
+        focus(): this {
+            input.focus();
+            return this;
+        }
 
-    public get value(): string {
-        return this.inputEl.root().value;
-    }
-
-    public set value(value: string) {
-        this.inputEl.root().value = value;
-    }
-
-    public in<P extends HTMLElement>(parent: ElementComponent<P>): LabeledTextInput {
-        parent.withChild(this.container);
-        return this;
-    }
+        onchange(handler: (ev?: Event) => void): this {
+            input.onchange(handler);
+            return this;
+        }
+    }(root)
 }

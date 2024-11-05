@@ -4,7 +4,7 @@ import {startDraggingGroup} from "../../../service/dragDropService";
 import Fuse from "fuse.js";
 import {Services} from "../../../service/services";
 import {Group} from "../../../service/groupService";
-import {ComponentBase, div, Div, ElementComponent, inlineFlexColumn} from "../../../utility/component";
+import {div, Div, ElementComponent, inlineFlexColumn} from "../../../utility/component";
 
 const tagSearchOptions = {
     keys: ['name']

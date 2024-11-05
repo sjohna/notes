@@ -7,11 +7,10 @@ import {Tag} from "../../../service/tagService";
 import {Document} from "../../../service/noteService";
 import {Services} from "../../../service/services";
 import {Group} from "../../../service/groupService";
-import {ComponentBase, div, Div, flexRow} from "../../../utility/component";
+import {CompositeComponentBase, div, Div, flexRow} from "../../../utility/component";
 
-export class NoteCardView extends ComponentBase {
+export class NoteCardView extends CompositeComponentBase {
     private card: Div;
-    private cardContainer: Div;
 
     private dragCounter = 0;
 
@@ -21,18 +20,13 @@ export class NoteCardView extends ComponentBase {
         private note: Document,
         private s: Services,
     ) {
-        super();
+        super(div());
 
-        this.cardContainer = div()
         this.renderCard();
     }
 
-    public root(): HTMLElement {
-        return this.cardContainer.root();
-    }
-
     private renderCard() {
-        this.cardContainer.clear();
+        this.root.clear();
         const createdDateTime = ZonedDateTime.parse(this.note.documentTime).withZoneSameInstant(ZoneId.of('America/Denver'));
         const createdTimeString = createdDateTime.format(DateTimeFormatter.ofPattern('h:mm a').withLocale(Locale.US));
 
@@ -69,7 +63,7 @@ export class NoteCardView extends ComponentBase {
         }
 
         this.card = div()
-            .in(this.cardContainer)
+            .in(this.root)
             .background('lightgray')
             .margin('8px')
             .padding('4px')

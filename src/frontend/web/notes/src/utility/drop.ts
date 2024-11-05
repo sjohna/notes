@@ -1,4 +1,4 @@
-import {Component} from './component';
+import {Component, RootedComponent} from './component';
 
 export type DragEventHandler = (event: DragEvent) => void;
 
@@ -49,8 +49,8 @@ export class Drop {
         return this;
     }
 
-    apply(c: Component): void {
-        const el = c.root();
+    apply(c: RootedComponent<any>): void {
+        const el = c.rootElement;
 
         el.ondragenter = (ev: DragEvent) => {
             this.dragCounter++;

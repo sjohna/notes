@@ -5,12 +5,10 @@ import {SidebarView} from "./sidebar";
 import {Services} from "../../service/services";
 import {GroupListView} from "../notes/group/groupListView";
 import {NavigateEvent} from "../../service/navigationService";
-import {Subscription} from "rxjs";
-import {Component, ComponentBase, div, Div, flexColumn, flexRow} from "../../utility/component";
+import {CompositeComponentBase, div, Div, flexColumn, flexRow} from "../../utility/component";
+import {unsubscribe} from "../../utility/subscription";
 
-export class LoggedInContainerView extends ComponentBase {
-    private container: Div = div();
-
+export class LoggedInContainerView extends CompositeComponentBase {
     private tabBar: Tabs;
 
     private topLevelContainer?: Div;
@@ -18,19 +16,13 @@ export class LoggedInContainerView extends ComponentBase {
     private mainContainer?: Div;
     private mainViewContainer?: Div;
 
-    private sideView: Component;
-
-    private mainView: Component;
-
-    private navigationSubscription?: Subscription;
-
     constructor(
         private s: Services,
     ) {
-        super();
+        super(div());
 
         this.topLevelContainer = flexRow()
-            .in(this.container)
+            .in(this.root)
             .height('100%');
 
         this.sideContainer = div()
@@ -59,39 +51,24 @@ export class LoggedInContainerView extends ComponentBase {
             .overflow('hidden')
             .paddingBottom('8px');
 
-        this.s.navService.navigationEvents$.subscribe((e: NavigateEvent) => {
-            if (e.loggedIn) {
-                this.renderMainView();
-            }
-        });
-
         this.tabBar.renderTabs();
 
-        this.navigationSubscription = this.s.navService.navigationEvents$.subscribe((e) => {
+        this.onTeardown(unsubscribe(this.s.navService.navigationEvents$.subscribe((e) => {
             if (e.loggedIn) {
                 this.tabBar.selectTab(e.mainViewTab);
-                this.renderMainView();
             }
-        });
-    }
-
-    root(): HTMLElement {
-        return this.container.root();
+            this.renderMainView();
+        })));
     }
 
     private renderMainView() {
         this.mainViewContainer.clear();
         if (this.tabBar.selectedTab === 'tags') {
-            this.mainView = new TagListView(this.s).in(this.mainViewContainer);
+            new TagListView(this.s).in(this.mainViewContainer);
         } else if (this.tabBar.selectedTab === 'groups') {
-            this.mainView = new GroupListView(this.s).in(this.mainViewContainer);
+            new GroupListView(this.s).in(this.mainViewContainer);
         } else if (this.tabBar.selectedTab === 'notes') {
-            this.mainView = new NoteView(this.s).in(this.mainViewContainer);
+            new NoteView(this.s).in(this.mainViewContainer);
         }
     }
-
-    teardown(): void {
-        this.navigationSubscription.unsubscribe();
-    }
-
 }

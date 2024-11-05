@@ -1,13 +1,20 @@
 import {Drop} from "./drop";
 
+export type TeardownCallback = () => void;
+
 export interface Component {
     teardown(): void;
+    onTeardown(callback: () => void): void; // TODO: consider a mechanism that allows for removal
+
     in(parent: ContainerComponent): this;
+}
+
+export interface RootedComponent<R extends HTMLElement> extends Component {
     inElement(parent: HTMLElement): this;
     focus(): this;
     scrollIntoView(): this;
     drop(d: Drop): this;
-    root(): HTMLElement;
+    get rootElement(): R;
 }
 
 export interface ContainerComponent extends Component {
@@ -17,94 +24,60 @@ export interface ContainerComponent extends Component {
 }
 
 export abstract class ComponentBase implements Component {
-    public teardown(): void {}
+    private teardownCallbacks: TeardownCallback[] = [];
+
+    constructor() {}
+
+    public teardown(): void {
+        for (const callback of this.teardownCallbacks) {
+            callback?.();
+        }
+    }
+
+    public onTeardown(callback: () => void) {
+        this.teardownCallbacks.push(callback);
+    }
+
+    public abstract in(parent: ContainerComponent): this;
+}
+
+export class RootedComponentBase<E extends HTMLElement> extends ComponentBase {
+    constructor(protected readonly el: E) {
+        super();
+    }
 
     public in(parent: ContainerComponent): this {
         parent.withChild(this);
         return this;
     }
 
+    public teardown(): void {
+        this.el?.remove();
+        super.teardown();
+    }
+
+    public get rootElement(): E {
+        return this.el;
+    }
+
     public inElement(parent: HTMLElement): this {
-        parent.appendChild(this.root());
+        parent.appendChild(this.rootElement);
         return this;
     }
 
     public focus(): this {
-        this.root().focus();
+        this.el.focus();
         return this;
     }
 
     public scrollIntoView(): this {
-        this.root().scrollIntoView();
+        this.el.scrollIntoView();
         return this;
     }
 
     public drop(d: Drop): this {
         d.apply(this);
         return this;
-    }
-
-    public abstract root(): HTMLElement;
-}
-
-// can contain other components
-export abstract class ContainerComponentBase extends ComponentBase implements ContainerComponent {
-    subcomponents: ComponentBase[] = [];
-
-    public teardown() {
-        for (const subcomponent of this.subcomponents) {
-            subcomponent.teardown();
-        }
-    }
-
-    public withChild(child: Component): this {
-        this.subcomponents.push(child);
-        return this;
-    }
-
-    public withChildren(children: Component[]): this {
-        for (let child of children) {
-            this.withChild(child);
-        }
-
-        return this;
-    }
-
-    public clear(): this {
-        for (const subcomponent of this.subcomponents) {
-            subcomponent.teardown();
-        }
-
-        return this;
-    }
-}
-
-export class ElementComponent<E extends HTMLElement> extends ContainerComponentBase {
-    protected readonly el: E;
-
-    constructor(element: E) {
-        super();
-        this.el = element;
-    }
-
-    public root(): E {
-        return this.el;
-    }
-
-    public clear(): this {
-        super.clear();
-        clearElement(this.el);
-        return this;
-    }
-
-    public withChildElement(child: HTMLElement): this {
-        this.el.appendChild(child);
-        return this;
-    }
-
-    public withChild(child: Component): this {
-        super.withChild(child);
-        return this.withChildElement(child.root());
     }
 
     public inDiv(): ElementComponent<HTMLDivElement> {
@@ -362,12 +335,6 @@ export class ElementComponent<E extends HTMLElement> extends ContainerComponentB
         return this;
     }
 
-    // focus
-    public focus(): this {
-        this.el.focus();
-        return this;
-    }
-
     // attributes
     public draggable(): this {
         this.el.setAttribute('draggable', 'true');
@@ -375,20 +342,83 @@ export class ElementComponent<E extends HTMLElement> extends ContainerComponentB
     }
 }
 
+export class RootedContainerComponentBase<E extends HTMLElement> extends RootedComponentBase<E> implements ContainerComponent {
+    subcomponents: Component[] = [];
+
+    public teardown() {
+        for (const subcomponent of this.subcomponents) {
+            subcomponent.teardown();
+        }
+
+        super.teardown();
+    }
+
+    public withChildren(children: RootedComponent<HTMLElement>[]): this {
+        for (let child of children) {
+            this.withChild(child);
+        }
+
+        return this;
+    }
+
+    public clear(): this {
+        for (const subcomponent of this.subcomponents) {
+            subcomponent.teardown();
+        }
+
+        clearElement(this.rootElement);
+
+        return this;
+    }
+
+    public withChild(child: RootedComponent<HTMLElement>): this {
+        this.subcomponents.push(child);
+        this.rootElement.appendChild(child.rootElement);
+        return this;
+    }
+}
+
+export class ElementComponent<E extends HTMLElement> extends RootedContainerComponentBase<E>{
+    public withChildElement(child: HTMLElement): this {
+        this.rootElement.appendChild(child);
+        return this;
+    }
+}
+
+export class Input extends ElementComponent<HTMLInputElement> {
+    public type(s: string): this {
+        this.el.type = s;
+        return this;
+    }
+}
+
+// for components with a single subcomponent at the root
+export class CompositeComponentBase extends RootedComponentBase<HTMLElement> {
+    constructor(protected readonly root: RootedContainerComponentBase<HTMLElement>) {
+        super(root.rootElement);
+    }
+
+    teardown(): void {
+        this.root.teardown();
+        super.teardown();
+    }
+}
+
 export type Div = ElementComponent<HTMLDivElement>;
 export type Span  = ElementComponent<HTMLSpanElement>;
 
-export interface ValueComponent extends Component {
-    value(s: string): this;
-    getValue(): string;
+export interface ValueComponent<T> extends RootedComponent<any> {
+    value(v: T): this;
+    getValue(): T;
+    onchange(handler: (ev?: Event) => void): this;
 }
 
-export class Input extends ElementComponent<HTMLInputElement> implements ValueComponent {
+export class TextInput extends Input implements ValueComponent<string> {
     constructor(element: HTMLInputElement) {
         super(element);
     }
 
-    value(s?: string): this {
+    value(s: string): this {
         if (s !== undefined) {
             this.el.value = s;
         }
@@ -400,6 +430,21 @@ export class Input extends ElementComponent<HTMLInputElement> implements ValueCo
     }
 }
 
+export class Checkbox extends ElementComponent<HTMLInputElement> implements ValueComponent<boolean> {
+    constructor(element: HTMLInputElement) {
+        super(element);
+    }
+
+    value(b: boolean): this {
+        this.el.checked = b;
+        return this;
+    }
+
+    getValue(): boolean {
+        return this.el.checked;
+    }
+}
+
 export function div(innerText?: string): ElementComponent<HTMLDivElement> {
     const builder = new ElementComponent(document.createElement('div') as HTMLDivElement);
     if (innerText !== undefined && innerText !== null) {
@@ -408,10 +453,10 @@ export function div(innerText?: string): ElementComponent<HTMLDivElement> {
     return builder;
 }
 
-export function input(): Input {
+export function textInput(): TextInput {
     const element = document.createElement('input') as HTMLInputElement;
     element.style.boxSizing = 'border-box'; // hardcode this, because not doing this is stupid
-    return new Input(element);
+    return new TextInput(element);
 }
 
 export function textArea(): ElementComponent<HTMLTextAreaElement> {
@@ -462,42 +507,10 @@ export function hr(): ElementComponent<HTMLHRElement> {
     return new ElementComponent(document.createElement('hr') as HTMLHRElement);
 }
 
-export function checkbox(): Input {
+export function checkbox(): Checkbox {
     const element = document.createElement('input') as HTMLInputElement;
     element.type = 'checkbox';
-    return new Input(element);
-}
-
-export function wrap<E extends HTMLElement>(el: E): ElementComponent<E> {
-    return new ElementComponent<E>(el);
-}
-
-export function labelledTextBox(label: string, defaultValue?: string): ValueComponent {
-    const textBox = input().value(defaultValue);
-    const root = flexRow().withChildren([
-        span(label),
-        textBox
-    ])
-
-    return new class extends ComponentBase implements ValueComponent {
-        getValue(): string {
-            return textBox.getValue();
-        }
-
-        root(): HTMLElement {
-            return root.root();
-        };
-
-        value(s: string): this {
-            textBox.value(s);
-            return this;
-        }
-
-        focus(): this {
-            textBox.focus();
-            return this;
-        }
-    }()
+    return new Checkbox(element);
 }
 
 export function clearElement(element: HTMLElement) {

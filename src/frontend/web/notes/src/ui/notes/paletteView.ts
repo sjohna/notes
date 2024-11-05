@@ -1,12 +1,10 @@
 import {Services} from "../../service/services";
 import {TagPaletteView} from "./tag/tagPaletteView";
 import {GroupPaletteView} from "./group/groupPaletteView";
-import {ComponentBase, div, Div, inlineFlexColumn, Input, input} from "../../utility/component";
+import {CompositeComponentBase, div, TextInput, textInput} from "../../utility/component";
 
-export class PaletteView extends ComponentBase {
-    private container: Div = div();
-
-    private searchBox: Input;
+export class PaletteView extends CompositeComponentBase {
+    private searchBox: TextInput;
 
     private tagPalette: TagPaletteView;
     private groupPalette: GroupPaletteView;
@@ -14,23 +12,19 @@ export class PaletteView extends ComponentBase {
     constructor(
         private s: Services,
     ) {
-        super();
+        super(div());
 
-        this.searchBox = input()
-            .in(this.container)
+        this.searchBox = textInput()
+            .in(this.root)
             .width('100%')
             .marginVertical('4px')
             .marginRight('8px')
             .onkeyup((ev: KeyboardEvent) => {
-                this.tagPalette.setSearch(this.searchBox?.root()?.value);
-                this.groupPalette.setSearch(this.searchBox?.root()?.value);
+                this.tagPalette.setSearch(this.searchBox?.rootElement?.value);
+                this.groupPalette.setSearch(this.searchBox?.rootElement?.value);
             })
 
-        new TagPaletteView(this.s).in(this.container).width('100%');
-        new GroupPaletteView(this.s).in(this.container).width('100%');
-    }
-
-    root(): HTMLElement {
-        return this.container.root();
+        new TagPaletteView(this.s).in(this.root).width('100%');
+        new GroupPaletteView(this.s).in(this.root).width('100%');
     }
 }

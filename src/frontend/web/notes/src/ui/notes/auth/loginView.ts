@@ -1,30 +1,18 @@
 import {Services} from "../../../service/services";
-import {LabeledTextInput} from "../../component/labeledTextInput";
-import {button, ComponentBase, div, Div} from "../../../utility/component";
+import {button, CompositeComponentBase, div} from "../../../utility/component";
+import {labelledPasswordInput, labelledTextBox} from "../../component/labeledTextInput";
 
-export class LoginView extends ComponentBase {
-    private container: Div = div();
-
-    private UserName: LabeledTextInput;
-    private Password: LabeledTextInput;
-
+export class LoginView extends CompositeComponentBase {
     constructor(
         private s: Services,
     ) {
-        super();
+        super(div());
 
-        this.container.clear();
-
-        this.UserName = new LabeledTextInput('User Name').in(this.container);
-        this.Password = new LabeledTextInput('Password').in(this.container);
-        this.Password.inputEl.root().type = 'password';
+        const username = labelledTextBox('User Name').in(this.root);
+        const password = labelledPasswordInput('Password').in(this.root);
 
         button('Login')
-            .in(this.container)
-            .onclick(() => this.s.authService.login(this.UserName.value, this.Password.value))
-    }
-
-    root(): HTMLElement {
-        return this.container.root();
+            .in(this.root)
+            .onclick(() => this.s.authService.login(username.getValue(), password.getValue()))
     }
 }

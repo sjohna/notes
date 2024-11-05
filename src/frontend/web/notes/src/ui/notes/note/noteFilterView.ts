@@ -1,37 +1,32 @@
 import {NoteQueryParameters} from "../../../service/noteService";
 import {Observable, Subscription} from "rxjs";
 import {Services} from "../../../service/services";
-import {ComponentBase, Div, div} from "../../../utility/component";
+import {CompositeComponentBase, Div, div} from "../../../utility/component";
+import {unsubscribe} from "../../../utility/subscription";
 
-export class NoteFilterView extends ComponentBase {
+export class NoteFilterView extends CompositeComponentBase {
     private parameters$: Observable<NoteQueryParameters>;
-
-    private sub: Subscription;
-
-    private container: Div = div();
 
     constructor(
         private s: Services,
     ) {
-        super();
+        super(div());
 
         this.parameters$ = this.s.documentFilterService.filter$;
 
-        this.sub?.unsubscribe();
-
-        this.sub = this.parameters$.subscribe((filters) => {
-            this.container.clear();
+        this.onTeardown(unsubscribe(this.parameters$.subscribe((filters) => {
+            this.root.clear();
 
             if (filters.endTime || filters.startTime) {
                 if (!filters.endTime) {
                     div(`After ${filters.startTime}`)
-                        .in(this.container);
+                        .in(this.root);
                 } else if (!filters.startTime) {
                     div(`Before ${filters.endTime}`)
-                        .in(this.container);
+                        .in(this.root);
                 } else {
                     div(`${filters.startTime} - ${filters.endTime}`)
-                        .in(this.container);
+                        .in(this.root);
                 }
             }
 
@@ -40,20 +35,9 @@ export class NoteFilterView extends ComponentBase {
                     const includeExclude = tag.exclude ? "EXCLUDE" : "INCLUDE";
 
                     div(`${includeExclude}: ${tag.tag}`)
-                        .in(this.container);
+                        .in(this.root);
                 }
             }
-        })
+        })))
     }
-
-    public root(): HTMLElement {
-        return this.container.root()
-    }
-
-    public teardown(): void {
-        super.teardown();
-
-        this.sub?.unsubscribe();
-    }
-
 }

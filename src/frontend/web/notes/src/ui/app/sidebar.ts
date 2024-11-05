@@ -1,29 +1,17 @@
 import {Services} from "../../service/services";
 import {PaletteView} from "../notes/paletteView";
-import {ComponentBase, Div, div} from "../../utility/component";
+import {CompositeComponentBase, Div, div} from "../../utility/component";
 
-export class SidebarView extends ComponentBase {
-    private container: Div = div();
-
+export class SidebarView extends CompositeComponentBase {
     constructor(
         private s: Services,
     ) {
-        super();
+        super(div());
 
         div()
-            .in(this.container)
+            .in(this.root)
             .background('lightgray')
             .width('200px')
             .withChild(new PaletteView(this.s));
     }
-
-    public root(): HTMLElement {
-        return this.container.root();
-    }
-
-    public teardown(): void {
-        this.container?.teardown();
-    }
-
-
 }

@@ -1,43 +1,32 @@
 import {DateTimeFormatter, ZonedDateTime, ZoneId} from "@js-joda/core";
 import {NoteCardView} from "./noteCardView";
-import {Subscription} from "rxjs";
-import {LabeledCheckbox} from "../../component/labeledCheckbox";
 import {Document} from "../../../service/noteService";
 import {Services} from "../../../service/services";
-import {ComponentBase, div, Div, hr, span} from "../../../utility/component";
+import {CompositeComponentBase, div, Div, hr, span, ValueComponent} from "../../../utility/component";
+import {unsubscribe} from "../../../utility/subscription";
+import {labelledCheckBox} from "../../component/labeledCheckbox";
 
-export class NoteColumnView extends ComponentBase {
-    private container: Div = div();
-
-    notesSubscription?: Subscription;
-
+export class NoteColumnView extends CompositeComponentBase {
     private noteContainer?: Div;
-    private reverseOrderCheckbox?: LabeledCheckbox;
+    private reverseOrderCheckbox?: ValueComponent<boolean>;
 
     constructor(
         private s: Services,
     ) {
-        super();
+        super(div());
 
-        this.notesSubscription?.unsubscribe();
-        this.container.clear();
-
-        this.reverseOrderCheckbox = new LabeledCheckbox('Reverse Order')
-            .in(this.container)
+        this.reverseOrderCheckbox = labelledCheckBox('Reverse Order', false)
+            .in(this.root)
             .onchange((ev: Event) => {
-                this.s.documentFilterService.filter.sortDirection = this.reverseOrderCheckbox.checked ? 'ascending' : 'descending';
+                this.s.documentFilterService.filter.sortDirection = this.reverseOrderCheckbox.value ? 'ascending' : 'descending';
                 this.s.documentFilterService.update();
             });
 
         this.noteContainer = div()
-            .in(this.container);
+            .in(this.root);
 
-        this.notesSubscription = this.s.noteService.notes$.subscribe(notes => this.renderNotes(notes));
+        this.onTeardown(unsubscribe(this.s.noteService.notes$.subscribe(notes => this.renderNotes(notes))));
         this.s.noteService.get();
-    }
-
-    public root(): HTMLElement {
-        return this.container.root();
     }
 
     private renderNotes(notes?: Document[]) {
@@ -60,12 +49,6 @@ export class NoteColumnView extends ComponentBase {
 
             new NoteCardView(note, this.s).in(this.noteContainer);
         }
-    }
-
-    teardown(): void {
-        this.container.teardown();
-
-        this.notesSubscription?.unsubscribe();
     }
 
     private dateHeader(date: string): Div {

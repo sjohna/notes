@@ -1,44 +1,36 @@
-import {checkbox, Div, div, ElementComponent, flexRow, Input} from "../../utility/component";
+import {
+    checkbox,
+    CompositeComponentBase,
+    div,
+    flexRow,
+    ValueComponent
+} from "../../utility/component";
 
-export class LabeledCheckbox {
-    public checkboxContainer: Div;
-    public checkbox: Input;
-    public labelDiv: Div;
-    
-    constructor(label: string = null) {
-        this.checkbox = checkbox();
-        this.labelDiv = div();
-        if (label !== undefined && label !== null) {
-            this.labelDiv.innerText(label);
+export function labelledCheckBox(label: string, checked: boolean): ValueComponent<boolean> {
+    const el = checkbox().value(checked);
+    const root = flexRow().width('400px').withChildren([
+        el,
+        div(label)
+    ])
+
+    return new class extends CompositeComponentBase implements ValueComponent<boolean> {
+        getValue(): boolean {
+            return el.getValue();
         }
 
-        this.checkboxContainer = flexRow()
-            .withChildren([
-                this.checkbox,
-                this.labelDiv
-            ]);
-    }
+        value(s: boolean): this {
+            el.value(s);
+            return this;
+        }
 
-    public label(s: string): LabeledCheckbox {
-        this.labelDiv.innerText(s);
-        return this;
-    }
+        focus(): this {
+            el.focus();
+            return this;
+        }
 
-    public onchange(handler: (ev?:  Event) => void): LabeledCheckbox {
-        this.checkbox.onchange(handler);
-        return this;
-    }
-
-    public get checked(): boolean {
-        return this.checkbox.root().checked;
-    }
-
-    public set checked(value: boolean) {
-        this.checkbox.root().checked = value;
-    }
-
-    public in<P extends HTMLElement>(parent: ElementComponent<P>): LabeledCheckbox {
-        parent.withChild(this.checkboxContainer);
-        return this;
-    }
+        onchange(handler: (ev?: Event) => void): this {
+            el.onchange(handler);
+            return this;
+        }
+    }(root)
 }
