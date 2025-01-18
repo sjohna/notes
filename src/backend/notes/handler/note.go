@@ -1,66 +1,55 @@
 package handler
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/sjohna/go-server-common/errors"
 	c "github.com/sjohna/go-server-common/handler"
+	"github.com/sjohna/go-server-common/log"
 	"net/http"
 	"notes/common"
 	"notes/repo"
 	"notes/service"
 )
 
-func (handler *NoteHandler) ConfigureRoutes(base chi.Router) {
-	base.Post("/note/create", handler.CreateNote)
-	base.Post("/note", handler.GetNotes)
-	base.Post("/note/total_by_date", handler.GetTotalNotesOnDays)
-	base.Post("/note/update_tags", handler.UpdateNoteTags)
-	base.Post("/note/update_groups", handler.UpdateNoteGroups)
+func (h *NoteHandler) ConfigureRoutes(base chi.Router) {
+	base.Post("/note/create", c.Handler(h.CreateNote))
+	base.Post("/note", c.Handler(h.GetNotes))
+	base.Post("/note/total_by_date", c.Handler(h.GetTotalNotesOnDays))
+	base.Post("/note/update_tags", c.Handler(h.UpdateNoteTags))
+	base.Post("/note/update_groups", c.Handler(h.UpdateNoteGroups))
 }
 
 type NoteHandler struct {
 	Service *service.NoteService
 }
 
-func (handler *NoteHandler) CreateNote(w http.ResponseWriter, r *http.Request) {
-	handlerContext, log := c.HandlerContext(r, "CreateNote")
-	defer c.LogHandlerReturn(log)
-
+func (h *NoteHandler) CreateNote(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
 	var params struct {
 		Content string `json:"content"`
 	}
 
-	if err := c.UnmarshalRequestBody(log, r, &params); err != nil {
-		// TODO: respond client error instead
-		c.RespondInternalServerError(log, w, err)
-		return
+	if err := c.UnmarshalRequestBody(ctx, r, &params); err != nil {
+		return nil, err
 	}
 
-	log.WithField("contentLength", len(params.Content)).Debug("Creating note")
-
-	createdNote, err := handler.Service.CreateNote(handlerContext, params.Content)
+	createdNote, err := h.Service.CreateNote(r.Context(), params.Content)
 	if err != nil {
-		c.RespondInternalServerError(log, w, err)
-		return
+		return nil, err
 	}
 
-	c.RespondJSON(log, w, createdNote)
+	return createdNote, nil
 }
 
-func (handler *NoteHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
-	handlerContext, log := c.HandlerContext(r, "GetNotes")
-	defer c.LogHandlerReturn(log)
-
+func (h *NoteHandler) GetNotes(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
 	var body common.NoteQueryParameters
-	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
-		// TODO: respond client error instead
-		c.RespondInternalServerError(log, w, err)
-		return
+	if err := c.UnmarshalRequestBody(ctx, r, &body); err != nil {
+		return nil, err
 	}
 
-	quickNotes, err := handler.Service.GetNotes(handlerContext, body)
+	quickNotes, err := h.Service.GetNotes(ctx, body)
 	if err != nil {
-		c.RespondInternalServerError(log, w, err)
-		return
+		return nil, err
 	}
 
 	var response struct {
@@ -71,79 +60,57 @@ func (handler *NoteHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
 	response.Documents = quickNotes
 	response.Parameters = body
 
-	log.WithField("count", len(quickNotes)).Debug("Got notes")
-
-	c.RespondJSON(log, w, response)
+	return response, nil
 }
 
-func (handler *NoteHandler) GetTotalNotesOnDays(w http.ResponseWriter, r *http.Request) {
-	handlerContext, log := c.HandlerContext(r, "GetTotalNotesOnDays")
-	defer c.LogHandlerReturn(log)
-
+func (h *NoteHandler) GetTotalNotesOnDays(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
 	var body common.TotalNotesOnDaysQueryParameters
-	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
-		// TODO: respond client error instead
-		c.RespondInternalServerError(log, w, err)
-		return
+	if err := c.UnmarshalRequestBody(ctx, r, &body); err != nil {
+		return nil, err
 	}
 
-	totalNotesOnDays, err := handler.Service.GetTotalNotesOnDays(handlerContext, body)
-	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
-		c.RespondInternalServerError(log, w, err)
-		return
+	totalNotesOnDays, err := h.Service.GetTotalNotesOnDays(r.Context(), body)
+	if err != nil {
+		return nil, err
 	}
 
-	c.RespondJSON(log, w, totalNotesOnDays)
+	return totalNotesOnDays, nil
 }
 
-func (handler *NoteHandler) UpdateNoteTags(w http.ResponseWriter, r *http.Request) {
-	handlerContext, log := c.HandlerContext(r, "UpdateNoteTags")
-	defer c.LogHandlerReturn(log)
-
+func (h *NoteHandler) UpdateNoteTags(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
 	var body struct {
 		DocumentID int64                      `json:"documentId"`
 		TagUpdates []common.DocumentTagUpdate `json:"tagUpdates"`
 	}
-	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
-		// TODO: respond client error instead
-		c.RespondInternalServerError(log, w, err)
-		return
+	if err := c.UnmarshalRequestBody(ctx, r, &body); err != nil {
+		return nil, err
 	}
 
-	log = log.WithField("documentId", body.DocumentID)
-	log.Info("Updating note tags")
+	log.Ctx(ctx).WithField("documentId", body.DocumentID).Info("Updating note tags")
 
-	document, err := handler.Service.ApplyNoteTagUpdates(handlerContext, body.DocumentID, body.TagUpdates)
+	document, err := h.Service.ApplyNoteTagUpdates(r.Context(), body.DocumentID, body.TagUpdates)
 	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
-		c.RespondInternalServerError(log, w, err)
-		return
+		return nil, err
 	}
 
-	c.RespondJSON(log, w, document)
+	return document, nil
 }
 
-func (handler *NoteHandler) UpdateNoteGroups(w http.ResponseWriter, r *http.Request) {
-	handlerContext, log := c.HandlerContext(r, "UpdateNoteGroups")
-	defer c.LogHandlerReturn(log)
-
+func (h *NoteHandler) UpdateNoteGroups(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
 	var body struct {
 		DocumentID   int64                        `json:"documentId"`
 		GroupUpdates []common.DocumentGroupUpdate `json:"groupUpdates"`
 	}
-	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
-		// TODO: respond client error instead
-		c.RespondInternalServerError(log, w, err)
-		return
+	if err := c.UnmarshalRequestBody(ctx, r, &body); err != nil {
+		return nil, err
 	}
 
-	log = log.WithField("documentId", body.DocumentID)
-	log.Info("Updating note groups")
+	log.Ctx(ctx).WithField("documentId", body.DocumentID).Info("Updating note groups")
 
-	document, err := handler.Service.ApplyNoteGroupUpdates(handlerContext, body.DocumentID, body.GroupUpdates)
+	document, err := h.Service.ApplyNoteGroupUpdates(r.Context(), body.DocumentID, body.GroupUpdates)
 	if err != nil { // TODO: with this and all other errors, handle 400 vs. 500 errors
-		c.RespondInternalServerError(log, w, err)
-		return
+		return nil, err
 	}
 
-	c.RespondJSON(log, w, document)
+	return document, nil
 }

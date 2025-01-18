@@ -2,7 +2,7 @@ package repo
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
+	"github.com/sjohna/go-server-common/errors"
 	c "github.com/sjohna/go-server-common/repo"
 	"gopkg.in/guregu/null.v4"
 	"time"
@@ -40,17 +40,7 @@ func (r *GroupOnDocumentList) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), r)
 }
 
-func CreateGroup(dao c.DAO, name string, description null.String) (*Group, error) {
-	_, log := c.RepoFunctionContext(dao.Context(), "CreateGroup")
-	defer c.LogRepoReturn(log)
-
-	log = log.WithFields(logrus.Fields{
-		"name":        name,
-		"description": description,
-	})
-
-	log.Debug("Creating group")
-
+func CreateGroup(dao c.DAO, name string, description null.String) (*Group, errors.Error) {
 	// language=SQL
 	SQL := `insert into "group" (name, description)
 values ($1, $2)
@@ -59,19 +49,13 @@ returning *`
 	var createdDocumentGroup Group
 	err := dao.Get(&createdDocumentGroup, SQL, name, description)
 	if err != nil {
-		log.WithError(err).Error("Error running query to create group")
 		return nil, err
 	}
-
-	log.WithField("groupID", createdDocumentGroup.ID).Info("Created group")
 
 	return &createdDocumentGroup, nil
 }
 
-func GetGroups(dao c.DAO) ([]*Group, error) {
-	_, log := c.RepoFunctionContext(dao.Context(), "GetGroups")
-	defer c.LogRepoReturn(log)
-
+func GetGroups(dao c.DAO) ([]*Group, errors.Error) {
 	// language=SQL
 	SQL := `select "group".id,
        "group".name,
@@ -91,52 +75,26 @@ where "group".archived_at is null`
 	documentGroups := make([]*Group, 0)
 	err := dao.Select(&documentGroups, SQL)
 	if err != nil {
-		log.WithError(err).Error("Error running query to get groups")
 		return nil, err
 	}
-
-	// TODO: debug logging for number returned, for this and all similar functions
 
 	return documentGroups, nil
 }
 
-func AddDocumentToGroup(dao c.DAO, documentID int64, groupID int64) error {
-	_, log := c.RepoFunctionContext(dao.Context(), "AddDocumentToGroup")
-	defer c.LogRepoReturn(log)
-
-	log = log.WithFields(map[string]interface{}{
-		"documentID": documentID,
-		"groupID":    groupID,
-	})
-
-	log.Info("Adding document to group")
-
+func AddDocumentToGroup(dao c.DAO, documentID int64, groupID int64) errors.Error {
 	// language=SQL
 	SQL := `insert into document_group(document_id, document_group_id)
 values ($1, $2)`
 
 	_, err := dao.Exec(SQL, documentID, groupID)
 	if err != nil {
-		log.WithError(err).Error("Error running query to add document to group")
 		return err
 	}
-
-	log.Info("Added document to group")
 
 	return nil
 }
 
-func RemoveDocumentFromGroup(dao c.DAO, documentID int64, groupID int64) error {
-	_, log := c.RepoFunctionContext(dao.Context(), "RemoveDocumentFromGroup")
-	defer c.LogRepoReturn(log)
-
-	log = log.WithFields(map[string]interface{}{
-		"documentID": documentID,
-		"groupID":    groupID,
-	})
-
-	log.Info("Removing document from group")
-
+func RemoveDocumentFromGroup(dao c.DAO, documentID int64, groupID int64) errors.Error {
 	// language=SQL
 	SQL := `update document_group
 set archived_at = now()
@@ -146,11 +104,8 @@ where document_group.document_id = $1
 
 	_, err := dao.Exec(SQL, documentID, groupID)
 	if err != nil {
-		log.WithError(err).Error("Error running query to remove document from group")
 		return err
 	}
-
-	log.Info("Removed document from group")
 
 	return nil
 }

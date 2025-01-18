@@ -1,10 +1,10 @@
 package repo
 
 import (
-	"errors"
 	"fmt"
 	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
+	"github.com/sjohna/go-server-common/errors"
+	"github.com/sjohna/go-server-common/log"
 	c "github.com/sjohna/go-server-common/repo"
 	"notes/common"
 	"time"
@@ -30,16 +30,7 @@ type DocumentsOnDate struct {
 
 const InternalAuthorID = 1
 
-func CreateDocument(tx *c.TxDAO, documentType string, content string) (*Document, error) {
-	_, log := c.RepoFunctionContext(tx.Context(), "CreateDocument")
-	defer c.LogRepoReturn(log)
-
-	log = log.WithFields(map[string]interface{}{
-		"documentType": documentType,
-		"authorID":     InternalAuthorID,
-	})
-	log.Debugf("Creating document, content length %d", len(content))
-
+func CreateDocument(tx *c.TxDAO, documentType string, content string) (*Document, errors.Error) {
 	// language=SQL
 	DocumentSQL := `insert into document (type, author_id)
 values ($1, $2)
@@ -48,28 +39,21 @@ returning id`
 	var createdDocumentID int64
 	err := tx.Get(&createdDocumentID, DocumentSQL, documentType, InternalAuthorID)
 	if err != nil {
-		log.WithError(err).Error("Error running query to insert document")
 		return nil, err
 	}
-
-	log = log.WithField("documentID", createdDocumentID)
 
 	// language=SQL
 	ContentSQL := `insert into document_content (document_id, content, content_type, version)
 values ($1, $2, $3, 1)`
 	_, err = tx.Exec(ContentSQL, createdDocumentID, content, "text")
 	if err != nil {
-		log.WithError(err).Error("Error running query to insert document content")
-		return nil, err
+		return nil, errors.WrapQueryError(err, "failed to insert document content", ContentSQL, createdDocumentID, content, "text")
 	}
 
 	createdDocument, err := GetDocument(tx, createdDocumentID)
 	if err != nil {
-		log.WithError(err).Error("Error getting created document")
 		return nil, err
 	}
-
-	log.Info("Document created")
 
 	return createdDocument, nil
 }
@@ -81,36 +65,28 @@ from document
 where document.type = 'quick_note'
 `
 
-func GetDocument(dao c.DAO, documentID int64) (*Document, error) {
-	_, log := c.RepoFunctionContext(dao.Context(), "GetDocument")
-	defer c.LogRepoReturn(log)
-
-	log = log.WithField("documentID", documentID)
-	log.Debug("Getting document")
-
+func GetDocument(dao c.DAO, documentID int64) (*Document, errors.Error) {
 	// TODO: better handle getting a single document
 	documents, err := GetDocumentsByIDs(dao, []int64{documentID}, common.NoteQueryParameters{})
 	if err != nil {
-		log.WithError(err).Error("Error calling GetDocumentsByIDs")
 		return nil, err
 	}
 
 	if len(documents) == 0 {
-		err = fmt.Errorf("No document found with id %d", documentID)
-		log.WithError(err).Error("No document found")
+		// TODO: errors.NewFormat
+		err = errors.New(fmt.Sprintf("No document found with id %d", documentID))
 		return nil, err
 	}
 
 	if len(documents) > 1 {
-		err = fmt.Errorf("Too many documents with id %d, this should not happen! (Expected 1, got %d)", documentID, len(documents))
-		log.WithError(err).Error("More than one document found with ID")
+		err = errors.New(fmt.Sprintf("Too many documents with id %d, this should not happen! (Expected 1, got %d)", documentID, len(documents)))
 		return nil, err
 	}
 
 	return documents[0], nil
 }
 
-func appendQueryParameters(query string, parameters common.NoteQueryParameters) (string, []interface{}, error) {
+func appendQueryParameters(query string, parameters common.NoteQueryParameters) (string, []interface{}, errors.Error) {
 	basicQuery := query
 
 	args := make([]interface{}, 0)
@@ -136,7 +112,7 @@ var allowedSortColumns = []string{
 	"inserted_at",
 }
 
-func appendSortParameters(query string, parameters common.NoteQueryParameters) (string, error) {
+func appendSortParameters(query string, parameters common.NoteQueryParameters) (string, errors.Error) {
 	newQuery := query
 
 	if parameters.SortBy.Valid {
@@ -175,25 +151,14 @@ func appendSortParameters(query string, parameters common.NoteQueryParameters) (
 }
 
 // TODO: pagination
-func GetDocuments(dao c.DAO, parameters common.NoteQueryParameters) ([]*Document, error) {
-	_, log := c.RepoFunctionContext(dao.Context(), "GetDocuments")
-	defer c.LogRepoReturn(log)
-
-	log = log.WithFields(logrus.Fields{
-		"parameters": parameters,
-	})
-
-	log.Debug("Getting documents")
-
+func GetDocuments(dao c.DAO, parameters common.NoteQueryParameters) ([]*Document, errors.Error) {
 	ids, err := GetDocumentIDsMatchingFilter(dao, parameters)
 	if err != nil {
-		log.WithError(err).Error("Failed to get document IDs matching filter")
 		return nil, err
 	}
 
 	quickNotes, err := GetDocumentsByIDs(dao, ids, parameters)
 	if err != nil {
-		log.WithError(err).Error("Failed to get documents by IDs")
 		return nil, err
 	}
 
@@ -225,21 +190,12 @@ from document`
 }
 
 // TODO: make this take more generic filter criteria (tags, authors, sources, etc.)
-func GetTotalDocumentsOnDates(dao c.DAO, parameters common.TotalNotesOnDaysQueryParameters) ([]*DocumentsOnDate, error) {
-	_, log := c.RepoFunctionContext(dao.Context(), "GetTotalDocumentsOnDates")
-	defer c.LogRepoReturn(log)
-
-	log = log.WithFields(logrus.Fields{
-		"parameters": parameters,
-	})
-	log.Debug("Getting total documents on dates")
-
+func GetTotalDocumentsOnDates(dao c.DAO, parameters common.TotalNotesOnDaysQueryParameters) ([]*DocumentsOnDate, errors.Error) {
 	SQL, args := totalDocumentsOnDatesQuery(parameters)
 
 	documentsOnDates := make([]*DocumentsOnDate, 0)
 	err := dao.Select(&documentsOnDates, SQL, args...)
 	if err != nil {
-		log.WithError(err).Error("Error running query to get total documents on dates")
 		return nil, err
 	}
 
@@ -248,11 +204,8 @@ func GetTotalDocumentsOnDates(dao c.DAO, parameters common.TotalNotesOnDaysQuery
 
 // parameters only for sorting for now
 // TODO: handle sort parameters better
-func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParameters) ([]*Document, error) {
-	_, log := c.RepoFunctionContext(dao.Context(), "GetDocumentsByIds")
-	defer c.LogRepoReturn(log)
-
-	log.Debugf("Getting %d documents by IDs", len(ids))
+func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParameters) ([]*Document, errors.Error) {
+	log.General.Debugf("Getting %d documents by IDs", len(ids))
 
 	// language=SQL
 	SQL := `select document.id,
@@ -292,14 +245,12 @@ where document.id = any ($1)
 
 	SQL, err := appendSortParameters(SQL, parameters)
 	if err != nil {
-		log.WithError(err).Error("Failed to append sort parameters")
 		return nil, err
 	}
 
 	documents := make([]*Document, 0)
 	err = dao.Select(&documents, SQL, pq.Array(ids))
 	if err != nil {
-		log.WithError(err).WithField("ids", ids).Error("Error running query to get documents by IDs")
 		return nil, err
 	}
 
@@ -345,21 +296,12 @@ where document.document_time between coalesce($1, '-infinity'::timestamptz) and 
 	return SQL, args
 }
 
-func GetDocumentIDsMatchingFilter(dao c.DAO, parameters common.NoteQueryParameters) ([]int64, error) {
-	_, log := c.RepoFunctionContext(dao.Context(), "GetDocumentIDsMatchingFilter")
-	defer c.LogRepoReturn(log)
-
-	log = log.WithFields(logrus.Fields{
-		"parameters": parameters,
-	})
-	log.Debug("Getting document IDs matching filter")
-
+func GetDocumentIDsMatchingFilter(dao c.DAO, parameters common.NoteQueryParameters) ([]int64, errors.Error) {
 	SQL, args := getQueryAndArgs(parameters)
 
 	documentIDs := make([]int64, 0)
 	err := dao.Select(&documentIDs, SQL, args...)
 	if err != nil {
-		log.WithError(err).Error("Error running query to get document IDs matching filter")
 		return nil, err
 	}
 

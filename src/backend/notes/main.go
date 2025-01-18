@@ -17,22 +17,20 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// TODO: look at logging at all levels (handler, service, repo): am I logging everything relevant?
-// TODO: review and update log levels
-
-// TODO: logging updates:
-// - (done) change DAO creation logs to debug
-// - (done) make "Creating/Updating X" logs debug, but keep "Created/Updated X" info
-// - (done) "Request complete" logs to debug/trace
-// - (done) "Context length x" when creating notes: probably a typo
-// - (done) Respond success logs to debug
-// - (done) Session validation/authentication per request to debug
-// - (done) Log number of things returned for note/group/tag lists
-// - (done) Handler called to trace
-// - Probably more after I review the logs in more detail, especially if I induce some warning/error/fatal logs
+// TODO: get logging up and working with new common changes
+//  - (done) no logging at all in repo
+//  - no error logging in service
+//  - handler logging of errors
+//  - handle context timeouts and log warn instead
+//  - test that
+//  - move logging initialization to common
+//  - common stuff uses global loggers
+//  - notes stuff uses global loggers
+//  - (done) implement Ctx function for logger from context
+//  - use pkgErrors everywhere
 
 func main() {
-	// TODO: basic logging, like before?
+	// TODO: basic log, like before?
 	fmt.Println("Starting notes API server")
 
 	var env string
@@ -45,22 +43,23 @@ func main() {
 
 	fmt.Printf("Loading configuration from environment file %s\n", envFile)
 
-	config, err := utilities.GetConfigFromEnvFile(envFile)
+	config, getConfigErr := utilities.GetConfigFromEnvFile(envFile)
 
-	if err != nil {
+	if getConfigErr != nil {
 		fmt.Println("Failed to read application configuration")
-		fmt.Printf("%v\n", err)
+		fmt.Printf("%v\n", getConfigErr)
 		return
 	}
 
 	logger, configLogger := log.GetApplicationLoggers(config.LogDirectory, "notes")
+	log.SetGlobalLoggers(logger, configLogger)
 
-	configLogger.Info("Notes server starting - file logging configured")
-	configLogger.Infof("Configuration loaded from %s", envFile)
+	log.Config.Info("Notes server starting - file log configured")
+	log.Config.Infof("Configuration loaded from %s", envFile)
 
 	db, err := repo.Connect(configLogger, config)
 	if err != nil {
-		configLogger.WithError(err).Fatal("Failed to connect to database")
+		log.Config.WithError(err).Fatal("Failed to connect to database")
 		return
 	}
 
@@ -92,6 +91,7 @@ func main() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
+	// TODO: refactor so this doesn't take loggers
 	middleware := handler.Middleware{
 		AuthService:  &authService,
 		Logger:       logger,
@@ -118,26 +118,26 @@ func main() {
 
 	exists, err := authService.UserExists(ctx, "admin")
 	if err != nil {
-		logger.WithError(err).Error("Error checking if admin user exists")
+		log.General.WithError(err).Error("Error checking if admin user exists")
 		return
 	}
 
 	if !exists {
 		err := authService.CreateUser(ctx, "admin", "password1")
 		if err != nil {
-			logger.WithError(err).Error("Error creating admin user")
+			log.Ctx(ctx).WithError(err).Error("Error creating admin user")
 			return
 		}
 
-		logger.Info("admin user created")
+		log.General.Info("admin user created")
 	}
 
-	err = http.ListenAndServe(portString, router)
+	listenAndServeErr := http.ListenAndServe(portString, router)
 
-	if err != nil {
-		configLogger.WithError(err).Fatal("Error returned from http.ListenAndServe")
+	if listenAndServeErr != nil {
+		log.Config.WithError(err).Fatal("Error returned from http.ListenAndServe")
 		return
 	}
 
-	configLogger.Info("Done")
+	log.Config.Info("Done")
 }

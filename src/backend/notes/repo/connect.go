@@ -2,6 +2,7 @@ package repo
 
 import (
 	"fmt"
+	"github.com/sjohna/go-server-common/errors"
 	"github.com/sjohna/go-server-common/log"
 	"notes/utilities"
 
@@ -9,7 +10,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func Connect(logger log.Logger, config *utilities.ApplicationConfig) (*sqlx.DB, error) {
+// TODO: use global config logger
+func Connect(logger log.Logger, config *utilities.ApplicationConfig) (*sqlx.DB, errors.Error) {
 	connStringWithoutPassword := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=%s password=%s", config.DBHost, config.DBPort, config.DBUser, config.DBName, config.DBSSLMode, "XXX")
 
 	logger = logger.WithField("connString", connStringWithoutPassword)
@@ -20,7 +22,7 @@ func Connect(logger log.Logger, config *utilities.ApplicationConfig) (*sqlx.DB, 
 	db, err := sqlx.Connect("postgres", connString)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapDBError(err, "Error connecting to database")
 	}
 
 	logger.Info("Connected to database")

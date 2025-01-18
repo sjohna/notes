@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/sjohna/go-server-common/errors"
 	c "github.com/sjohna/go-server-common/handler"
+	"github.com/sjohna/go-server-common/log"
 	"gopkg.in/guregu/null.v4"
 	"net/http"
 	"notes/service"
@@ -12,57 +15,38 @@ type GroupHandler struct {
 	Service *service.GroupService
 }
 
-func (handler *GroupHandler) ConfigureRoutes(base chi.Router) {
-	base.Post("/group/create", handler.CreateGroup)
-	base.Post("/group", handler.GetGroups)
+func (h *GroupHandler) ConfigureRoutes(base chi.Router) {
+	base.Post("/group/create", c.Handler(h.CreateGroup))
+	base.Post("/group", c.Handler(h.GetGroups))
 }
 
-func (handler *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
-	handlerContext, log := c.HandlerContext(r, "CreateGroup")
-	defer c.LogHandlerReturn(log)
-
+func (h *GroupHandler) CreateGroup(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
 	var body struct {
 		Name        string      `json:"name"`
 		Description null.String `json:"description"`
 	}
 
-	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
-		// TODO: respond client error instead
-		c.RespondInternalServerError(log, w, err)
-		return
+	if err := c.UnmarshalRequestBody(ctx, r, &body); err != nil {
+		return nil, err
 	}
 
-	log = log.WithFields(map[string]interface{}{
-		"name":        body.Name,
-		"description": body.Description,
-	})
-
-	log.Debug("Creating group")
-
-	createdGroup, err := handler.Service.CreateGroup(handlerContext, body.Name, body.Description)
+	createdGroup, err := h.Service.CreateGroup(r.Context(), body.Name, body.Description)
 	if err != nil {
-		c.RespondInternalServerError(log, w, err)
-		return
+		return nil, err
 	}
 
-	log.WithField("groupID", createdGroup.ID).Info("Created group")
+	log.Ctx(ctx).WithField("groupID", createdGroup.ID).Info("Created group")
 
-	c.RespondJSON(log, w, createdGroup)
+	return createdGroup, nil
 }
 
 // TODO: parameterize query
-func (handler *GroupHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
-	handlerContext, log := c.HandlerContext(r, "GetGroups")
-	defer c.LogHandlerReturn(log)
-
-	groups, err := handler.Service.GetGroups(handlerContext)
+func (h *GroupHandler) GetGroups(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
+	groups, err := h.Service.GetGroups(ctx)
 	if err != nil {
-		c.RespondInternalServerError(log, w, err)
-		return
+		return nil, err
 	}
 
-	log.WithField("count", len(groups)).Debug("Got groups")
-
 	// TODO: respond structure
-	c.RespondJSON(log, w, groups)
+	return groups, nil
 }

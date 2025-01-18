@@ -1,63 +1,50 @@
 package handler
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/sjohna/go-server-common/errors"
 	c "github.com/sjohna/go-server-common/handler"
+	"github.com/sjohna/go-server-common/log"
 	"gopkg.in/guregu/null.v4"
 	"net/http"
 	"notes/service"
 )
 
-func (handler *TagHandler) ConfigureRoutes(base chi.Router) {
-	base.Post("/tag/create", handler.CreateTag)
-	base.Post("/tag", handler.GetTags)
+func (h *TagHandler) ConfigureRoutes(base chi.Router) {
+	base.Post("/tag/create", c.Handler(h.CreateTag))
+	base.Post("/tag", c.Handler(h.GetTags))
 }
 
 type TagHandler struct {
 	Service *service.TagService
 }
 
-func (handler *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
-	handlerContext, log := c.HandlerContext(r, "CreateTag")
-	defer c.LogHandlerReturn(log)
-
+func (h *TagHandler) CreateTag(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
 	var body struct {
 		Name        string      `json:"name"`
 		Description null.String `json:"description"`
 	}
 
-	if err := c.UnmarshalRequestBody(log, r, &body); err != nil {
-		// TODO: respond client error instead
-		c.RespondInternalServerError(log, w, err)
-		return
+	if err := c.UnmarshalRequestBody(ctx, r, &body); err != nil {
+		return nil, err
 	}
 
-	log = log.WithFields(map[string]interface{}{
-		"name":        body.Name,
-		"description": body.Description,
-	})
-	log.Debug("Creating tag")
-
-	createdTag, err := handler.Service.CreateTag(handlerContext, body.Name, body.Description)
+	createdTag, err := h.Service.CreateTag(r.Context(), body.Name, body.Description)
 	if err != nil {
-		c.RespondInternalServerError(log, w, err)
-		return
+		return nil, err
 	}
 
-	c.RespondJSON(log, w, createdTag)
+	return createdTag, nil
 }
 
-func (handler *TagHandler) GetTags(w http.ResponseWriter, r *http.Request) {
-	handlerContext, log := c.HandlerContext(r, "GetTags")
-	defer c.LogHandlerReturn(log)
-
-	tags, err := handler.Service.GetTags(handlerContext)
+func (h *TagHandler) GetTags(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
+	tags, err := h.Service.GetTags(ctx)
 	if err != nil {
-		c.RespondInternalServerError(log, w, err)
-		return
+		return nil, err
 	}
 
-	log.WithField("count", len(tags)).Debug("Got tags")
+	log.General.WithField("count", len(tags)).Debug("Got tags")
 
-	c.RespondJSON(log, w, tags)
+	return tags, nil
 }
