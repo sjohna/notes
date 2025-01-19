@@ -13,8 +13,8 @@ import (
 )
 
 func (h *NoteHandler) ConfigureRoutes(base chi.Router) {
-	base.Post("/note/create", c.Handler(h.CreateNote))
 	base.Post("/note", c.Handler(h.GetNotes))
+	base.Post("/note/create", c.Handler(h.CreateNote))
 	base.Post("/note/total_by_date", c.Handler(h.GetTotalNotesOnDays))
 	base.Post("/note/update_tags", c.Handler(h.UpdateNoteTags))
 	base.Post("/note/update_groups", c.Handler(h.UpdateNoteGroups))
@@ -25,15 +25,15 @@ type NoteHandler struct {
 }
 
 func (h *NoteHandler) CreateNote(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
-	var params struct {
+	var body struct {
 		Content string `json:"content"`
 	}
 
-	if err := c.UnmarshalRequestBody(ctx, r, &params); err != nil {
+	if err := c.UnmarshalRequestBody(ctx, r, &body); err != nil {
 		return nil, err
 	}
 
-	createdNote, err := h.Service.CreateNote(r.Context(), params.Content)
+	createdNote, err := h.Service.CreateNote(r.Context(), body.Content)
 	if err != nil {
 		return nil, err
 	}

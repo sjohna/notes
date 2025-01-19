@@ -129,9 +129,10 @@ func main() {
 
 	configLogger.Infof("Listening on port %d", config.APIPort)
 
-	// create default user if it doesn't exist
 	ctx := context.WithValue(context.Background(), "logger", logger)
 
+	// TODO: better user management, maybe a first time setup thing?
+	// create default user if it doesn't exist
 	exists, err := authService.UserExists(ctx, "admin")
 	if err != nil {
 		log.General.WithError(err).Error("Error checking if admin user exists")
@@ -146,6 +147,23 @@ func main() {
 		}
 
 		log.General.Info("admin user created")
+	}
+
+	// create test user if it doesn't exist
+	exists, err = authService.UserExists(ctx, "test")
+	if err != nil {
+		log.General.WithError(err).Error("Error checking if test user exists")
+		return
+	}
+
+	if !exists {
+		err := authService.CreateUser(ctx, "test", "testPassword1")
+		if err != nil {
+			log.Ctx(ctx).WithError(err).Error("Error creating test user")
+			return
+		}
+
+		log.General.Info("test user created")
 	}
 
 	listenAndServeErr := http.ListenAndServe(portString, router)
