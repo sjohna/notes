@@ -25,6 +25,7 @@ services.navService.setInitialStateFromURL();
 
 services.authService.loggedInChanged$.subscribe((loggedIn) => {
     if (loggedIn) {
+        services.generalService.get();
         services.tagService.get();
         services.groupService.get();
     }

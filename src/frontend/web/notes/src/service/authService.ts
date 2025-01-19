@@ -44,10 +44,36 @@ export class AuthService {
             .catch(err => console.log(err))
     }
 
+    // TODO: combine post and get
     public async post(url: string, body?: any): Promise<Response> {
         const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+            },
+        });
+
+        if (response.ok) {
+            return response;
+        }
+
+        if (response.status === 401) {
+            console.log('Unauthorized, flagging as logged out')
+            if (this.loggedIn$$.value) {
+                this.loggedIn$$.next(false);
+                this.forceLogout$$.next(null);
+            }
+        }
+
+        // TODO: handle errors here
+        throw new Error(`Error posting to ${url}: ${response.status} ${response.statusText}`);
+    }
+
+    public async get(url: string): Promise<Response> {
+        const response = await fetch(url, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.token}`

@@ -30,7 +30,6 @@ import (
 //  - use pkgErrors everywhere
 
 func main() {
-	// TODO: basic log, like before?
 	fmt.Println("Starting notes API server")
 
 	var env string
@@ -54,6 +53,8 @@ func main() {
 	logger, configLogger := log.GetApplicationLoggers(config.LogDirectory, "notes")
 	log.SetGlobalLoggers(logger, configLogger)
 
+	configContext := context.WithValue(context.Background(), "logger", configLogger)
+
 	log.Config.Info("Notes server starting - file log configured")
 	log.Config.Infof("Configuration loaded from %s", envFile)
 
@@ -76,6 +77,20 @@ func main() {
 
 	authService := service.AuthService{Repo: &repoInstance}
 	authHandler := handler.AuthHandler{Service: &authService}
+
+	// TODO: kind of hate that this gets partially initialized here. Consider changing this
+	authorService := service.AuthorService{Repo: &repoInstance}
+	defaultInternalAuthorID, err := authorService.GetDefaultInternalAuthorID(configContext)
+	if err != nil {
+		log.Config.WithError(err).Fatal("Failed to get default internal author ID")
+		return
+	}
+	if !defaultInternalAuthorID.Valid {
+		log.Config.WithError(err).Fatal("No default internal author configured!")
+	}
+	authorService.DefaultInternalAuthorID = defaultInternalAuthorID.Int64
+
+	generalHandler := handler.GeneralHandler{Service: &authorService}
 
 	// init chi
 
@@ -107,6 +122,7 @@ func main() {
 		quickNotesHandler.ConfigureRoutes(r)
 		tagHandler.ConfigureRoutes(r)
 		documentGroupHandler.ConfigureRoutes(r)
+		generalHandler.ConfigureRoutes(r)
 	})
 
 	portString := fmt.Sprintf(":%d", config.APIPort)

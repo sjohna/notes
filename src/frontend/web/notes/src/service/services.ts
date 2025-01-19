@@ -5,6 +5,7 @@ import {TotalNotesOnDatesService} from "./totalNotesOnDatesService";
 import {GroupService} from "./groupService";
 import {AuthService} from "./authService";
 import {NavigationService} from "./navigationService";
+import {GeneralService} from "./generalService";
 
 export interface Services {
     documentFilterService: DocumentFilterService;
@@ -13,6 +14,7 @@ export interface Services {
     groupService: GroupService;
     authService: AuthService;
     navService: NavigationService;
+    generalService: GeneralService;
 }
 
 export let services: Services;
@@ -27,6 +29,7 @@ export function initServices(): void {
     const tags = new TagService(notes, auth);
     const groups = new GroupService(notes, auth);
     const nav = new NavigationService(auth);
+    const general = new GeneralService(auth);
 
     services = {
         documentFilterService: documentFilters,
@@ -35,5 +38,6 @@ export function initServices(): void {
         groupService: groups,
         authService: auth,
         navService: nav,
+        generalService: general,
     }
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/sjohna/go-server-common/errors"
-	"github.com/sjohna/go-server-common/log"
 	c "github.com/sjohna/go-server-common/repo"
 	"notes/common"
 	"time"
@@ -205,8 +204,6 @@ func GetTotalDocumentsOnDates(dao c.DAO, parameters common.TotalNotesOnDaysQuery
 // parameters only for sorting for now
 // TODO: handle sort parameters better
 func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParameters) ([]*Document, errors.Error) {
-	log.General.Debugf("Getting %d documents by IDs", len(ids))
-
 	// language=SQL
 	SQL := `select document.id,
        document.type,

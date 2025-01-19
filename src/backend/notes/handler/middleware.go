@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"github.com/sjohna/go-server-common/log"
 	"net/http"
 	"notes/service"
@@ -26,16 +25,9 @@ func (middleware *Middleware) LogRequestContext(next http.Handler) http.Handler 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := log.General.WithField("requestId", getNextRequestId())
 
-		logger.WithFields(logrus.Fields{
-			"route":         r.URL.Path,
-			"method":        r.Method,
-			"contentLength": r.ContentLength,
-		}).Debug("New request")
-
 		ctx := context.WithValue(r.Context(), "logger", logger)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
-		logger.Debug("Request complete")
 	})
 }
 

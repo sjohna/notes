@@ -6,9 +6,10 @@ import {
     CompositeComponentBase,
     Div,
     div,
-    flexColumn,
+    flexColumn, flexRow,
     textArea
 } from "../../../utility/component";
+import {unsubscribe} from "../../../utility/subscription";
 
 export class NoteView extends CompositeComponentBase {
     noteContainer: Div;
@@ -19,10 +20,22 @@ export class NoteView extends CompositeComponentBase {
     constructor() {
         super(div());
 
-        button('New Note')
-            .onclick(() => {services.noteService.createNote(this.newNoteText.value); this.newNoteText.value = '';})
-            .inDiv()
+        const infoDiv = div()
+
+        flexRow().withChildren(
+            [
+                button('New Note')
+                    .onclick(() => {services.noteService.createNote(this.newNoteText.value); this.newNoteText.value = '';}),
+                infoDiv,
+            ]
+        )
+            .gap("4px")
             .in(this.root);
+
+        this.onTeardown(unsubscribe(
+                services.generalService.generalInfo$.subscribe(info => infoDiv.innerText(info.documentCount + " total notes.")
+            )
+        ))
 
         const newNoteTextBuilder = textArea()
             .keydown((event: KeyboardEvent) => {
