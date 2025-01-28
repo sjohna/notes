@@ -16,9 +16,13 @@ export class AuthService {
         const token = localStorage.getItem('authToken');
 
         if (token) {
+            console.log('Initially logged in')
+            console.log('token', token)
             this.token = token;
 
             this.loggedIn$$.next(true);
+        } else {
+            console.log('Initially not logged in')
         }
     }
 
@@ -42,6 +46,12 @@ export class AuthService {
                 this.loggedIn$$.next(true);
             })
             .catch(err => console.log(err))
+    }
+
+    public logout() {
+        localStorage.removeItem('authToken');
+
+        this.loggedIn$$.next(false);
     }
 
     // TODO: combine post and get

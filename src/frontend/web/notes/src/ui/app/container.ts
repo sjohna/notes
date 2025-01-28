@@ -9,9 +9,9 @@ export class ContainerView extends CompositeComponentBase {
     constructor() {
         super(div());
 
-        this.onTeardown(unsubscribe(services.navService.navigationEvents$.subscribe((e) => {
-            if (e.loggedIn != this.loggedIn) {
-                this.loggedIn = e.loggedIn;
+        this.onTeardown(unsubscribe(services.authService.loggedInChanged$.subscribe((loggedIn) => {
+            if (loggedIn != this.loggedIn) {
+                this.loggedIn = loggedIn;
                 this.render();
             }
         })));

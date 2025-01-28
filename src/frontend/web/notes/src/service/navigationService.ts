@@ -74,6 +74,7 @@ export class NavigationService {
     constructor(private authService: AuthService) {
         this.stateAfterLogin = navigationStateFromPath(window.location.pathname);
 
+        // TODO: think about combining these next two events
         this.authService.forceLogout$.subscribe(() => {
             console.log('force logout')
             const currentEvent = this.navigationEvents$$.value;
@@ -105,6 +106,8 @@ export class NavigationService {
         } else {
             this.replaceState(notLoggedInState);
         }
+
+        this.initialized = true;
     }
 
     private pushState(state: NavigationState) {

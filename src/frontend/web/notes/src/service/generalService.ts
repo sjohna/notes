@@ -18,7 +18,9 @@ export class GeneralService {
 
     public get() {
         this.authService.get(`${environment.apiUrl}/general/info`)
-            .then(async response => this.generalInfo$$.next(await response.json() as GeneralInfo))
+            .then(async response => {
+                this.generalInfo$$.next(await response.json() as GeneralInfo)
+            })
             .catch(err => console.log(err))
     }
 }

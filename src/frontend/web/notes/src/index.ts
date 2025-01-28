@@ -23,6 +23,7 @@ window.onpopstate =  (event) => {
 
 services.authService.loggedInChanged$.subscribe((loggedIn) => {
     if (loggedIn) {
+        console.log('logged in changed handler: getting stuff')
         services.generalService.get();
         services.tagService.get();
         services.groupService.get();
