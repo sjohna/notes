@@ -35,6 +35,8 @@ export class NoteCardView extends CompositeComponentBase {
                 div(createdTimeString)
                     .fontSize('12px')
                     .marginRight('4px')
+                    .cursor('pointer')
+                    .onclick((ev) => services.navService.navigate('note', this.note.id))
             )
 
         if (this.note.tags) {

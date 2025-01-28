@@ -95,9 +95,9 @@ export class NavigationService {
             }
 
             if (loggedIn) {
-                this.navigateToState(this.stateAfterLogin)
+                this.pushState(this.stateAfterLogin)
             } else {
-                this.navigateToState(notLoggedInState)
+                this.pushState(notLoggedInState)
             }
         });
 
@@ -108,6 +108,10 @@ export class NavigationService {
         }
 
         this.initialized = true;
+    }
+
+    public currentState(): NavigationState {
+        return this.navigationEvents$$.value.state;
     }
 
     private pushState(state: NavigationState) {

@@ -10,37 +10,72 @@ import {
     textArea
 } from "../../../utility/component";
 import {unsubscribe} from "../../../utility/subscription";
+import {NoteCardView} from "./noteCardView";
 
 export class NoteView extends CompositeComponentBase {
     noteContainer: Div;
     newNoteText: HTMLTextAreaElement;
 
     private filterContainer: Div;
+    private infoDiv: Div;
 
     constructor() {
         super(div());
 
-        const infoDiv = div()
+        const navState = services.navService.currentState();
+
+        if(navState.id) {
+            services.noteService.getNote(navState.id)
+
+            this.renderSingleNote();
+        } else {
+            this.renderNoteList()
+        }
+    }
+
+    private renderSingleNote() {
+        this.onTeardown(unsubscribe(
+            services.noteService.currentNote$.subscribe(    // TODO: simple filter for not null for all subscriptions like this
+                (note) => {
+                    console.log('single note got')
+                    if (note) {
+                        // TODO: maybe another component for this?
+                        this.noteContainer = flexColumn()
+                            .withChildren([
+                                div('Created at ' + note.document.createdAt),
+                                div('Updated at ' + '<gotta implement this>'),
+                                div('Version ' + note.versionHistory.length),   // TODO: actually display the latest version
+                                new NoteCardView(note.document),
+                            ])
+                            .in(this.root)
+                    }
+                }
+            )
+        ))
+    }
+
+    private renderNoteList() {
+        this.infoDiv = div();
+
+        this.onTeardown(unsubscribe(
+            services.generalService.generalInfo$.subscribe((info) =>
+                {
+                    if (info) {
+                        this.infoDiv.innerText(info.documentCount + " total notes.")
+                    }
+                }
+            )
+        ))
 
         flexRow().withChildren(
             [
                 button('New Note')
                     .onclick(() => {services.noteService.createNote(this.newNoteText.value); this.newNoteText.value = '';}),
-                infoDiv,
+                this.infoDiv,
             ]
         )
             .gap("4px")
             .in(this.root);
-
-        this.onTeardown(unsubscribe(
-                services.generalService.generalInfo$.subscribe((info) =>
-                {
-                    if (info) {
-                        infoDiv.innerText(info.documentCount + " total notes.")
-                    }
-                }
-            )
-        ))
 
         const newNoteTextBuilder = textArea()
             .keydown((event: KeyboardEvent) => {
@@ -76,6 +111,6 @@ export class NoteView extends CompositeComponentBase {
     public teardown(): void {
         super.teardown();
 
-        this.noteContainer.teardown();
+        this.noteContainer?.teardown();
     }
 }

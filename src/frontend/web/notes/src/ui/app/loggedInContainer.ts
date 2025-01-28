@@ -6,14 +6,17 @@ import {GroupListView} from "../notes/group/groupListView";
 import {CompositeComponentBase, div, Div, flexColumn, flexRow} from "../../utility/component";
 import {unsubscribe} from "../../utility/subscription";
 import {sidebar} from "./sidebar";
+import {NavigationState} from "../../service/navigationService";
 
 export class LoggedInContainerView extends CompositeComponentBase {
     private tabBar: Tabs;
 
     private topLevelContainer?: Div;
-    private sideContainer?: Div;
+    private readonly sideContainer?: Div;
     private mainContainer?: Div;
-    private mainViewContainer?: Div;
+    private readonly mainViewContainer?: Div;
+
+    private state: NavigationState;
 
     constructor() {
         super(div());
@@ -52,17 +55,19 @@ export class LoggedInContainerView extends CompositeComponentBase {
 
         this.onTeardown(unsubscribe(services.navService.navigationEvents$.subscribe((e) => {
             this.tabBar.selectTab(e.state.mainView);
+            this.state = e.state;
             this.renderMainView();
         })));
     }
 
     private renderMainView() {
         this.mainViewContainer.clear();
-        if (this.tabBar.selectedTab === 'tag') {
+        // TODO: store nav state here instead of checking the selected tab
+        if (this.state.mainView === 'tag') {
             new TagListView().in(this.mainViewContainer);
-        } else if (this.tabBar.selectedTab === 'group') {
+        } else if (this.state.mainView === 'group') {
             new GroupListView().in(this.mainViewContainer);
-        } else if (this.tabBar.selectedTab === 'note') {
+        } else if (this.state.mainView === 'note') {
             new NoteView().in(this.mainViewContainer);
         }
     }
