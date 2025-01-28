@@ -33,7 +33,12 @@ export class NoteView extends CompositeComponentBase {
             .in(this.root);
 
         this.onTeardown(unsubscribe(
-                services.generalService.generalInfo$.subscribe(info => infoDiv.innerText(info.documentCount + " total notes.")
+                services.generalService.generalInfo$.subscribe((info) =>
+                {
+                    if (info) {
+                        infoDiv.innerText(info.documentCount + " total notes.")
+                    }
+                }
             )
         ))
 

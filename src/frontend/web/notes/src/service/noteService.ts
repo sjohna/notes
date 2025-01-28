@@ -58,11 +58,27 @@ interface GetNotesResponse {
     parameters: NoteQueryParameters;   // TODO: types for this are not right
 }
 
+interface DocumentVersionSummary {
+    id: number;
+    version: number;
+    contentLength: number;
+    contentType: string;
+    createdAt: string;
+}
+
+interface NoteDetails {
+    document: Document;
+    versionHistory: DocumentVersionSummary[];
+}
+
 export class NoteService {
     private close$$ = new Subject<boolean>();
 
     private notes$$ = new BehaviorSubject<Document[]>([]);
     public notes$: Observable<Document[]> = this.notes$$.pipe(takeUntil(this.close$$), shareReplay(1));
+
+    private currentNote$$ = new BehaviorSubject<NoteDetails>(null);
+    public currentNote$: Observable<NoteDetails> = this.currentNote$$.pipe(takeUntil(this.close$$), shareReplay(1));
 
     private parameters$: Observable<NoteQueryParameters>;
 
@@ -86,6 +102,16 @@ export class NoteService {
                 this.notes$$.next((await response.json() as GetNotesResponse).documents);
             } )
             .catch(err => console.log(err)) // TODO: error handling
+    }
+
+    public async getNote(id: number) {
+        this.currentNote$$.next(null);
+
+        this.authService.get(`${environment.apiUrl}/note/${id}`)
+            .then(async (response) => {
+                this.currentNote$$.next((await response.json() as NoteDetails))
+            })
+            .catch(err => console.log(err))
     }
 
     public createNote(content: string) {

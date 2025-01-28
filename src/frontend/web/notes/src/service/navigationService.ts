@@ -1,94 +1,147 @@
-import {BehaviorSubject, Subject} from "rxjs";
+import {BehaviorSubject, filter, Subject} from "rxjs";
 import {AuthService} from "./authService";
+import {not} from "rxjs/internal/util/not";
 
-export interface NavigateEvent {
+export type MainView = 'login' | 'note' | 'tag' | 'group'
+
+export interface NavigationState {
+    mainView: MainView;
+    id?: number;
+}
+
+export interface NavigationEvent {
     loggedIn: boolean;
     path: string;
-    mainViewTab: string;
+    state: NavigationState;
 }
 
-const notLoggedInState: NavigateEvent = {
-    loggedIn: false,
-    path: '/',
-    mainViewTab: 'login',
+const notLoggedInState: NavigationState = {
+    mainView: 'login',
 }
 
-const defaultLoggedInState: NavigateEvent = {
-    loggedIn: true,
-    path: '/notes',
-    mainViewTab: 'notes',
+const defaultState: NavigationState = {
+    mainView: 'note',
+}
+
+export function pathFromNavigationState(state: NavigationState): string {
+    let path = '/' + state.mainView;
+    if (state.id) {
+        path += '/' + state.id;
+    }
+
+    return path;
+}
+
+export function navigationStateFromPath(path: string): NavigationState {
+    console.log(path);
+    const pathTokens = path.split('/');
+
+    if (pathTokens?.length < 2) {
+        return defaultState;
+    }
+
+    // get main view
+    let mainView = pathTokens[1];
+
+    if (mainView !== 'note' && mainView !== 'tag' && mainView !== 'group') {
+        return defaultState;
+    }
+
+    let id: number | null = null;
+
+    if (pathTokens.length > 2) {
+        id = Number(pathTokens[2]);
+        if (id <= 0) {
+            id = null;
+        }
+    }
+
+    return {
+        mainView,
+        id
+    }
 }
 
 export class NavigationService {
-    private navigationEvents$$ = new BehaviorSubject<NavigateEvent>(notLoggedInState);
-    public navigationEvents$ = this.navigationEvents$$.asObservable();
+    private navigationEvents$$ = new BehaviorSubject<NavigationEvent>(null);
+    public navigationEvents$ = this.navigationEvents$$.pipe(filter((event) => !!event))
 
     // TODO: why did this break all of the sudden?
-    private stateAfterLogin: NavigateEvent = defaultLoggedInState;
+    private stateAfterLogin: NavigationState = defaultState;
+
+    private initialized = false;
 
     constructor(private authService: AuthService) {
-        this.authService.forceLogout$.subscribe(() => {
-            const currentState = this.navigationEvents$$.value;
+        this.stateAfterLogin = navigationStateFromPath(window.location.pathname);
 
-            if (currentState.loggedIn) {
-                this.stateAfterLogin = currentState;
+        this.authService.forceLogout$.subscribe(() => {
+            console.log('force logout')
+            const currentEvent = this.navigationEvents$$.value;
+
+            if (currentEvent?.loggedIn && currentEvent?.state) {
+                this.stateAfterLogin = currentEvent.state;
             } else {
-                this.stateAfterLogin = defaultLoggedInState;
+                this.stateAfterLogin = defaultState;
             }
 
-            history.replaceState(notLoggedInState, '', '/login');
-            this.navigationEvents$$.next(notLoggedInState);
+            this.navigateToState(notLoggedInState);
         });
 
         this.authService.loggedInChanged$.subscribe((loggedIn) => {
+            console.log('logged in changed')
+            if (!this.initialized) {
+                return
+            }
+
             if (loggedIn) {
-                this.navigate(this.stateAfterLogin.path, this.stateAfterLogin.mainViewTab, true);
+                this.navigateToState(this.stateAfterLogin)
+            } else {
+                this.navigateToState(notLoggedInState)
             }
         });
+
+        if (this.authService.isLoggedIn()) {
+            this.replaceState(this.stateAfterLogin);
+        } else {
+            this.replaceState(notLoggedInState);
+        }
     }
 
-    public navigate(path: string, mainViewTab: string, loggedIn: boolean = true) {
-        const navEvent = {
+    private pushState(state: NavigationState) {
+        const path = pathFromNavigationState(state);
+        history.pushState(state, '', path);
+        this.navigateToState(state);
+    }
+
+    private replaceState(state: NavigationState) {
+        const path = pathFromNavigationState(state);
+        history.replaceState(state, '', path);
+        this.navigateToState(state);
+    }
+
+    private navigateToState(state: NavigationState) {
+        const path = pathFromNavigationState(state);    // TODO: eliminate redundancy
+        const event: NavigationEvent = {
             loggedIn: true,
             path,
-            mainViewTab,
+            state
         }
 
-        history.pushState(navEvent, '', path);
-
-        this.navigationEvents$$.next(navEvent);
-    }
-
-    public historyPopped(event: NavigateEvent) {
         this.navigationEvents$$.next(event);
     }
 
-    public setInitialStateFromURL() {
-        let path = window.location.pathname;
-        let mainViewTab = path.split('/')[1];
-
-        if (mainViewTab !== 'notes' && mainViewTab !== 'tags' && mainViewTab !== 'groups') {
-            mainViewTab = 'notes';
-            path = '/notes';
+    public navigate(mainView: MainView, id?: number) {
+        const navState = {
+            mainView,
+            id,
         }
 
-        const initialState = {
-            loggedIn: true,
-            path,
-            mainViewTab,
-        }
+        this.pushState(navState);
+    }
 
-        if (this.authService.isLoggedIn()) {
-            history.replaceState(initialState, '', path)
+    public historyPopped(state: NavigationState) {
+        console.log('history popped')
 
-            this.navigationEvents$$.next(initialState);
-        } else {
-            this.stateAfterLogin = initialState;
-
-            console.log(this.stateAfterLogin)
-
-            history.replaceState(notLoggedInState, '', '/login');
-            this.navigationEvents$$.next(notLoggedInState);
-        }
+        this.navigateToState(state);
     }
 }

@@ -35,11 +35,11 @@ export class LoggedInContainerView extends CompositeComponentBase {
 
         this.tabBar = new Tabs()
             .in(this.mainContainer)
-            .withTab('notes', 'Notes', '/notes')
-            .withTab('tags', 'Tags', '/tags')
-            .withTab('groups', 'Groups', '/groups')
+            .withTab('note', 'Notes', 'note')
+            .withTab('tag', 'Tags', 'tag')
+            .withTab('group', 'Groups', 'group')
             .selectionChange((t: Tab) => {
-                services.navService.navigate(t.metaData, t.tabName);
+                services.navService.navigate(t.metaData);
             })
 
         this.mainViewContainer = flexColumn()
@@ -51,20 +51,18 @@ export class LoggedInContainerView extends CompositeComponentBase {
         this.tabBar.renderTabs();
 
         this.onTeardown(unsubscribe(services.navService.navigationEvents$.subscribe((e) => {
-            if (e.loggedIn) {
-                this.tabBar.selectTab(e.mainViewTab);
-            }
+            this.tabBar.selectTab(e.state.mainView);
             this.renderMainView();
         })));
     }
 
     private renderMainView() {
         this.mainViewContainer.clear();
-        if (this.tabBar.selectedTab === 'tags') {
+        if (this.tabBar.selectedTab === 'tag') {
             new TagListView().in(this.mainViewContainer);
-        } else if (this.tabBar.selectedTab === 'groups') {
+        } else if (this.tabBar.selectedTab === 'group') {
             new GroupListView().in(this.mainViewContainer);
-        } else if (this.tabBar.selectedTab === 'notes') {
+        } else if (this.tabBar.selectedTab === 'note') {
             new NoteView().in(this.mainViewContainer);
         }
     }
