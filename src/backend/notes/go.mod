@@ -9,10 +9,10 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.6
-	github.com/sirupsen/logrus v1.9.0
 	github.com/sjohna/go-server-common v0.4.0
 	github.com/spf13/viper v1.13.0
 	golang.org/x/crypto v0.18.0
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	gopkg.in/guregu/null.v4 v4.0.0
 )
 

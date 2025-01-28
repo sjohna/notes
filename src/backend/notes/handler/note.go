@@ -10,10 +10,12 @@ import (
 	"notes/common"
 	"notes/repo"
 	"notes/service"
+	"strconv"
 )
 
 func (h *NoteHandler) ConfigureRoutes(base chi.Router) {
 	base.Post("/note", c.Handler(h.GetNotes))
+	base.Get("/note/{id}", c.Handler(h.GetSingleNote))
 	base.Post("/note/create", c.Handler(h.CreateNote))
 	base.Post("/note/total_by_date", c.Handler(h.GetTotalNotesOnDays))
 	base.Post("/note/update_tags", c.Handler(h.UpdateNoteTags))
@@ -61,6 +63,16 @@ func (h *NoteHandler) GetNotes(ctx context.Context, r *http.Request) (interface{
 	response.Parameters = body
 
 	return response, nil
+}
+
+func (h *NoteHandler) GetSingleNote(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return nil, errors.NewInput("Invalid id")
+	}
+
+	return h.Service.GetSingleDocument(ctx, int64(id))
 }
 
 func (h *NoteHandler) GetTotalNotesOnDays(ctx context.Context, r *http.Request) (interface{}, errors.Error) {

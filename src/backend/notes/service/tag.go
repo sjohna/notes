@@ -12,8 +12,8 @@ type TagService struct {
 	Repo *r.Repo
 }
 
-func (svc *TagService) CreateTag(context context.Context, name string, description null.String) (*repo.Tag, errors.Error) {
-	createdTag, err := repo.CreateTag(svc.Repo.NonTx(context), name, description)
+func (svc *TagService) CreateTag(ctx context.Context, name string, description null.String) (*repo.Tag, errors.Error) {
+	createdTag, err := repo.CreateTag(svc.Repo.NonTx(ctx), name, description)
 	if err != nil {
 		return nil, err
 	}
@@ -21,8 +21,8 @@ func (svc *TagService) CreateTag(context context.Context, name string, descripti
 	return createdTag, nil
 }
 
-func (svc *TagService) GetTags(context context.Context) ([]*repo.Tag, errors.Error) {
-	tags, err := repo.GetTags(svc.Repo.NonTx(context))
+func (svc *TagService) GetTags(ctx context.Context) ([]*repo.Tag, errors.Error) {
+	tags, err := repo.GetTags(svc.Repo.NonTx(ctx))
 	if err != nil {
 		return nil, err
 	}

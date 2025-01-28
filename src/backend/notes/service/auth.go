@@ -39,8 +39,8 @@ func (svc *AuthService) CreateUser(ctx context.Context, userName string, passwor
 	return nil
 }
 
-func (svc *AuthService) LogUserIn(context context.Context, userName string, password string) (string, errors.Error) {
-	dao := svc.Repo.NonTx(context)
+func (svc *AuthService) LogUserIn(ctx context.Context, userName string, password string) (string, errors.Error) {
+	dao := svc.Repo.NonTx(ctx)
 
 	user, err := repo.GetUserAuthInfoByUserName(dao, userName)
 	if err != nil {
@@ -70,8 +70,8 @@ func (svc *AuthService) LogUserIn(context context.Context, userName string, pass
 }
 
 // TODO: maybe cache this?
-func (svc *AuthService) ValidateSessionToken(context context.Context, providedToken string) (*repo.UserSession, errors.Error) {
-	dao := svc.Repo.NonTx(context)
+func (svc *AuthService) ValidateSessionToken(ctx context.Context, providedToken string) (*repo.UserSession, errors.Error) {
+	dao := svc.Repo.NonTx(ctx)
 
 	session, err := repo.GetActiveUserSessionByToken(dao, providedToken)
 	if err != nil {
@@ -85,8 +85,8 @@ func (svc *AuthService) ValidateSessionToken(context context.Context, providedTo
 	return session, nil
 }
 
-func (svc *AuthService) UserExists(context context.Context, userName string) (bool, errors.Error) {
-	dao := svc.Repo.NonTx(context)
+func (svc *AuthService) UserExists(ctx context.Context, userName string) (bool, errors.Error) {
+	dao := svc.Repo.NonTx(ctx)
 
 	authInfo, err := repo.GetUserAuthInfoByUserName(dao, userName)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// TODO: return updated time here
 type Document struct {
 	ID                    int64                `db:"id" json:"id"`
 	Type                  string               `db:"type" json:"type"`
@@ -25,6 +26,14 @@ type Document struct {
 type DocumentsOnDate struct {
 	Date  string `db:"date" json:"date"`
 	Count int    `db:"count" json:"count"`
+}
+
+type DocumentVersionSummary struct {
+	ID            int64     `db:"id" json:"id"`
+	Version       int64     `db:"version" json:"version"`
+	ContentLength int64     `db:"content_length" json:"contentLength"`
+	ContentType   string    `db:"content_type" json:"contentType"`
+	CreatedAt     time.Time `db:"created_at" json:"createdAt"`
 }
 
 const InternalAuthorID = 1
@@ -49,7 +58,7 @@ values ($1, $2, $3, 1)`
 		return nil, errors.WrapQueryError(err, "failed to insert document content", ContentSQL, createdDocumentID, content, "text")
 	}
 
-	createdDocument, err := GetDocument(tx, createdDocumentID)
+	createdDocument, err := GetDocumentByID(tx, createdDocumentID)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +73,7 @@ from document
 where document.type = 'quick_note'
 `
 
-func GetDocument(dao c.DAO, documentID int64) (*Document, errors.Error) {
+func GetDocumentByID(dao c.DAO, documentID int64) (*Document, errors.Error) {
 	// TODO: better handle getting a single document
 	documents, err := GetDocumentsByIDs(dao, []int64{documentID}, common.NoteQueryParameters{})
 	if err != nil {
@@ -303,4 +312,25 @@ func GetDocumentIDsMatchingFilter(dao c.DAO, parameters common.NoteQueryParamete
 	}
 
 	return documentIDs, nil
+}
+
+func GetDocumentVersionHistory(dao c.DAO, documentID int64) ([]DocumentVersionSummary, errors.Error) {
+	//language=SQL
+	SQL := `select document_content.id as id,
+       document_content.version as version,
+       document_content.created_at as created_at,
+       document_content.content_type as content_type,
+       length(document_content.content) as content_length
+from document_content
+join document on document_content.document_id = document.id
+where document.id = $1
+order by document_content.version asc`
+
+	var ret []DocumentVersionSummary
+	err := dao.Select(&ret, SQL, documentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }

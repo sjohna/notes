@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/sjohna/go-server-common/errors"
 	r "github.com/sjohna/go-server-common/repo"
+	"golang.org/x/sync/errgroup"
 	"notes/common"
 	"notes/repo"
 )
@@ -13,9 +14,9 @@ type NoteService struct {
 	Repo *r.Repo
 }
 
-func (svc *NoteService) CreateNote(context context.Context, content string) (*repo.Document, errors.Error) {
+func (svc *NoteService) CreateNote(ctx context.Context, content string) (*repo.Document, errors.Error) {
 	var createdNote *repo.Document
-	err := svc.Repo.SerializableTx(context, func(tx *r.TxDAO) errors.Error {
+	err := svc.Repo.SerializableTx(ctx, func(tx *r.TxDAO) errors.Error {
 		var err errors.Error
 		createdNote, err = repo.CreateDocument(tx, "quick_note", content)
 		if err != nil {
@@ -31,8 +32,8 @@ func (svc *NoteService) CreateNote(context context.Context, content string) (*re
 	return createdNote, nil
 }
 
-func (svc *NoteService) GetNotes(context context.Context, parameters common.NoteQueryParameters) ([]*repo.Document, errors.Error) {
-	quickNotes, err := repo.GetDocuments(svc.Repo.NonTx(context), parameters)
+func (svc *NoteService) GetNotes(ctx context.Context, parameters common.NoteQueryParameters) ([]*repo.Document, errors.Error) {
+	quickNotes, err := repo.GetDocuments(svc.Repo.NonTx(ctx), parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +41,8 @@ func (svc *NoteService) GetNotes(context context.Context, parameters common.Note
 	return quickNotes, nil
 }
 
-func (svc *NoteService) GetTotalNotesOnDays(context context.Context, parameters common.TotalNotesOnDaysQueryParameters) ([]*repo.DocumentsOnDate, errors.Error) {
-	quickNotesOnDates, err := repo.GetTotalDocumentsOnDates(svc.Repo.NonTx(context), parameters)
+func (svc *NoteService) GetTotalNotesOnDays(ctx context.Context, parameters common.TotalNotesOnDaysQueryParameters) ([]*repo.DocumentsOnDate, errors.Error) {
+	quickNotesOnDates, err := repo.GetTotalDocumentsOnDates(svc.Repo.NonTx(ctx), parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +50,8 @@ func (svc *NoteService) GetTotalNotesOnDays(context context.Context, parameters 
 	return quickNotesOnDates, nil
 }
 
-func (svc *NoteService) ApplyNoteTagUpdates(context context.Context, documentID int64, updates []common.DocumentTagUpdate) (*repo.Document, errors.Error) {
-	err := svc.Repo.SerializableTx(context, func(tx *r.TxDAO) errors.Error {
+func (svc *NoteService) ApplyNoteTagUpdates(ctx context.Context, documentID int64, updates []common.DocumentTagUpdate) (*repo.Document, errors.Error) {
+	err := svc.Repo.SerializableTx(ctx, func(tx *r.TxDAO) errors.Error {
 		for _, update := range updates {
 			if update.UpdateType == common.DocumentMetadataUpdateAdd {
 				err := repo.AddDocumentTag(tx, documentID, update.TagID)
@@ -74,7 +75,7 @@ func (svc *NoteService) ApplyNoteTagUpdates(context context.Context, documentID 
 		return nil, err
 	}
 
-	updatedNote, err := repo.GetDocument(svc.Repo.NonTx(context), documentID)
+	updatedNote, err := repo.GetDocumentByID(svc.Repo.NonTx(ctx), documentID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +83,8 @@ func (svc *NoteService) ApplyNoteTagUpdates(context context.Context, documentID 
 	return updatedNote, nil
 }
 
-func (svc *NoteService) ApplyNoteGroupUpdates(context context.Context, documentID int64, updates []common.DocumentGroupUpdate) (*repo.Document, errors.Error) {
-	err := svc.Repo.SerializableTx(context, func(tx *r.TxDAO) errors.Error {
+func (svc *NoteService) ApplyNoteGroupUpdates(ctx context.Context, documentID int64, updates []common.DocumentGroupUpdate) (*repo.Document, errors.Error) {
+	err := svc.Repo.SerializableTx(ctx, func(tx *r.TxDAO) errors.Error {
 		for _, update := range updates {
 			if update.UpdateType == common.DocumentMetadataUpdateAdd {
 				err := repo.AddDocumentToGroup(tx, documentID, update.DocumentGroupID)
@@ -107,10 +108,49 @@ func (svc *NoteService) ApplyNoteGroupUpdates(context context.Context, documentI
 		return nil, err
 	}
 
-	updatedNote, err := repo.GetDocument(svc.Repo.NonTx(context), documentID)
+	updatedNote, err := repo.GetDocumentByID(svc.Repo.NonTx(ctx), documentID)
 	if err != nil {
 		return nil, err
 	}
 
 	return updatedNote, nil
+}
+
+type DocumentDetails struct {
+	Document       repo.Document                 `json:"document"`
+	VersionHistory []repo.DocumentVersionSummary `json:"versionHistory"`
+}
+
+func (svc *NoteService) GetSingleDocument(ctx context.Context, documentID int64) (*DocumentDetails, errors.Error) {
+	eg := new(errgroup.Group)
+
+	var document *repo.Document
+	var versionHistory []repo.DocumentVersionSummary
+
+	dao := svc.Repo.NonTx(ctx)
+
+	eg.Go(func() error {
+		var err errors.Error
+		document, err = repo.GetDocumentByID(dao, documentID)
+		return err
+	})
+
+	eg.Go(func() error {
+		var err errors.Error
+		versionHistory, err = repo.GetDocumentVersionHistory(dao, documentID)
+		return err
+	})
+
+	if err := eg.Wait(); err != nil {
+		return nil, err.(errors.Error)
+	}
+
+	if document == nil {
+		return nil, nil
+	}
+
+	return &DocumentDetails{
+		*document,
+		versionHistory,
+	}, nil
 }
