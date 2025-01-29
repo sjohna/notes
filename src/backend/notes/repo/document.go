@@ -13,7 +13,11 @@ import (
 type Document struct {
 	ID                    int64                `db:"id" json:"id"`
 	Type                  string               `db:"type" json:"type"`
-	Content               string               `db:"content" json:"content"`
+	Content               string               `db:"content" json:"content"` // keeping content fields separate instead of using the Content struct to make retrieving data easier
+	ContentID             int64                `db:"content_id" json:"contentId"`
+	ContentType           string               `db:"content_type" json:"contentType"`
+	ContentVersion        int64                `db:"content_version" json:"contentVersion"`
+	ContentCreatedAt      time.Time            `db:"content_created_at" json:"contentCreatedAt"`
 	CreatedAt             time.Time            `db:"created_at" json:"createdAt"`
 	CreatedAtPrecision    string               `db:"created_at_precision" json:"createdAtPrecision"`
 	DocumentTime          time.Time            `db:"document_time" json:"documentTime"`
@@ -21,6 +25,15 @@ type Document struct {
 	InsertedAt            time.Time            `db:"inserted_at" json:"insertedAt"`
 	Tags                  *TagOnDocumentList   `db:"tags" json:"tags,omitempty"`
 	Groups                *GroupOnDocumentList `db:"groups" json:"groups,omitempty"`
+}
+
+type DocumentContent struct {
+	ID         int64     `db:"id" json:"id"`
+	DocumentID int64     `db:"document_id" json:"documentId"`
+	Type       string    `db:"type" json:"type"`
+	Content    string    `db:"content" json:"content"`
+	Version    int64     `db:"version" json:"version"`
+	CreatedAt  time.Time `db:"created_at" json:"createdAt"`
 }
 
 type DocumentsOnDate struct {
@@ -216,7 +229,11 @@ func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParame
 	// language=SQL
 	SQL := `select document.id,
        document.type,
-       latest_content_version.content,
+       latest_content_version.content as content,
+       latest_content_version.id as content_id,
+       latest_content_version.content_type as content_type,
+       latest_content_version.created_at as content_created_at,
+       latest_content_version.version as content_version,
        document.created_at,
        document.created_at_precision,
        document.document_time,
@@ -226,7 +243,11 @@ func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParame
        document_groups.groups as groups
 from document
          join lateral (
-    select document_content.content
+    select document_content.content,
+           document_content.id,
+           document_content.content_type,
+           document_content.created_at,
+           document_content.version
     from document_content
     where document_content.document_id = document.id
     order by version desc
@@ -333,4 +354,25 @@ order by document_content.version asc`
 	}
 
 	return ret, nil
+}
+
+func GetDocumentVersion(dao c.DAO, documentID int64, version int64) (*DocumentContent, errors.Error) {
+	//language=SQL
+	SQL := `select document_content.id,
+document.id as document_id,
+document_content.content_type as type,
+document_content.content,
+document_content.version,
+document_content.created_at
+from document_content
+join document on document.id = document_content.document_id
+where document_content.document_id = $1 and document_content.version = $2`
+
+	var ret DocumentContent
+	err := dao.Get(&ret, SQL, documentID, version)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
 }

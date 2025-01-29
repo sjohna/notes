@@ -7,6 +7,7 @@ export type MainView = 'login' | 'note' | 'tag' | 'group'
 export interface NavigationState {
     mainView: MainView;
     id?: number;
+    version?: number;
 }
 
 export interface NavigationEvent {
@@ -69,7 +70,7 @@ export class NavigationService {
     // TODO: why did this break all of the sudden?
     private stateAfterLogin: NavigationState = defaultState;
 
-    private initialized = false;
+    private readonly initialized: boolean = false;
 
     constructor(private authService: AuthService) {
         this.stateAfterLogin = navigationStateFromPath(window.location.pathname);
@@ -137,10 +138,11 @@ export class NavigationService {
         this.navigationEvents$$.next(event);
     }
 
-    public navigate(mainView: MainView, id?: number) {
+    public navigate(mainView: MainView, id?: number, version?: number) {
         const navState = {
             mainView,
             id,
+            version,
         }
 
         this.pushState(navState);

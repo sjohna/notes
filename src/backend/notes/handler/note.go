@@ -16,6 +16,7 @@ import (
 func (h *NoteHandler) ConfigureRoutes(base chi.Router) {
 	base.Post("/note", c.Handler(h.GetNotes))
 	base.Get("/note/{id}", c.Handler(h.GetSingleNote))
+	base.Get("/note/{documentId}/version/{versionId}", c.Handler(h.GetNoteVersion))
 	base.Post("/note/create", c.Handler(h.CreateNote))
 	base.Post("/note/total_by_date", c.Handler(h.GetTotalNotesOnDays))
 	base.Post("/note/update_tags", c.Handler(h.UpdateNoteTags))
@@ -73,6 +74,22 @@ func (h *NoteHandler) GetSingleNote(ctx context.Context, r *http.Request) (inter
 	}
 
 	return h.Service.GetSingleDocument(ctx, int64(id))
+}
+
+func (h *NoteHandler) GetNoteVersion(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
+	documentIDStr := chi.URLParam(r, "documentId")
+	documentID, err := strconv.Atoi(documentIDStr)
+	if err != nil {
+		return nil, errors.NewInput("Invalid document id")
+	}
+
+	versionIDStr := chi.URLParam(r, "versionId")
+	versionID, err := strconv.Atoi(versionIDStr)
+	if err != nil {
+		return nil, errors.NewInput("Invalid version id")
+	}
+
+	return h.Service.GetDocumentVersion(ctx, int64(documentID), int64(versionID))
 }
 
 func (h *NoteHandler) GetTotalNotesOnDays(ctx context.Context, r *http.Request) (interface{}, errors.Error) {

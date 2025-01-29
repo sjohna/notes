@@ -25,29 +25,68 @@ export class NoteView extends CompositeComponentBase {
         const navState = services.navService.currentState();
 
         if(navState.id) {
-            services.noteService.getNote(navState.id)
+            services.noteService.getNote(navState.id);
 
-            this.renderSingleNote();
+            this.renderSingleNote(navState.version);
         } else {
             this.renderNoteList()
         }
     }
 
-    private renderSingleNote() {
+    private renderSingleNote(version: number) {
         this.onTeardown(unsubscribe(
             services.noteService.currentNote$.subscribe(    // TODO: simple filter for not null for all subscriptions like this
                 (note) => {
-                    console.log('single note got')
                     if (note) {
+                        console.log('Rendering note', note)
+                        let selectedVersion = version || note.versionHistory.length
+
                         // TODO: maybe another component for this?
                         this.noteContainer = flexColumn()
-                            .withChildren([
-                                div('Created at ' + note.document.createdAt),
-                                div('Updated at ' + '<gotta implement this>'),
-                                div('Version ' + note.versionHistory.length),   // TODO: actually display the latest version
-                                new NoteCardView(note.document),
-                            ])
                             .in(this.root)
+
+                        div('Created at ' + note.document.createdAt).in(this.noteContainer)
+                        div('Updated at ' + '<gotta implement this>').in(this.noteContainer)
+                        div('Current Version: ' + note.versionHistory.length).in(this.noteContainer)
+
+                        if (version) {
+                            div('Back to latest version')
+                                .onclick(() => {
+                                    services.navService.navigate('note', note.document.id, null)
+                                })
+                        }
+
+                        for (const version of note.versionHistory) {
+                            const versionDiv = div(version.createdAt + ': ' + version.contentLength + ' bytes')
+                            if(version.version === selectedVersion) {
+                                versionDiv.background('gray')
+                            } else {
+                                versionDiv.onclick(() => {
+                                    services.navService.navigate('note', note.document.id, version.version)
+                                })
+                                    .cursor('pointer')
+                            }
+
+                            versionDiv.in(this.noteContainer)
+                        }
+
+                        if (!version) {
+                            new NoteCardView(note.document).in(this.noteContainer)
+                        } else {
+                            // TODO: state management
+                            services.noteService.getNoteVersion(note.document.id, version)
+
+                            this.onTeardown(unsubscribe(services.noteService.currentNoteVersion$.subscribe(
+                                (version) => {
+                                    if (version) {
+                                        div('Version ' + version.version + ' created at ' + version.createdAt).in(this.noteContainer)
+                                        div(version.content)
+                                            .width('300px')
+                                            .in(this.noteContainer)
+                                    }
+                                }
+                            )))
+                        }
                     }
                 }
             )

@@ -33,21 +33,11 @@ func (svc *NoteService) CreateNote(ctx context.Context, content string) (*repo.D
 }
 
 func (svc *NoteService) GetNotes(ctx context.Context, parameters common.NoteQueryParameters) ([]*repo.Document, errors.Error) {
-	quickNotes, err := repo.GetDocuments(svc.Repo.NonTx(ctx), parameters)
-	if err != nil {
-		return nil, err
-	}
-
-	return quickNotes, nil
+	return repo.GetDocuments(svc.Repo.NonTx(ctx), parameters)
 }
 
 func (svc *NoteService) GetTotalNotesOnDays(ctx context.Context, parameters common.TotalNotesOnDaysQueryParameters) ([]*repo.DocumentsOnDate, errors.Error) {
-	quickNotesOnDates, err := repo.GetTotalDocumentsOnDates(svc.Repo.NonTx(ctx), parameters)
-	if err != nil {
-		return nil, err
-	}
-
-	return quickNotesOnDates, nil
+	return repo.GetTotalDocumentsOnDates(svc.Repo.NonTx(ctx), parameters)
 }
 
 func (svc *NoteService) ApplyNoteTagUpdates(ctx context.Context, documentID int64, updates []common.DocumentTagUpdate) (*repo.Document, errors.Error) {
@@ -153,4 +143,8 @@ func (svc *NoteService) GetSingleDocument(ctx context.Context, documentID int64)
 		*document,
 		versionHistory,
 	}, nil
+}
+
+func (svc *NoteService) GetDocumentVersion(ctx context.Context, documentID int64, version int64) (*repo.DocumentContent, errors.Error) {
+	return repo.GetDocumentVersion(svc.Repo.NonTx(ctx), documentID, version)
 }

@@ -71,6 +71,15 @@ interface NoteDetails {
     versionHistory: DocumentVersionSummary[];
 }
 
+interface NoteContent {
+    id: number;
+    documentId: number;
+    type: string;
+    content: string;
+    version: number;
+    createdAt: string;
+}
+
 export class NoteService {
     private close$$ = new Subject<boolean>();
 
@@ -79,6 +88,9 @@ export class NoteService {
 
     private currentNote$$ = new BehaviorSubject<NoteDetails>(null);
     public currentNote$: Observable<NoteDetails> = this.currentNote$$.pipe(takeUntil(this.close$$), shareReplay(1));
+
+    private currentNoteVersion$$ = new BehaviorSubject<NoteContent>(null);
+    public currentNoteVersion$: Observable<NoteContent> = this.currentNoteVersion$$.pipe(takeUntil(this.close$$), shareReplay(1));
 
     private parameters$: Observable<NoteQueryParameters>;
 
@@ -110,6 +122,16 @@ export class NoteService {
         this.authService.get(`${environment.apiUrl}/note/${id}`)
             .then(async (response) => {
                 this.currentNote$$.next((await response.json() as NoteDetails))
+            })
+            .catch(err => console.log(err))
+    }
+
+    public async getNoteVersion(noteID: number, version: number) {
+        this.currentNoteVersion$$.next(null);
+
+        this.authService.get(`${environment.apiUrl}/note/${noteID}/version/${version}`)
+            .then(async (response) => {
+                this.currentNoteVersion$$.next((await response.json() as NoteContent))
             })
             .catch(err => console.log(err))
     }
