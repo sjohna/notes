@@ -28,6 +28,10 @@ export function pathFromNavigationState(state: NavigationState): string {
     let path = '/' + state.mainView;
     if (state.id) {
         path += '/' + state.id;
+
+        if (state.mainView === 'note' && state.version) {
+            path += '/' + state.version;
+        }
     }
 
     return path;
@@ -49,17 +53,23 @@ export function navigationStateFromPath(path: string): NavigationState {
     }
 
     let id: number | null = null;
+    let version: number | null = null;
 
     if (pathTokens.length > 2) {
         id = Number(pathTokens[2]);
         if (id <= 0) {
             id = null;
         }
+
+        if (mainView === 'note' && pathTokens.length > 3) {
+            version = Number(pathTokens[3]);
+        }
     }
 
     return {
         mainView,
-        id
+        id,
+        version
     }
 }
 
