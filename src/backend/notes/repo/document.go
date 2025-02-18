@@ -5,6 +5,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/sjohna/go-server-common/errors"
 	c "github.com/sjohna/go-server-common/repo"
+	"golang.org/x/sync/errgroup"
 	"notes/common"
 	"time"
 )
@@ -13,11 +14,7 @@ import (
 type Document struct {
 	ID                    int64                `db:"id" json:"id"`
 	Type                  string               `db:"type" json:"type"`
-	Content               string               `db:"content" json:"content"` // keeping content fields separate instead of using the Content struct to make retrieving data easier
-	ContentID             int64                `db:"content_id" json:"contentId"`
-	ContentType           string               `db:"content_type" json:"contentType"`
-	ContentVersion        int64                `db:"content_version" json:"contentVersion"`
-	ContentCreatedAt      time.Time            `db:"content_created_at" json:"contentCreatedAt"`
+	LatestVersion         *DocumentContent     `db:"latest_version" json:"latestVersion"`
 	CreatedAt             time.Time            `db:"created_at" json:"createdAt"`
 	CreatedAtPrecision    string               `db:"created_at_precision" json:"createdAtPrecision"`
 	DocumentTime          time.Time            `db:"document_time" json:"documentTime"`
@@ -226,14 +223,46 @@ func GetTotalDocumentsOnDates(dao c.DAO, parameters common.TotalNotesOnDaysQuery
 // parameters only for sorting for now
 // TODO: handle sort parameters better
 func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParameters) ([]*Document, errors.Error) {
+	var documents []*Document
+	contentMap := make(map[int64]*DocumentContent)
+
+	eg := new(errgroup.Group)
+
+	eg.Go(func() error {
+		var err errors.Error
+		documents, err = getDocumentStructsByIDs(dao, ids, parameters)
+		return err
+	})
+
+	eg.Go(func() error {
+		content, err := GetLatestVersionsOfDocuments(dao, ids)
+		if err != nil {
+			return err
+		}
+
+		for _, dc := range content {
+			contentMap[dc.DocumentID] = dc
+		}
+
+		return nil
+	})
+
+	err := eg.Wait()
+	if err != nil {
+		return nil, err.(errors.Error)
+	}
+
+	for _, document := range documents {
+		document.LatestVersion = contentMap[document.ID]
+	}
+
+	return documents, nil
+}
+
+func getDocumentStructsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParameters) ([]*Document, errors.Error) {
 	// language=SQL
 	SQL := `select document.id,
        document.type,
-       latest_content_version.content as content,
-       latest_content_version.id as content_id,
-       latest_content_version.content_type as content_type,
-       latest_content_version.created_at as content_created_at,
-       latest_content_version.version as content_version,
        document.created_at,
        document.created_at_precision,
        document.document_time,
@@ -242,17 +271,6 @@ func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParame
        document_tags.tags as tags,
        document_groups.groups as groups
 from document
-         join lateral (
-    select document_content.content,
-           document_content.id,
-           document_content.content_type,
-           document_content.created_at,
-           document_content.version
-    from document_content
-    where document_content.document_id = document.id
-    order by version desc
-    limit 1
-    ) latest_content_version on true
          join lateral (
     select jsonb_agg(json_build_object('id', tag.id, 'name', tag.name)) as tags
     from document_tag
@@ -285,16 +303,20 @@ where document.id = any ($1)
 }
 
 func getQueryAndArgs(parameters common.NoteQueryParameters) (string, []interface{}) {
+	// TODO: see if there's a better way to build up this query
+	// TODO: probably should use exists subqueries to see if document has tag/group, instead of select distinct ... join
 	// language=SQL
 	SQL := `select distinct document.id
 from document
-         left join document_tag on document.id = document_tag.document_id
+         left join document_tag on document.id = document_tag.document_id and document_tag.archived_at is null
+		 left join document_group on document_group.document_group_id = document.id and document_group.archived_at is null
 where document.document_time between coalesce($1, '-infinity'::timestamptz) and coalesce($2, 'infinity'::timestamptz) -- TODO: handle querying based on other timestamps
   and ($3 is false or document_tag.tag_id = any ($4))
+  and ($7 is false or document_group.document_group_id = any ($8))
 except
 select distinct document.id
 from document
-         left join document_tag on document.id = document_tag.document_id
+         left join document_tag on document.id = document_tag.document_id and document_tag.archived_at is null
 where document.document_time between coalesce($1, '-infinity'::timestamptz) and coalesce($2, 'infinity'::timestamptz) -- TODO: handle querying based on other timestamps
   and ($5 is true and document_tag.tag_id = any ($6))`
 
@@ -318,6 +340,8 @@ where document.document_time between coalesce($1, '-infinity'::timestamptz) and 
 		pq.Array(includeTags),
 		len(excludeTags) > 0,
 		pq.Array(excludeTags),
+		len(parameters.Groups) > 0,
+		pq.Array(parameters.Groups),
 	}
 
 	return SQL, args
@@ -375,4 +399,27 @@ where document_content.document_id = $1 and document_content.version = $2`
 	}
 
 	return &ret, nil
+}
+
+func GetLatestVersionsOfDocuments(dao c.DAO, documentIDs []int64) ([]*DocumentContent, errors.Error) {
+	//language=SQL
+	SQL := `select distinct on (document.id, document_content.version)
+document_content.id,
+document.id as document_id,
+document_content.content_type as type,
+document_content.content,
+document_content.version,
+document_content.created_at
+from document_content
+join document on document.id = document_content.document_id
+where document_content.document_id = any($1)
+order by document.id, document_content.version desc`
+
+	var ret []*DocumentContent
+	err := dao.Select(&ret, SQL, pq.Array(documentIDs))
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }

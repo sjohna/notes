@@ -7,7 +7,7 @@ import {Group} from "./groupService";
 import {AuthService} from "./authService";
 
 export interface Document {
-    content: string;
+    latestVersion: NoteContent;
     createdAt: string;
     createdAtPrecision: string;
     documentTime: string;

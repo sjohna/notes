@@ -9,11 +9,13 @@ import (
 	"gopkg.in/guregu/null.v4"
 	"net/http"
 	"notes/service"
+	"strconv"
 )
 
 func (h *TagHandler) ConfigureRoutes(base chi.Router) {
 	base.Post("/tag/create", c.Handler(h.CreateTag))
 	base.Post("/tag", c.Handler(h.GetTags))
+	base.Get("/tag/{id}", c.Handler(h.GetSingleTag))
 }
 
 type TagHandler struct {
@@ -47,4 +49,14 @@ func (h *TagHandler) GetTags(ctx context.Context, r *http.Request) (interface{},
 	log.General.WithField("count", len(tags)).Debug("Got tags")
 
 	return tags, nil
+}
+
+func (h *TagHandler) GetSingleTag(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return nil, errors.NewInput("Invalid id")
+	}
+
+	return h.Service.GetSingleTag(ctx, int64(id))
 }

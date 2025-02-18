@@ -42,6 +42,9 @@ func (r *TagOnDocumentList) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), r)
 }
 
+// TODO: add additional details to TagDetail: last document added, last document removed
+type TagDetail Tag
+
 func CreateTag(dao c.DAO, name string, description null.String) (*Tag, errors.Error) {
 	// language=SQL
 	SQL := `insert into tag(name, description)
@@ -122,4 +125,33 @@ where document_tag.document_id = $1
 	}
 
 	return nil
+}
+
+func GetTagDetail(dao c.DAO, tagID int64) (*TagDetail, errors.Error) {
+	// TODO: combine with get tags function, like I did with documents
+	// language=SQL
+	SQL := `select tag.id,
+       tag.name,
+       tag.description,
+       tag.inserted_at,
+       tag.archived_at,
+       dt.count as document_count
+from tag
+         left join lateral (
+    select count(document_id) as count
+    from document_tag
+    where tag_id = tag.id
+      and archived_at is null
+    ) dt on true
+where tag.archived_at is null
+  and tag.id = $1
+`
+
+	var tagDetail TagDetail
+	err := dao.Get(&tagDetail, SQL, tagID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tagDetail, nil
 }

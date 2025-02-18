@@ -72,7 +72,7 @@ export class NoteCardView extends CompositeComponentBase {
             .borderRadius('10px')
             .withChildren([
                 timeAndTags,
-                div(this.note.content)
+                div(this.note.latestVersion.content)
             ])
             // TODO: drop helper
             .ondragenter(() => this.dragEnter())

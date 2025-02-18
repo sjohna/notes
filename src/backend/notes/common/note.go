@@ -7,10 +7,12 @@ type TagQueryParameter struct {
 	Exclude bool  `json:"exclude"`
 }
 
+// groups are include-only for now
 type NoteQueryParameters struct {
 	StartTime     null.Time           `json:"startTime,omitempty"`
 	EndTime       null.Time           `json:"endTime,omitempty"`
 	Tags          []TagQueryParameter `json:"tags,omitempty"`
+	Groups        []int64             `json:"groups,omitempty"`
 	SortBy        null.String         `json:"sortBy,omitempty"`
 	SortDirection null.String         `json:"sortDirection,omitempty"`
 }
