@@ -8,6 +8,7 @@ import {Document} from "../../../service/noteService";
 import {services} from "../../../service/services";
 import {Group} from "../../../service/groupService";
 import {CompositeComponentBase, div, Div, flexRow} from "../../../utility/component";
+import {drop} from "../../../utility/drop";
 
 export class NoteCardView extends CompositeComponentBase {
     private card: Div;
@@ -74,34 +75,14 @@ export class NoteCardView extends CompositeComponentBase {
                 timeAndTags,
                 div(this.note.latestVersion.content)
             ])
-            // TODO: drop helper
-            .ondragenter(() => this.dragEnter())
-            .ondragleave(() => this.dragLeave())
-            .ondrop(() => this.dropEvent())
-            .ondragover((ev) => ev.preventDefault());
+            .drop(drop()
+                .target(() => this.card.background('gray'))
+                .reset(() => this.card.background('lightgray'))
+                .drop(() => this.dropEvent()))
     }
 
-    private setCardBackground() {
-        if (this.dragCounter > 0) {
-            this.card.background('gray');
-        } else {
-            this.card.background('lightgray');
-        }
-    }
-
-    private dragEnter() {
-        this.dragCounter += 1;
-        this.setCardBackground();
-    }
-
-    private dragLeave() {
-        this.dragCounter -= 1;
-        this.setCardBackground();
-    }
 
     private dropEvent() {
-        this.dragCounter = 0;
-        this.setCardBackground();
 
         const dragData = getDragData();
 
