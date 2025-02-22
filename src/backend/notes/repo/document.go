@@ -48,7 +48,8 @@ type DocumentVersionSummary struct {
 
 const InternalAuthorID = 1
 
-func CreateDocument(tx *c.TxDAO, documentType string, content string) (*Document, errors.Error) {
+// CreateDocument returns ID of created document
+func CreateDocument(tx *c.TxDAO, documentType string, content string) (int64, errors.Error) {
 	// language=SQL
 	DocumentSQL := `insert into document (type, author_id)
 values ($1, $2)
@@ -57,7 +58,7 @@ returning id`
 	var createdDocumentID int64
 	err := tx.Get(&createdDocumentID, DocumentSQL, documentType, InternalAuthorID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	// language=SQL
@@ -65,15 +66,10 @@ returning id`
 values ($1, $2, $3, 1)`
 	_, err = tx.Exec(ContentSQL, createdDocumentID, content, "text")
 	if err != nil {
-		return nil, errors.WrapQueryError(err, "failed to insert document content", ContentSQL, createdDocumentID, content, "text")
+		return 0, errors.WrapQueryError(err, "failed to insert document content", ContentSQL, createdDocumentID, content, "text")
 	}
 
-	createdDocument, err := GetDocumentByID(tx, createdDocumentID)
-	if err != nil {
-		return nil, err
-	}
-
-	return createdDocument, nil
+	return createdDocumentID, nil
 }
 
 // language=SQL
@@ -91,7 +87,6 @@ func GetDocumentByID(dao c.DAO, documentID int64) (*Document, errors.Error) {
 	}
 
 	if len(documents) == 0 {
-		// TODO: errors.NewFormat
 		err = errors.New(fmt.Sprintf("No document found with id %d", documentID))
 		return nil, err
 	}
@@ -181,43 +176,6 @@ func GetDocuments(dao c.DAO, parameters common.NoteQueryParameters) ([]*Document
 	}
 
 	return quickNotes, nil
-}
-
-func totalDocumentsOnDatesQuery(parameters common.TotalNotesOnDaysQueryParameters) (string, []interface{}) {
-	args := make([]interface{}, 0)
-
-	// language=SQL
-	query := `select to_char(document.document_time::date, 'YYYY-MM-DD') as date,
-       count(*)
-from document`
-
-	if parameters.StartDate.Valid && parameters.EndDate.Valid {
-		query += " where document.document_time::date between $1 and $2"
-		args = append(args, parameters.StartDate.String, parameters.EndDate.String)
-	} else if parameters.StartDate.Valid {
-		query += " where document.document_time::date >= $1"
-		args = append(args, parameters.StartDate.String)
-	} else if parameters.EndDate.Valid {
-		query += " where document.document_time::date <= $1"
-		args = append(args, parameters.EndDate.String)
-	}
-
-	query += " group by date order by date asc"
-
-	return query, args
-}
-
-// TODO: make this take more generic filter criteria (tags, authors, sources, etc.)
-func GetTotalDocumentsOnDates(dao c.DAO, parameters common.TotalNotesOnDaysQueryParameters) ([]*DocumentsOnDate, errors.Error) {
-	SQL, args := totalDocumentsOnDatesQuery(parameters)
-
-	documentsOnDates := make([]*DocumentsOnDate, 0)
-	err := dao.Select(&documentsOnDates, SQL, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return documentsOnDates, nil
 }
 
 // parameters only for sorting for now

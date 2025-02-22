@@ -18,7 +18,6 @@ func (h *NoteHandler) ConfigureRoutes(base chi.Router) {
 	base.Get("/note/{id}", c.Handler(h.GetSingleNote))
 	base.Get("/note/{documentId}/version/{versionId}", c.Handler(h.GetNoteVersion))
 	base.Post("/note/create", c.Handler(h.CreateNote))
-	base.Post("/note/total_by_date", c.Handler(h.GetTotalNotesOnDays))
 	base.Post("/note/update_tags", c.Handler(h.UpdateNoteTags))
 	base.Post("/note/update_groups", c.Handler(h.UpdateNoteGroups))
 }
@@ -90,20 +89,6 @@ func (h *NoteHandler) GetNoteVersion(ctx context.Context, r *http.Request) (inte
 	}
 
 	return h.Service.GetDocumentVersion(ctx, int64(documentID), int64(versionID))
-}
-
-func (h *NoteHandler) GetTotalNotesOnDays(ctx context.Context, r *http.Request) (interface{}, errors.Error) {
-	var body common.TotalNotesOnDaysQueryParameters
-	if err := c.UnmarshalRequestBody(ctx, r, &body); err != nil {
-		return nil, err
-	}
-
-	totalNotesOnDays, err := h.Service.GetTotalNotesOnDays(r.Context(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	return totalNotesOnDays, nil
 }
 
 func (h *NoteHandler) UpdateNoteTags(ctx context.Context, r *http.Request) (interface{}, errors.Error) {

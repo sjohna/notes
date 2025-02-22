@@ -15,10 +15,10 @@ type NoteService struct {
 }
 
 func (svc *NoteService) CreateNote(ctx context.Context, content string) (*repo.Document, errors.Error) {
-	var createdNote *repo.Document
+	var createdNoteID int64
 	err := svc.Repo.SerializableTx(ctx, func(tx *r.TxDAO) errors.Error {
 		var err errors.Error
-		createdNote, err = repo.CreateDocument(tx, "quick_note", content)
+		createdNoteID, err = repo.CreateDocument(tx, "quick_note", content)
 		if err != nil {
 			return err
 		}
@@ -29,15 +29,13 @@ func (svc *NoteService) CreateNote(ctx context.Context, content string) (*repo.D
 		return nil, err
 	}
 
+	createdNote, err := repo.GetDocumentByID(svc.Repo.NonTx(ctx), createdNoteID)
+
 	return createdNote, nil
 }
 
 func (svc *NoteService) GetNotes(ctx context.Context, parameters common.NoteQueryParameters) ([]*repo.Document, errors.Error) {
 	return repo.GetDocuments(svc.Repo.NonTx(ctx), parameters)
-}
-
-func (svc *NoteService) GetTotalNotesOnDays(ctx context.Context, parameters common.TotalNotesOnDaysQueryParameters) ([]*repo.DocumentsOnDate, errors.Error) {
-	return repo.GetTotalDocumentsOnDates(svc.Repo.NonTx(ctx), parameters)
 }
 
 func (svc *NoteService) ApplyNoteTagUpdates(ctx context.Context, documentID int64, updates []common.DocumentTagUpdate) (*repo.Document, errors.Error) {
