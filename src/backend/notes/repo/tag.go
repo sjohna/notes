@@ -42,22 +42,20 @@ func (r *TagOnDocumentList) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), r)
 }
 
-// TODO: add additional details to TagDetail: last document added, last document removed
-type TagDetail Tag
-
-func CreateTag(dao c.DAO, name string, description null.String) (*Tag, errors.Error) {
+// CreateTag returns the ID of the created tag
+func CreateTag(dao c.DAO, name string, description null.String) (int64, errors.Error) {
 	// language=SQL
 	SQL := `insert into tag(name, description)
 values ($1, $2)
-returning *`
+returning tag.id`
 
-	var createdTag Tag
-	err := dao.Get(&createdTag, SQL, name, description)
+	var createdTagID int64
+	err := dao.Get(&createdTagID, SQL, name, description)
 	if err != nil {
-		return nil, errors.Wrap(err, "error running create tag query")
+		return 0, errors.Wrap(err, "error running create tag query")
 	}
 
-	return &createdTag, nil
+	return createdTagID, nil
 }
 
 func GetTags(dao c.DAO) ([]*Tag, errors.Error) {
@@ -127,7 +125,7 @@ where document_tag.document_id = $1
 	return nil
 }
 
-func GetTagDetail(dao c.DAO, tagID int64) (*TagDetail, errors.Error) {
+func GetTagDetail(dao c.DAO, tagID int64) (*Tag, errors.Error) {
 	// TODO: combine with get tags function, like I did with documents
 	// language=SQL
 	SQL := `select tag.id,
@@ -147,7 +145,7 @@ where tag.archived_at is null
   and tag.id = $1
 `
 
-	var tagDetail TagDetail
+	var tagDetail Tag
 	err := dao.Get(&tagDetail, SQL, tagID)
 	if err != nil {
 		return nil, err

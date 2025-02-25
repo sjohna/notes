@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-// TODO: return updated time here
 type Document struct {
 	ID                    int64                `db:"id" json:"id"`
 	Type                  string               `db:"type" json:"type"`
@@ -72,15 +71,7 @@ values ($1, $2, $3, 1)`
 	return createdDocumentID, nil
 }
 
-// language=SQL
-var noteFilterQueryBase string = `
-select document.id
-from document
-where document.type = 'quick_note'
-`
-
 func GetDocumentByID(dao c.DAO, documentID int64) (*Document, errors.Error) {
-	// TODO: better handle getting a single document
 	documents, err := GetDocumentsByIDs(dao, []int64{documentID}, common.NoteQueryParameters{})
 	if err != nil {
 		return nil, err
@@ -97,26 +88,6 @@ func GetDocumentByID(dao c.DAO, documentID int64) (*Document, errors.Error) {
 	}
 
 	return documents[0], nil
-}
-
-func appendQueryParameters(query string, parameters common.NoteQueryParameters) (string, []interface{}, errors.Error) {
-	basicQuery := query
-
-	args := make([]interface{}, 0)
-
-	// TODO: make this more general. Right now, it assumes there's already a where clause, so adds everything with and
-	if parameters.StartTime.Valid && parameters.EndTime.Valid {
-		basicQuery += " and document.document_time between $1 and $2"
-		args = append(args, parameters.StartTime.Time, parameters.EndTime.Time)
-	} else if parameters.StartTime.Valid {
-		basicQuery += " and document.document_time >= $1"
-		args = append(args, parameters.StartTime.Time)
-	} else if parameters.EndTime.Valid {
-		basicQuery += " and document.document_time <= $1"
-		args = append(args, parameters.EndTime.Time)
-	}
-
-	return basicQuery, args, nil
 }
 
 var allowedSortColumns = []string{

@@ -14,7 +14,12 @@ type GroupService struct {
 }
 
 func (svc *GroupService) CreateGroup(ctx context.Context, name string, description null.String) (*repo.Group, errors.Error) {
-	createdGroup, err := repo.CreateGroup(svc.Repo.NonTx(ctx), name, description)
+	createdGroupID, err := repo.CreateGroup(svc.Repo.NonTx(ctx), name, description)
+	if err != nil {
+		return nil, err
+	}
+
+	createdGroup, err := repo.GetGroupByID(svc.Repo.NonTx(ctx), createdGroupID)
 	if err != nil {
 		return nil, err
 	}

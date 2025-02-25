@@ -40,19 +40,47 @@ func (r *GroupOnDocumentList) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), r)
 }
 
-func CreateGroup(dao c.DAO, name string, description null.String) (*Group, errors.Error) {
+// CreateGroup returns ID of created group
+func CreateGroup(dao c.DAO, name string, description null.String) (int64, errors.Error) {
 	// language=SQL
 	SQL := `insert into "group" (name, description)
 values ($1, $2)
-returning *`
+returning "group".id`
 
-	var createdDocumentGroup Group
-	err := dao.Get(&createdDocumentGroup, SQL, name, description)
+	var createdGroupID int64
+	err := dao.Get(&createdGroupID, SQL, name, description)
+	if err != nil {
+		return 0, err
+	}
+
+	return createdGroupID, nil
+}
+
+func GetGroupByID(dao c.DAO, id int64) (*Group, errors.Error) {
+	// language=SQL
+	SQL := `select "group".id,
+       "group".name,
+       "group".description,
+       "group".inserted_at,
+       "group".archived_at,
+       dg.count as document_count
+from "group"
+         join lateral (
+    select count(*) as count
+    from document_group dg
+    where dg.document_group_id = "group".id
+      and dg.archived_at is null
+    ) as dg on true
+where "group".archived_at is null
+  and "group".id = $1`
+
+	var ret Group
+	err := dao.Get(&ret, SQL, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &createdDocumentGroup, nil
+	return &ret, nil
 }
 
 func GetGroups(dao c.DAO) ([]*Group, errors.Error) {

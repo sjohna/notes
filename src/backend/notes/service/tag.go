@@ -15,15 +15,17 @@ type TagService struct {
 }
 
 type TagDetail struct {
-	Tag       *repo.TagDetail  `json:"tag"`
+	Tag       *repo.Tag        `json:"tag"`
 	Documents []*repo.Document `json:"documents"`
 }
 
 func (svc *TagService) CreateTag(ctx context.Context, name string, description null.String) (*repo.Tag, errors.Error) {
-	createdTag, err := repo.CreateTag(svc.Repo.NonTx(ctx), name, description)
+	createdTagID, err := repo.CreateTag(svc.Repo.NonTx(ctx), name, description)
 	if err != nil {
 		return nil, err
 	}
+
+	createdTag, err := repo.GetTagDetail(svc.Repo.NonTx(ctx), createdTagID)
 
 	return createdTag, nil
 }
@@ -40,7 +42,7 @@ func (svc *TagService) GetTags(ctx context.Context) ([]*repo.Tag, errors.Error) 
 func (svc *TagService) GetSingleTag(ctx context.Context, tagID int64) (*TagDetail, errors.Error) {
 	eg := new(errgroup.Group)
 
-	var tag *repo.TagDetail
+	var tag *repo.Tag
 	var documents []*repo.Document
 
 	dao := svc.Repo.NonTx(ctx)
