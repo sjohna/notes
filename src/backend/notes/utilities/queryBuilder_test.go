@@ -330,4 +330,27 @@ func TestQueryPart_ComplexQueries(t *testing.T) {
 			t.Errorf("Expected args %v, got %v", expectedArgs, args)
 		}
 	})
+
+	t.Run("Test2", func(t *testing.T) {
+		query := BaseQuery("select document.created_at > $? from document", 7).
+			Join("author on document.author_id = author.id and author.created_at between $? and $?", 1, 2).
+			LeftJoin("document_tag on document.id = document_tag.id").
+			Join("some_table on document.col = some_table.col and some_table.col2 = $?", 17).
+			OrderBy("author.id", SortDescending).
+			OrderBy("document.created_at")
+
+		sql, args, err := query.ToSQL()
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if sql != "select document.created_at > $1 from document join author on document.author_id = author.id and author.created_at between $2 and $3 left join document_tag on document.id = document_tag.id join some_table on document.col = some_table.col and some_table.col2 = $4 order by author.id desc, document.created_at" {
+			t.Errorf("Unexpected SQL: %s", sql)
+		}
+
+		expectedArgs := []interface{}{7, 1, 2, 17}
+		if !reflect.DeepEqual(args, expectedArgs) {
+			t.Errorf("Expected args %v, got %v", expectedArgs, args)
+		}
+	})
 }

@@ -2,14 +2,15 @@ package utilities
 
 import (
 	"fmt"
+	"github.com/sjohna/go-server-common/errors"
 	"strings"
 )
 
-type QueryPart struct {
+type QueryBuilder struct {
 	base           string
 	args           []interface{}
 	joins          []Join
-	whereClauses   []QueryPart
+	whereClauses   []QueryBuilder
 	orderByClauses []OrderBy
 	limit          *int
 	offset         *int
@@ -17,7 +18,7 @@ type QueryPart struct {
 
 type Join struct {
 	left  bool
-	query QueryPart
+	query QueryBuilder
 }
 
 type SortDirection string
@@ -32,12 +33,12 @@ type OrderBy struct {
 	direction  *SortDirection
 }
 
-func BaseQuery(base string, args ...interface{}) *QueryPart {
-	return &QueryPart{base: base, args: args}
+func BaseQuery(base string, args ...interface{}) *QueryBuilder {
+	return &QueryBuilder{base: base, args: args}
 }
 
-func (q *QueryPart) Where(subquery string, args ...interface{}) *QueryPart {
-	q.whereClauses = append(q.whereClauses, QueryPart{
+func (q *QueryBuilder) Where(subquery string, args ...interface{}) *QueryBuilder {
+	q.whereClauses = append(q.whereClauses, QueryBuilder{
 		base: subquery,
 		args: args,
 	})
@@ -45,26 +46,26 @@ func (q *QueryPart) Where(subquery string, args ...interface{}) *QueryPart {
 	return q
 }
 
-func (q *QueryPart) Join(subquery string, args ...interface{}) *QueryPart {
+func (q *QueryBuilder) Join(subquery string, args ...interface{}) *QueryBuilder {
 	q.joins = append(q.joins, Join{
 		left:  false,
-		query: QueryPart{base: subquery, args: args},
+		query: QueryBuilder{base: subquery, args: args},
 	})
 
 	return q
 }
 
-func (q *QueryPart) LeftJoin(subquery string, args ...interface{}) *QueryPart {
+func (q *QueryBuilder) LeftJoin(subquery string, args ...interface{}) *QueryBuilder {
 	q.joins = append(q.joins, Join{
 		left:  true,
-		query: QueryPart{base: subquery, args: args},
+		query: QueryBuilder{base: subquery, args: args},
 	})
 
 	return q
 }
 
 // kind of a janky way to overload a function
-func (q *QueryPart) OrderBy(expression string, direction ...SortDirection) *QueryPart {
+func (q *QueryBuilder) OrderBy(expression string, direction ...SortDirection) *QueryBuilder {
 	var sortDirection *SortDirection
 	if len(direction) > 0 {
 		sortDirection = &direction[0]
@@ -77,23 +78,23 @@ func (q *QueryPart) OrderBy(expression string, direction ...SortDirection) *Quer
 	return q
 }
 
-func (q *QueryPart) Limit(limit int) *QueryPart {
+func (q *QueryBuilder) Limit(limit int) *QueryBuilder {
 	q.limit = &limit
 
 	return q
 }
 
-func (q *QueryPart) Offset(offset int) *QueryPart {
+func (q *QueryBuilder) Offset(offset int) *QueryBuilder {
 	q.offset = &offset
 
 	return q
 }
 
-func (q *QueryPart) ToSQL() (string, []interface{}, error) {
+func (q *QueryBuilder) ToSQL() (string, []interface{}, errors.Error) {
 	return q.toSQLArgBase(1)
 }
 
-func (q *QueryPart) toSQLArgBase(argBase int) (string, []interface{}, error) {
+func (q *QueryBuilder) toSQLArgBase(argBase int) (string, []interface{}, errors.Error) {
 	var query string
 	var args []interface{}
 
@@ -118,7 +119,7 @@ func (q *QueryPart) toSQLArgBase(argBase int) (string, []interface{}, error) {
 	query += q.base[searchFromIndex:]
 
 	if argsFound != len(q.args) {
-		return "", nil, fmt.Errorf("expected %d args, got %d", argsFound, len(q.args))
+		return "", nil, errors.New(fmt.Sprintf("expected %d args, got %d", argsFound, len(q.args)))
 	}
 
 	args = append(args, q.args...)

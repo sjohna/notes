@@ -7,6 +7,7 @@ import (
 	c "github.com/sjohna/go-server-common/repo"
 	"golang.org/x/sync/errgroup"
 	"notes/common"
+	"notes/utilities"
 	"time"
 )
 
@@ -96,9 +97,7 @@ var allowedSortColumns = []string{
 	"inserted_at",
 }
 
-func appendSortParameters(query string, parameters common.NoteQueryParameters) (string, errors.Error) {
-	newQuery := query
-
+func appendSortParameters(query *utilities.QueryBuilder, parameters common.NoteQueryParameters) errors.Error {
 	if parameters.SortBy.Valid {
 		var sortColumn string
 		for _, allowedCol := range allowedSortColumns {
@@ -110,28 +109,26 @@ func appendSortParameters(query string, parameters common.NoteQueryParameters) (
 
 		if len(sortColumn) == 0 {
 			// TODO: custom error for this
-			return "", errors.New(fmt.Sprintf("Invalid sortBy: %s", parameters.SortBy.String))
+			return errors.New(fmt.Sprintf("Invalid sortBy: %s", parameters.SortBy.String))
 		}
 
-		sortDirection := " desc"
+		var sortDirection utilities.SortDirection = utilities.SortDescending
 		if parameters.SortDirection.Valid {
 			if parameters.SortDirection.String == "ascending" {
-				sortDirection = " asc"
+				sortDirection = utilities.SortAscending
 			} else if parameters.SortDirection.String == "descending" {
-				sortDirection = " desc"
+				sortDirection = utilities.SortDescending
 			} else {
-				return "", errors.New(fmt.Sprintf("Invalid sortDirection: %s", parameters.SortDirection.String))
+				return errors.New(fmt.Sprintf("Invalid sortDirection: %s", parameters.SortDirection.String))
 			}
 		}
 
-		sortQuery := fmt.Sprintf(" order by %s", sortColumn)
-		newQuery += sortQuery
-		newQuery += sortDirection
+		query.OrderBy(sortColumn, sortDirection)
 	} else {
-		newQuery += " order by document_time desc"
+		query.OrderBy("document_time", utilities.SortDescending)
 	}
 
-	return newQuery, nil
+	return nil
 }
 
 // TODO: pagination
@@ -149,7 +146,6 @@ func GetDocuments(dao c.DAO, parameters common.NoteQueryParameters) ([]*Document
 	return quickNotes, nil
 }
 
-// parameters only for sorting for now
 // TODO: handle sort parameters better
 func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParameters) ([]*Document, errors.Error) {
 	var documents []*Document
@@ -189,8 +185,7 @@ func GetDocumentsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParame
 }
 
 func getDocumentStructsByIDs(dao c.DAO, ids []int64, parameters common.NoteQueryParameters) ([]*Document, errors.Error) {
-	// language=SQL
-	SQL := `select document.id,
+	query := utilities.BaseQuery(`select document.id,
        document.type,
        document.created_at,
        document.created_at_precision,
@@ -214,16 +209,20 @@ from document
     where document_group.document_id = document.id
       and document_group.archived_at is null
     ) document_groups on true
-where document.id = any ($1)
-`
+where document.id = any ($?)`, pq.Array(ids))
 
-	SQL, err := appendSortParameters(SQL, parameters)
+	err := appendSortParameters(query, parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	sql, args, err := query.ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
 	documents := make([]*Document, 0)
-	err = dao.Select(&documents, SQL, pq.Array(ids))
+	err = dao.Select(&documents, sql, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -231,28 +230,24 @@ where document.id = any ($1)
 	return documents, nil
 }
 
-func getQueryAndArgs(parameters common.NoteQueryParameters) (string, []interface{}) {
-	// TODO: see if there's a better way to build up this query
-	// TODO: probably should use exists subqueries to see if document has tag/group, instead of select distinct ... join
-	// language=SQL
-	SQL := `select distinct document.id
-from document
-         left join document_tag on document.id = document_tag.document_id and document_tag.archived_at is null
-		 left join document_group on document_group.document_group_id = document.id and document_group.archived_at is null
-where document.document_time between coalesce($1, '-infinity'::timestamptz) and coalesce($2, 'infinity'::timestamptz) -- TODO: handle querying based on other timestamps
-  and ($3 is false or document_tag.tag_id = any ($4))
-  and ($7 is false or document_group.document_group_id = any ($8))
-except
-select distinct document.id
-from document
-         left join document_tag on document.id = document_tag.document_id and document_tag.archived_at is null
-where document.document_time between coalesce($1, '-infinity'::timestamptz) and coalesce($2, 'infinity'::timestamptz) -- TODO: handle querying based on other timestamps
-  and ($5 is true and document_tag.tag_id = any ($6))`
+func documentIDQuery(parameters common.NoteQueryParameters) (string, []interface{}, errors.Error) {
+	query := utilities.BaseQuery("select document.id from document")
+	// TODO: archived_at/deleted_at when applicable
 
-	includeTags := make([]int64, 0)
-	excludeTags := make([]int64, 0)
+	if parameters.EndTime.Valid {
+		// TODO: filter by other time fields
+		query.Where("document.document_time <= $?", parameters.EndTime.Time)
+	}
 
-	if parameters.Tags != nil {
+	if parameters.StartTime.Valid {
+		// TODO: filter by other time fields
+		query.Where("document.document_time >= $?", parameters.StartTime.Time)
+	}
+
+	if len(parameters.Tags) > 0 {
+		includeTags := make([]int64, 0)
+		excludeTags := make([]int64, 0)
+
 		for _, tagFilter := range parameters.Tags {
 			if tagFilter.Exclude {
 				excludeTags = append(excludeTags, tagFilter.Tag)
@@ -260,27 +255,86 @@ where document.document_time between coalesce($1, '-infinity'::timestamptz) and 
 				includeTags = append(includeTags, tagFilter.Tag)
 			}
 		}
+
+		if len(includeTags) > 0 {
+			query.Where(`exists (select 1 from document_tag where document_tag.archived_at is null and document_tag.document_id = document.id and document_tag.tag_id = any($?) limit 1)`, pq.Array(includeTags))
+		}
+
+		if len(excludeTags) > 0 {
+			query.Where(`not exists (select 1 from document_tag where document_tag.archived_at is null and document_tag.document_id = document.id and document_tag.tag_id = any($?) limit 1)`, pq.Array(excludeTags))
+		}
 	}
 
-	args := []interface{}{
-		parameters.StartTime,
-		parameters.EndTime,
-		len(includeTags) > 0,
-		pq.Array(includeTags),
-		len(excludeTags) > 0,
-		pq.Array(excludeTags),
-		len(parameters.Groups) > 0,
-		pq.Array(parameters.Groups),
+	if len(parameters.Groups) > 0 {
+		query.Where("exists (select 1 from document_group where document_group.archived_at is null and document_group.document_id = document.id and document_group.group_id = any($?) limit 1)", pq.Array(parameters.Groups))
 	}
 
-	return SQL, args
+	if parameters.Pagination != nil {
+		offset := (parameters.Pagination.PageNumber - 1) * parameters.Pagination.ItemsPerPage
+		query.Limit(parameters.Pagination.ItemsPerPage).Offset(offset)
+	}
+
+	err := appendSortParameters(query, parameters)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return query.ToSQL()
 }
 
+//func getQueryAndArgs(parameters common.NoteQueryParameters) (string, []interface{}) {
+//	// TODO: see if there's a better way to build up this query
+//	// TODO: probably should use exists subqueries to see if document has tag/group, instead of select distinct ... join
+//	// language=SQL
+//	SQL := `select distinct document.id
+//from document
+//         left join document_tag on document.id = document_tag.document_id and document_tag.archived_at is null
+//		 left join document_group on document_group.document_group_id = document.id and document_group.archived_at is null
+//where document.document_time between coalesce($1, '-infinity'::timestamptz) and coalesce($2, 'infinity'::timestamptz) -- TODO: handle querying based on other timestamps
+//  and ($3 is false or document_tag.tag_id = any ($4))
+//  and ($7 is false or document_group.document_group_id = any ($8))
+//except
+//select distinct document.id
+//from document
+//         left join document_tag on document.id = document_tag.document_id and document_tag.archived_at is null
+//where document.document_time between coalesce($1, '-infinity'::timestamptz) and coalesce($2, 'infinity'::timestamptz) -- TODO: handle querying based on other timestamps
+//  and ($5 is true and document_tag.tag_id = any ($6))`
+//
+//	includeTags := make([]int64, 0)
+//	excludeTags := make([]int64, 0)
+//
+//	if parameters.Tags != nil {
+//		for _, tagFilter := range parameters.Tags {
+//			if tagFilter.Exclude {
+//				excludeTags = append(excludeTags, tagFilter.Tag)
+//			} else {
+//				includeTags = append(includeTags, tagFilter.Tag)
+//			}
+//		}
+//	}
+//
+//	args := []interface{}{
+//		parameters.StartTime,
+//		parameters.EndTime,
+//		len(includeTags) > 0,
+//		pq.Array(includeTags),
+//		len(excludeTags) > 0,
+//		pq.Array(excludeTags),
+//		len(parameters.Groups) > 0,
+//		pq.Array(parameters.Groups),
+//	}
+//
+//	return SQL, args
+//}
+
 func GetDocumentIDsMatchingFilter(dao c.DAO, parameters common.NoteQueryParameters) ([]int64, errors.Error) {
-	SQL, args := getQueryAndArgs(parameters)
+	SQL, args, err := documentIDQuery(parameters)
+	if err != nil {
+		return nil, err
+	}
 
 	documentIDs := make([]int64, 0)
-	err := dao.Select(&documentIDs, SQL, args...)
+	err = dao.Select(&documentIDs, SQL, args...)
 	if err != nil {
 		return nil, err
 	}

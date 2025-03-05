@@ -58,7 +58,7 @@ func (svc *TagService) GetSingleTag(ctx context.Context, tagID int64) (*TagDetai
 			Tags: []common.TagQueryParameter{
 				{
 					tagID,
-					true,
+					false,
 				},
 			},
 		}
