@@ -5,6 +5,7 @@ import {DocumentFilterService} from "./documentFilterService";
 import {Tag} from "./tagService";
 import {Group} from "./groupService";
 import {AuthService} from "./authService";
+import {APIData, Default, FromData, FromError, InProgress} from "./apiData";
 
 export interface Document {
     latestVersion: NoteContent;
@@ -17,13 +18,6 @@ export interface Document {
     type: string;
     tags?: Tag[];               // TODO: minimal types for these...
     groups?: Group[];
-}
-
-export interface DocumentQueryParameters {
-    startTime?: string;
-    endTime?: string;
-    sortBy?: string;
-    sortDirection?: string;
 }
 
 export interface TagQueryParameter {
@@ -83,8 +77,8 @@ interface NoteContent {
 export class NoteService {
     private close$$ = new Subject<boolean>();
 
-    private notes$$ = new BehaviorSubject<Document[]>([]);
-    public notes$: Observable<Document[]> = this.notes$$.pipe(takeUntil(this.close$$), shareReplay(1));
+    private notes$$ = new BehaviorSubject<APIData<Document[]>>(Default());
+    public notes$: Observable<APIData<Document[]>> = this.notes$$.pipe(takeUntil(this.close$$), shareReplay(1));
 
     private currentNote$$ = new BehaviorSubject<NoteDetails>(null);
     public currentNote$: Observable<NoteDetails> = this.currentNote$$.pipe(takeUntil(this.close$$), shareReplay(1));
@@ -109,11 +103,16 @@ export class NoteService {
     public async get() {
         const parameters = await lastValueFrom(this.parameters$.pipe(take(1)));
 
-        this.authService.post(`${environment.apiUrl}/note`, parameters.toBody())
-            .then(async (response) => {
-                this.notes$$.next((await response.json() as GetNotesResponse).documents);
-            } )
-            .catch(err => console.log(err)) // TODO: error handling
+        this.notes$$.next(InProgress())
+
+        // TODO: test errors by killing the server in the middle of this call
+        const response = await this.authService.postResp<GetNotesResponse>(`${environment.apiUrl}/note`, parameters.toBody());
+
+        if (response.error) {
+            this.notes$$.next(FromError(response.error))
+        } else {
+            this.notes$$.next(FromData(response.response.documents))
+        }
     }
 
     public async getNote(id: number) {

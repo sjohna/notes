@@ -1,7 +1,6 @@
 import {BehaviorSubject, shareReplay} from "rxjs";
 import {AuthService} from "./authService";
 import {environment} from "../environment/environment";
-import {Group} from "./groupService";
 
 export interface GeneralInfo {
     name: string;

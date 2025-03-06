@@ -300,6 +300,26 @@ export class RootedComponentBase<E extends HTMLElement> extends ComponentBase {
         return this;
     }
 
+    public borderTop(s: string): this {
+        this.el.style.borderTop = s;
+        return this;
+    }
+
+    public borderBottom(s: string): this {
+        this.el.style.borderBottom = s;
+        return this;
+    }
+
+    public borderLeft(s: string): this {
+        this.el.style.borderLeft = s;
+        return this;
+    }
+
+    public borderRight(s: string): this {
+        this.el.style.borderRight = s;
+        return this;
+    }
+
     public visibility(s: string): this {
         this.el.style.visibility = s;
         return this;

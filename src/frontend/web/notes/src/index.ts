@@ -11,7 +11,8 @@ initServices();
 
 const topLevelContainer = flexColumn()
     .inElement(document.body)
-    .height('100%');
+    .height('100%')
+    .overflowY('auto'); // TODO: make it so the sidebar doesn't scroll...
 
 const documentFilters = new DocumentFilterService();
 documentFilters.filter.sortBy = 'document_time';

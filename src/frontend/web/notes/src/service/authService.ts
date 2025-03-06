@@ -2,6 +2,7 @@ import {environment} from "../environment/environment";
 import {TagService} from "./tagService";
 import {GroupService} from "./groupService";
 import {BehaviorSubject, combineLatest, distinctUntilChanged, filter, map, Observable, Subject} from "rxjs";
+import {APIData, APIResponse} from "./apiData";
 
 export class AuthService {
     private loggedIn$$ = new BehaviorSubject<boolean>(false);
@@ -16,8 +17,8 @@ export class AuthService {
         const token = localStorage.getItem('authToken');
 
         if (token) {
+            // TODO: how does this get the token if we're not initially logged in?
             console.log('Initially logged in')
-            console.log('token', token)
             this.token = token;
 
             this.loggedIn$$.next(true);
@@ -54,6 +55,35 @@ export class AuthService {
         this.loggedIn$$.next(false);
     }
 
+    private handleError(url: string, response: Response) {
+        if (response.status === 401) {
+            console.log('Unauthorized, flagging as logged out')
+            if (this.loggedIn$$.value) {
+                this.loggedIn$$.next(false);
+                this.forceLogout$$.next(null);
+            }
+        }
+
+        // TODO: handle errors here
+        throw new Error(`Error posting to ${url}: ${response.status} ${response.statusText}`);
+    }
+
+    private handleErrorResp<T>(response: Response): APIResponse<T> {
+        if (response.status === 401) {
+            console.log('Unauthorized, flagging as logged out')
+            if (this.loggedIn$$.value) {
+                this.loggedIn$$.next(false);
+                this.forceLogout$$.next(null);
+            }
+        }
+
+        // TODO: handle errors here
+        return {
+            response: null,
+            error: response.statusText,
+        }
+    }
+
     // TODO: combine post and get
     public async post(url: string, body?: any): Promise<Response> {
         const response = await fetch(url, {
@@ -69,16 +99,28 @@ export class AuthService {
             return response;
         }
 
-        if (response.status === 401) {
-            console.log('Unauthorized, flagging as logged out')
-            if (this.loggedIn$$.value) {
-                this.loggedIn$$.next(false);
-                this.forceLogout$$.next(null);
+        this.handleError(url, response);
+    }
+
+    public async postResp<T>(url: string, body?: any): Promise<APIResponse<T>> {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+            },
+        });
+
+        if (response.ok) {
+            const responseData = await response.json() as T;
+            return {
+                response: responseData,
+                error: null,
             }
         }
 
-        // TODO: handle errors here
-        throw new Error(`Error posting to ${url}: ${response.status} ${response.statusText}`);
+        return this.handleErrorResp(response);
     }
 
     public async get(url: string): Promise<Response> {
@@ -94,16 +136,7 @@ export class AuthService {
             return response;
         }
 
-        if (response.status === 401) {
-            console.log('Unauthorized, flagging as logged out')
-            if (this.loggedIn$$.value) {
-                this.loggedIn$$.next(false);
-                this.forceLogout$$.next(null);
-            }
-        }
-
-        // TODO: handle errors here
-        throw new Error(`Error posting to ${url}: ${response.status} ${response.statusText}`);
+        this.handleError(url, response);
     }
 
     public isLoggedIn(): boolean {

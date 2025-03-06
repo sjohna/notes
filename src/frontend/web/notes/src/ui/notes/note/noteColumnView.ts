@@ -5,6 +5,7 @@ import {CompositeComponentBase, div, Div, hr, span, ValueComponent} from "../../
 import {unsubscribe} from "../../../utility/subscription";
 import {labelledCheckBox} from "../../component/labeledCheckbox";
 import {services} from "../../../service/services";
+import {APIData} from "../../../service/apiData";
 
 export class NoteColumnView extends CompositeComponentBase {
     private noteContainer?: Div;
@@ -21,22 +22,49 @@ export class NoteColumnView extends CompositeComponentBase {
             });
 
         this.noteContainer = div()
+            .overflowY('auto')  // TODO: figure out scrolling...
             .in(this.root);
 
         this.onTeardown(unsubscribe(services.noteService.notes$.subscribe(notes => this.renderNotes(notes))));
-        services.noteService.get();
+        void services.noteService.get();
     }
 
-    private renderNotes(notes?: Document[]) {
+    private renderNotes(notes: APIData<Document[]>) {
         this.noteContainer.clear();
 
-        if (!notes) {
+        if (notes.inProgress) {
+            const keyframes = [
+                {
+                    transform: 'rotate(0deg)',
+                },
+                {
+                    transform: 'rotate(360deg)'
+                }
+            ];
+
+            const loader = div()
+                .border('16px solid #f3f3f3')
+                .borderTop('16px solid #3498db')
+                .borderRadius('50%')
+                .width('120px')
+                .height('120px')
+                .in(this.noteContainer);
+
+            loader.rootElement.animate(keyframes, {
+                duration: 5000,
+                iterations: Infinity,
+            })
+
+            return;
+        }
+
+        if (!notes.data) {
             return;
         }
 
         let lastDate: string | undefined;
 
-        for (let note of notes) {
+        for (let note of notes.data) {
             const createdDateTime = ZonedDateTime.parse(note.documentTime).withZoneSameInstant(ZoneId.of('America/Denver'));
             const createdDate = createdDateTime.format(DateTimeFormatter.ofPattern('y-M-d'))
             if (createdDate !== lastDate) {
