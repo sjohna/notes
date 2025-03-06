@@ -6,6 +6,7 @@ import {unsubscribe} from "../../../utility/subscription";
 import {labelledCheckBox} from "../../component/labeledCheckbox";
 import {services} from "../../../service/services";
 import {APIData} from "../../../service/apiData";
+import {loading} from "../../../utility/loading";
 
 export class NoteColumnView extends CompositeComponentBase {
     private noteContainer?: Div;
@@ -33,27 +34,7 @@ export class NoteColumnView extends CompositeComponentBase {
         this.noteContainer.clear();
 
         if (notes.inProgress) {
-            const keyframes = [
-                {
-                    transform: 'rotate(0deg)',
-                },
-                {
-                    transform: 'rotate(360deg)'
-                }
-            ];
-
-            const loader = div()
-                .border('16px solid #f3f3f3')
-                .borderTop('16px solid #3498db')
-                .borderRadius('50%')
-                .width('120px')
-                .height('120px')
-                .in(this.noteContainer);
-
-            loader.rootElement.animate(keyframes, {
-                duration: 5000,
-                iterations: Infinity,
-            })
+            loading('Fetching Notes').in(this.noteContainer);
 
             return;
         }
