@@ -2,7 +2,7 @@ import {environment} from "../environment/environment";
 import {TagService} from "./tagService";
 import {GroupService} from "./groupService";
 import {BehaviorSubject, combineLatest, distinctUntilChanged, filter, map, Observable, Subject} from "rxjs";
-import {APIData, APIResponse} from "./apiData";
+import {APIData, APIResponse, FromError} from "./apiData";
 
 export class AuthService {
     private loggedIn$$ = new BehaviorSubject<boolean>(false);
@@ -103,24 +103,33 @@ export class AuthService {
     }
 
     public async postResp<T>(url: string, body?: any): Promise<APIResponse<T>> {
-        const response = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify(body),
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.token}`
-            },
-        });
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify(body),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+            });
 
-        if (response.ok) {
-            const responseData = await response.json() as T;
-            return {
-                response: responseData,
-                error: null,
+            if (response.ok) {
+                const responseData = await response.json() as T;
+                return {
+                    response: responseData,
+                    error: null,
+                }
+            }
+
+            return this.handleErrorResp(response);
+        } catch (err: any) {
+            if (err instanceof Error) {
+                // TODO: other error handling here, probably
+                return FromError((err as Error).message);
+            } else {
+                return FromError("Unknown error occurred");
             }
         }
-
-        return this.handleErrorResp(response);
     }
 
     public async get(url: string): Promise<Response> {

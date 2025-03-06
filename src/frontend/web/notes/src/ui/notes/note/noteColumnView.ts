@@ -39,6 +39,12 @@ export class NoteColumnView extends CompositeComponentBase {
             return;
         }
 
+        if (notes.error) {
+            div(`Error loading notes: ${notes.error}`).in(this.noteContainer);
+
+            return;
+        }
+
         if (!notes.data) {
             return;
         }
