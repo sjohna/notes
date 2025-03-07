@@ -5,7 +5,7 @@ import {DocumentFilterService} from "./documentFilterService";
 import {Tag} from "./tagService";
 import {Group} from "./groupService";
 import {AuthService} from "./authService";
-import {APIData, Default, FromData, FromError, InProgress} from "./apiData";
+import {APIData, Default, FromData, FromError, FromErrorOrData, InProgress} from "./apiData";
 
 export interface Document {
     latestVersion: NoteContent;
@@ -80,11 +80,11 @@ export class NoteService {
     private notes$$ = new BehaviorSubject<APIData<Document[]>>(Default());
     public notes$: Observable<APIData<Document[]>> = this.notes$$.pipe(takeUntil(this.close$$), shareReplay(1));
 
-    private currentNote$$ = new BehaviorSubject<NoteDetails>(null);
-    public currentNote$: Observable<NoteDetails> = this.currentNote$$.pipe(takeUntil(this.close$$), shareReplay(1));
+    private currentNote$$ = new BehaviorSubject<APIData<NoteDetails>>(null);
+    public currentNote$: Observable<APIData<NoteDetails>> = this.currentNote$$.pipe(takeUntil(this.close$$), shareReplay(1));
 
-    private currentNoteVersion$$ = new BehaviorSubject<NoteContent>(null);
-    public currentNoteVersion$: Observable<NoteContent> = this.currentNoteVersion$$.pipe(takeUntil(this.close$$), shareReplay(1));
+    private currentNoteVersion$$ = new BehaviorSubject<APIData<NoteContent>>(null);
+    public currentNoteVersion$: Observable<APIData<NoteContent>> = this.currentNoteVersion$$.pipe(takeUntil(this.close$$), shareReplay(1));
 
     private parameters$: Observable<NoteQueryParameters>;
 
@@ -104,35 +104,20 @@ export class NoteService {
         const parameters = await lastValueFrom(this.parameters$.pipe(take(1)));
 
         this.notes$$.next(InProgress())
-
-        // TODO: test errors by killing the server in the middle of this call
         const response = await this.authService.postResp<GetNotesResponse>(`${environment.apiUrl}/note`, parameters.toBody());
-
-        if (response.error) {
-            this.notes$$.next(FromError(response.error))
-        } else {
-            this.notes$$.next(FromData(response.response.documents))
-        }
+        this.notes$$.next(FromErrorOrData(response.error, response.response.documents))
     }
 
     public async getNote(id: number) {
-        this.currentNote$$.next(null);
-
-        this.authService.get(`${environment.apiUrl}/note/${id}`)
-            .then(async (response) => {
-                this.currentNote$$.next((await response.json() as NoteDetails))
-            })
-            .catch(err => console.log(err))
+        this.currentNote$$.next(InProgress());
+        const response = await this.authService.getResp<NoteDetails>(`${environment.apiUrl}/note/${id}`);
+        this.currentNote$$.next(FromErrorOrData(response.error, response.response))
     }
 
     public async getNoteVersion(noteID: number, version: number) {
-        this.currentNoteVersion$$.next(null);
-
-        this.authService.get(`${environment.apiUrl}/note/${noteID}/version/${version}`)
-            .then(async (response) => {
-                this.currentNoteVersion$$.next((await response.json() as NoteContent))
-            })
-            .catch(err => console.log(err))
+        this.currentNoteVersion$$.next(InProgress());
+        const response = await this.authService.getResp<NoteContent>(`${environment.apiUrl}/note/${noteID}/${version}`);
+        this.currentNoteVersion$$.next(FromErrorOrData(response.error, response.response))
     }
 
     public createNote(content: string) {

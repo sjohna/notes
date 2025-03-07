@@ -37,32 +37,33 @@ export class NoteView extends CompositeComponentBase {
         this.onTeardown(unsubscribe(
             services.noteService.currentNote$.subscribe(    // TODO: simple filter for not null for all subscriptions like this
                 (note) => {
+                    // TODO: handle in progress and error
                     if (note) {
                         console.log('Rendering note', note)
-                        let selectedVersion = version || note.versionHistory.length
+                        let selectedVersion = version || note.data.versionHistory.length
 
                         // TODO: maybe another component for this?
                         this.noteContainer = flexColumn()
                             .in(this.root)
 
-                        div('Created at ' + note.document.createdAt).in(this.noteContainer)
+                        div('Created at ' + note.data.document.createdAt).in(this.noteContainer)
                         div('Updated at ' + '<gotta implement this>').in(this.noteContainer)
-                        div('Current Version: ' + note.versionHistory.length).in(this.noteContainer)
+                        div('Current Version: ' + note.data.versionHistory.length).in(this.noteContainer)
 
                         if (version) {
                             div('Back to latest version')
                                 .onclick(() => {
-                                    services.navService.navigate('note', note.document.id, null)
+                                    services.navService.navigate('note', note.data.document.id, null)
                                 })
                         }
 
-                        for (const version of note.versionHistory) {
+                        for (const version of note.data.versionHistory) {
                             const versionDiv = div(version.createdAt + ': ' + version.contentLength + ' bytes')
                             if(version.version === selectedVersion) {
                                 versionDiv.background('gray')
                             } else {
                                 versionDiv.onclick(() => {
-                                    services.navService.navigate('note', note.document.id, version.version)
+                                    services.navService.navigate('note', note.data.document.id, version.version)
                                 })
                                     .cursor('pointer')
                             }
@@ -71,16 +72,17 @@ export class NoteView extends CompositeComponentBase {
                         }
 
                         if (!version) {
-                            new NoteCardView(note.document).in(this.noteContainer)
+                            new NoteCardView(note.data.document).in(this.noteContainer)
                         } else {
                             // TODO: state management
-                            services.noteService.getNoteVersion(note.document.id, version)
+                            services.noteService.getNoteVersion(note.data.document.id, version)
 
                             this.onTeardown(unsubscribe(services.noteService.currentNoteVersion$.subscribe(
                                 (version) => {
+                                    // TODO: handle in progress and error
                                     if (version) {
-                                        div('Version ' + version.version + ' created at ' + version.createdAt).in(this.noteContainer)
-                                        div(version.content)
+                                        div('Version ' + version.data.version + ' created at ' + version.data.createdAt).in(this.noteContainer)
+                                        div(version.data.content)
                                             .width('300px')
                                             .in(this.noteContainer)
                                     }

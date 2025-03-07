@@ -41,3 +41,11 @@ export function FromError<T>(error: string): APIData<T> {
         error,
     }
 }
+
+export function FromErrorOrData<T>(error?: string, data?: T): APIData<T> {
+    if (error) {
+        return FromError(error);
+    }
+
+    return FromData(data);
+}

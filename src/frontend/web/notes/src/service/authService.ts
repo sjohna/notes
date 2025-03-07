@@ -148,6 +148,35 @@ export class AuthService {
         this.handleError(url, response);
     }
 
+    public async getResp<T>(url: string): Promise<APIResponse<T>> {
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+            });
+
+            if (response.ok) {
+                const responseData = await response.json() as T;
+                return {
+                    response: responseData,
+                    error: null,
+                }
+            }
+
+            return this.handleErrorResp(response);
+        } catch (err: any) {
+            if (err instanceof Error) {
+                // TODO: other error handling here, probably
+                return FromError((err as Error).message);
+            } else {
+                return FromError("Unknown error occurred");
+            }
+        }
+    }
+
     public isLoggedIn(): boolean {
         return this.loggedIn$$.value;
     }
