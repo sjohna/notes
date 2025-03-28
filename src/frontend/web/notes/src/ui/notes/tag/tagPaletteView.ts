@@ -11,6 +11,7 @@ import {
     inlineFlexColumn,
 } from "../../../utility/component";
 import {unsubscribe} from "../../../utility/subscription";
+import {APIData} from "../../../service/apiData";
 
 const tagSearchOptions = {
     keys: ['name']
@@ -46,9 +47,11 @@ export class TagPaletteView extends CompositeComponentBase {
         }
     }
 
-    private tagsUpdated(tags: Tag[]) {
-        this.unfilteredTags = tags;
-        this.tagFuse = new Fuse(tags, tagSearchOptions);
+    private tagsUpdated(tags: APIData<Tag[]>) {
+        // TODO: in progress and error
+
+        this.unfilteredTags = tags.data;
+        this.tagFuse = new Fuse(tags.data, tagSearchOptions);
         if (this.tagFuse && this.search) {
             const filteredTags = this.tagFuse.search(this.search).map((r) => r.item)
             this.renderTags(filteredTags)

@@ -4,6 +4,7 @@ import {button, CompositeComponentBase, Div, div, ValueComponent} from "../../..
 import {unsubscribe} from "../../../utility/subscription";
 import {labelledTextBox} from "../../component/labeledTextInput";
 import {services} from "../../../service/services";
+import {APIData} from "../../../service/apiData";
 
 export class GroupListView extends CompositeComponentBase {
     constructor() {
@@ -42,10 +43,12 @@ export class GroupListView extends CompositeComponentBase {
         services.groupService.createGroup(this.groupName.getValue(), this.groupDescription.getValue() ?? undefined);
     }
 
-    private renderGroups(groups: Group[]) {
+    private renderGroups(groups: APIData<Group[]>) {
         this.groupListContainer.clear();
 
-        for (const group of groups) {
+        // TODO: loading and error
+
+        for (const group of groups.data) {
             groupCardView(group).in(this.groupListContainer)
         }
     }

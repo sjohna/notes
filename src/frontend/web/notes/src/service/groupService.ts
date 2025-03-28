@@ -3,6 +3,7 @@ import {Document, NoteService} from "./noteService";
 import {environment} from "../environment/environment";
 import {DOCUMENT_METADATA_UPDATE_ADD, DOCUMENT_METADATA_UPDATE_REMOVE} from "./tagService";
 import {AuthService} from "./authService";
+import {APIData, Default, FromErrorOrData, InProgress} from "./apiData";
 
 export interface Group {
     id: number;
@@ -14,7 +15,7 @@ export interface Group {
 }
 
 export class GroupService {
-    private groups$$ = new BehaviorSubject<Group[]>([]);
+    private groups$$ = new BehaviorSubject<APIData<Group[]>>(Default());
     public groups$ = this.groups$$.pipe(shareReplay(1));
 
     constructor(
@@ -22,10 +23,12 @@ export class GroupService {
         private authService: AuthService,
     ) {}
 
-    public get() {
-        this.authService.post(`${environment.apiUrl}/group`)
-            .then(async response => this.groups$$.next(await response.json() as Group[]))
-            .catch(err => console.log(err))
+    public async get() {
+        this.groups$$.next(InProgress())
+
+        // TODO: should this be a response struct?
+        const response = await this.authService.postResp<Group[]>(`${environment.apiUrl}/group`)
+        this.groups$$.next(FromErrorOrData(response.error, response.response))  // TODO: I don't like response.response everywhere...
     }
 
     public createGroup(name: string, description?: string) {

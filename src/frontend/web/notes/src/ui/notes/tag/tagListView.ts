@@ -4,6 +4,7 @@ import {button, CompositeComponentBase, div, Div, ValueComponent} from "../../..
 import {unsubscribe} from "../../../utility/subscription";
 import {labelledTextBox} from "../../component/labeledTextInput";
 import {services} from "../../../service/services";
+import {APIData} from "../../../service/apiData";
 
 export class TagListView extends CompositeComponentBase {
     private tagListContainer: Div;
@@ -42,10 +43,12 @@ export class TagListView extends CompositeComponentBase {
         services.tagService.createTag(this.tagName.getValue(), this.tagDescription.getValue() ?? undefined);
     }
 
-    private renderTags(tags: Tag[]) {
+    private renderTags(tags: APIData<Tag[]>) {
         this.tagListContainer.clear();
 
-        for (const tag of tags) {
+        // TODO: in progress and error
+
+        for (const tag of tags.data) {
             this.tagListContainer.withChild(tagView(tag));
         }
     }

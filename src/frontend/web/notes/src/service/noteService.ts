@@ -86,6 +86,7 @@ export class NoteService {
     private currentNoteVersion$$ = new BehaviorSubject<APIData<NoteContent>>(null);
     public currentNoteVersion$: Observable<APIData<NoteContent>> = this.currentNoteVersion$$.pipe(takeUntil(this.close$$), shareReplay(1));
 
+    // TODO: ditch the filter service and just handle this here
     private parameters$: Observable<NoteQueryParameters>;
 
     private sub: Subscription;

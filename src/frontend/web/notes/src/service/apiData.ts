@@ -1,3 +1,4 @@
+// TODO: can I unify APIResponse and APIData
 export interface APIResponse<T> {
     response?: T;
     error?: string;

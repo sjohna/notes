@@ -3,6 +3,7 @@ import {environment} from "../environment/environment";
 import {NoteService} from "./noteService";
 import {Document} from "./noteService";
 import {AuthService} from "./authService";
+import {APIData, Default, FromErrorOrData, InProgress} from "./apiData";
 
 export const DOCUMENT_METADATA_UPDATE_ADD = 1;
 export const DOCUMENT_METADATA_UPDATE_REMOVE = 2;
@@ -17,7 +18,7 @@ export interface Tag {
 }
 
 export class TagService {
-    private tags$$ = new BehaviorSubject<Tag[]>([]);
+    private tags$$ = new BehaviorSubject<APIData<Tag[]>>(Default());
     public tags$ = this.tags$$.pipe(shareReplay(1));
 
     constructor(
@@ -25,10 +26,10 @@ export class TagService {
         private authService: AuthService,
     ) {}
 
-    public get() {
-        this.authService.post(`${environment.apiUrl}/tag`)
-            .then(async response => this.tags$$.next(await response.json() as Tag[]))
-            .catch(err => console.log(err))
+    public async get() {
+        this.tags$$.next(InProgress())
+        const response = await this.authService.postResp<Tag[]>(`${environment.apiUrl}/tag`)
+        this.tags$$.next(FromErrorOrData(response.error, response.response))
     }
 
     public createTag(name: string, description?: string) {

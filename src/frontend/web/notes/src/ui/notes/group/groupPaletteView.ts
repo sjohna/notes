@@ -15,17 +15,14 @@ export class GroupPaletteView extends ElementComponent<HTMLDivElement> {
     constructor() {
         super(document.createElement('div'));
 
-        this.groups$ = services.groupService.groups$;
-
         this.groupListContainer = inlineFlexColumn()
             .in(this)   // TODO: I hate this too...
             .height('100%')
             .width('100%');
 
-        this.onTeardown(unsubscribe(this.groups$.subscribe((groups) => this.groupsUpdated(groups))));
+        this.onTeardown(unsubscribe(services.groupService.groups$.subscribe((groups) => this.groupsUpdated(groups.data)))); // TODO: don't like the
     }
 
-    private groups$: Observable<Group[]>;
     private groupListContainer: Div;
     private groupFuse: Fuse<Group>;
     private unfilteredGroups: Group[];
